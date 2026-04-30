@@ -154,8 +154,21 @@ class SepaScraper(ScraperBase):
                 return n
         return None
 
+    def _convertir_a_kg(self, precio: float, cantidad: float, unidad: str) -> float | None:
+        """Convierte precio del paquete a precio por kilogramo."""
+        if cantidad <= 0:
+            return None
+        u = unidad.lower().strip()
+        if u in ("kg", "kgr", "kgs"):
+            return precio / cantidad
+        if u in ("g", "gr", "grs", "gramos"):
+            return precio * 1000 / cantidad
+        # Para otros (ltr, un, cmq) en general no aplica a carne — descartamos
+        return None
+
     def _procesar_comercio_zip(self, sub_data: bytes, sub_name: str) -> list[PrecioRelevado]:
-        """Procesa el ZIP interno de UN comercio."""
+        """Procesa el ZIP interno de UN comercio. SEPA actual: productos.csv tiene
+        descripcion + precio_lista en una sola tabla, por sucursal."""
         try:
             zf = zipfile.ZipFile(io.BytesIO(sub_data))
         except zipfile.BadZipFile:
@@ -163,20 +176,18 @@ class SepaScraper(ScraperBase):
 
         f_comercio = self._find_csv(zf, "comercio")
         f_productos = self._find_csv(zf, "productos", "producto")
-        f_precios = self._find_csv(zf, "precios", "precio")
 
-        if not (f_productos and f_precios):
+        if not f_productos:
             return []
 
-        # Detectar bandera del comercio
+        # Detectar bandera (cadena) leyendo comercio.csv
         bandera = None
         if f_comercio:
             try:
                 for row in self._open_csv(zf, f_comercio):
-                    nombre = (row.get("comercio_razon_social")
-                              or row.get("razon_social")
-                              or row.get("comercio_bandera_nombre")
-                              or row.get("comercio_nombre") or "")
+                    nombre = (row.get("comercio_bandera_nombre")
+                              or row.get("comercio_razon_social")
+                              or row.get("razon_social") or "")
                     bandera = _normalizar_bandera(nombre)
                     if bandera:
                         break
@@ -186,58 +197,68 @@ class SepaScraper(ScraperBase):
         if not bandera:
             return []
 
-        # Productos de carne en este comercio
-        productos_carne: dict[str, tuple[str, str]] = {}
+        # productos.csv: filtrar por carne, agrupar por id_producto
+        # (varias filas por producto, una por sucursal donde está)
+        bucket: dict[str, dict] = {}
+
         try:
             for row in self._open_csv(zf, f_productos):
-                pid = (row.get("id_producto") or row.get("producto_id") or "").strip()
-                nombre = (row.get("productos_descripcion")
-                          or row.get("producto_nombre")
-                          or row.get("descripcion") or "").strip()
-                if not pid or not nombre:
+                descripcion = (row.get("productos_descripcion") or "").strip()
+                if not descripcion:
                     continue
-                corte = normalizar(nombre)
-                if corte:
-                    productos_carne[pid] = (nombre, corte)
-        except Exception:
-            return []
-
-        if not productos_carne:
-            return []
-
-        # Precios → mediana por producto
-        bucket: dict[str, list[float]] = defaultdict(list)
-        try:
-            for row in self._open_csv(zf, f_precios):
-                pid = (row.get("id_producto") or row.get("producto_id") or "").strip()
-                if pid not in productos_carne:
+                corte = normalizar(descripcion)
+                if not corte:
                     continue
+
                 try:
-                    precio = float(row.get("productos_precio_lista")
-                                   or row.get("precio_lista")
-                                   or row.get("precio") or 0)
+                    precio = float(row.get("productos_precio_lista") or 0)
                 except (ValueError, TypeError):
                     continue
-                if precio > 100:
-                    bucket[pid].append(precio)
-        except Exception:
-            pass
+                if precio <= 100:
+                    continue
+
+                try:
+                    cantidad = float(row.get("productos_cantidad_presentacion") or 1)
+                except (ValueError, TypeError):
+                    cantidad = 1.0
+                unidad = row.get("productos_unidad_medida_presentacion") or "kg"
+
+                precio_kg = self._convertir_a_kg(precio, cantidad, unidad)
+                if precio_kg is None or precio_kg < 1000 or precio_kg > 200000:
+                    continue   # filtro de sanity para descartar ruido
+
+                pid = (row.get("id_producto") or descripcion).strip()
+                if pid not in bucket:
+                    bucket[pid] = {
+                        "nombre": descripcion,
+                        "corte": corte,
+                        "marca": (row.get("productos_marca") or "").strip() or None,
+                        "precios": [],
+                    }
+                bucket[pid]["precios"].append(precio_kg)
+        except Exception as e:
+            log.debug(f"[SEPA] error productos en {sub_name}: {e}")
+            return []
+
+        if not bucket:
+            return []
 
         ahora = datetime.now()
         resultados: list[PrecioRelevado] = []
-        for pid, precios in bucket.items():
-            if not precios:
+        for data in bucket.values():
+            if not data["precios"]:
                 continue
-            nombre, corte = productos_carne[pid]
             resultados.append(PrecioRelevado(
                 carniceria=bandera,
-                corte_original=nombre,
-                corte_normalizado=corte,
-                precio_kg=round(median(precios), 2),
+                corte_original=data["nombre"],
+                corte_normalizado=data["corte"],
+                precio_kg=round(median(data["precios"]), 2),
                 fecha=ahora,
                 segmento=SEGMENTOS.get(bandera, "commodity"),
                 url_fuente=SEPA_DATASET_URL,
+                marca=data["marca"],
             ))
+        log.debug(f"[SEPA] {bandera}: {len(resultados)} cortes en {sub_name}")
         return resultados
 
     def _procesar_zip(self, contenido: bytes) -> list[PrecioRelevado]:
