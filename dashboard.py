@@ -157,7 +157,7 @@ with st.sidebar:
         help="SEPA solo basta (cubre ~50 cadenas). Sumá otros si querés data extra.",
     )
 
-    if st.button("🚀 Relevar ahora", type="primary", width="stretch"):
+    if st.button("🚀 Relevar ahora", type="primary", use_container_width=True):
         if not seleccion:
             st.error("Elegí al menos un scraper.")
         else:
@@ -275,14 +275,14 @@ with tab_heatmap:
                 alt.Tooltip("segmento", title="Segmento"),
             ],
         ).properties(height=520)
-        st.altair_chart(chart, width="stretch")
+        st.altair_chart(chart, use_container_width=True)
 
         with st.expander("Ver tabla pivot"):
             st.dataframe(
                 pivot.style.format("${:,.0f}").background_gradient(
                     cmap="RdYlGn_r", axis=None
                 ),
-                width="stretch",
+                use_container_width=True,
             )
     else:
         st.info("Sin datos para el heatmap.")
@@ -307,7 +307,7 @@ with tab_tendencia:
                 alt.Tooltip("precio_kg", title="$/kg", format=",.0f"),
             ],
         ).properties(height=420, title=f"Tendencia {corte_sel}")
-        st.altair_chart(chart, width="stretch")
+        st.altair_chart(chart, use_container_width=True)
 
         st.markdown("**Variación en el período:**")
         rows = []
@@ -324,19 +324,24 @@ with tab_tendencia:
                 })
         if rows:
             st.dataframe(pd.DataFrame(rows).sort_values("Variación %"),
-                         width="stretch", hide_index=True)
+                         use_container_width=True, hide_index=True)
 
 
 with tab_ranking:
     st.subheader("Carnicería más barata por corte (último relevamiento)")
-    ranking = (df_hoy.groupby("corte")
-               .apply(lambda g: g.nsmallest(3, "precio_kg")[["carniceria", "precio_kg"]])
-               .reset_index(level=1, drop=True)
-               .reset_index())
-    if not ranking.empty:
-        ranking["precio_kg"] = ranking["precio_kg"].apply(lambda x: f"${x:,.0f}")
-        ranking.columns = ["Corte", "Cadena", "$/kg"]
-        st.dataframe(ranking, width="stretch", hide_index=True)
+    rows = []
+    for corte, grupo in df_hoy.groupby("corte"):
+        top3 = grupo.nsmallest(3, "precio_kg")
+        for _, r in top3.iterrows():
+            rows.append({
+                "Corte": corte,
+                "Cadena": r["carniceria"],
+                "$/kg": f"${r['precio_kg']:,.0f}",
+            })
+    if rows:
+        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    else:
+        st.info("Sin datos para el ranking.")
 
 
 with tab_alertas:
@@ -350,7 +355,7 @@ with tab_alertas:
         out["Anterior"] = out["Anterior"].apply(lambda x: f"${x:,.0f}")
         out["pct"] = out["pct"].round(1)
         out.columns = ["Cadena", "Corte", "Hoy", "Anterior", "Variación %"]
-        st.dataframe(out, width="stretch", hide_index=True)
+        st.dataframe(out, use_container_width=True, hide_index=True)
 
 
 with tab_salud:
@@ -371,7 +376,7 @@ with tab_salud:
                            "cortes_relevados", "duracion_s", "error"]]
         ultimas.columns = ["Estado", "Cadena", "Última corrida",
                            "Cortes", "Duración (s)", "Error"]
-        st.dataframe(ultimas, width="stretch", hide_index=True)
+        st.dataframe(ultimas, use_container_width=True, hide_index=True)
 
 
 st.caption(
