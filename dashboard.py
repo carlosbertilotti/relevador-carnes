@@ -278,12 +278,14 @@ with tab_heatmap:
         st.altair_chart(chart, use_container_width=True)
 
         with st.expander("Ver tabla pivot"):
-            st.dataframe(
-                pivot.style.format("${:,.0f}").background_gradient(
+            try:
+                styled = pivot.style.format("${:,.0f}").background_gradient(
                     cmap="RdYlGn_r", axis=None
-                ),
-                use_container_width=True,
-            )
+                )
+                st.dataframe(styled, use_container_width=True)
+            except Exception:
+                # Fallback sin styling si la versión de pandas no lo soporta
+                st.dataframe(pivot.round(0), use_container_width=True)
     else:
         st.info("Sin datos para el heatmap.")
 
