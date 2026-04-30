@@ -20,7 +20,7 @@ WHATSAPP_NUMERO = os.getenv("WHATSAPP_NUMERO", "")
 # Para Gmail: necesitás una "app password" (no tu contraseña normal).
 # Generar en: https://myaccount.google.com/apppasswords
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_PORT = int(os.getenv("SMTP_PORT") or "587")
 SMTP_USER = os.getenv("SMTP_USER", "")          # tu email
 SMTP_PASS = os.getenv("SMTP_PASS", "")          # app password de Gmail
 EMAIL_FROM = os.getenv("EMAIL_FROM", SMTP_USER)
