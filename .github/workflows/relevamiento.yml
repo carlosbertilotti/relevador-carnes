@@ -1,0 +1,73 @@
+name: Relevamiento de precios
+
+on:
+  schedule:
+    # Martes y viernes 9:00 hora Argentina (UTC-3 → 12:00 UTC)
+    - cron: "0 12 * * 2,5"
+  workflow_dispatch:        # disparar manualmente desde la pestaña Actions
+
+permissions:
+  contents: write           # para poder commitear la DB actualizada
+
+concurrency:
+  group: relevamiento
+  cancel-in-progress: false
+
+jobs:
+  relevar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Correr relevamiento
+        env:
+          # Notificaciones (configurar como GitHub Secrets en Settings > Secrets)
+          WHATSAPP_NUMERO: ${{ secrets.WHATSAPP_NUMERO }}
+          SMTP_HOST:       ${{ secrets.SMTP_HOST }}
+          SMTP_PORT:       ${{ secrets.SMTP_PORT }}
+          SMTP_USER:       ${{ secrets.SMTP_USER }}
+          SMTP_PASS:       ${{ secrets.SMTP_PASS }}
+          EMAIL_FROM:      ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO:        ${{ secrets.EMAIL_TO }}
+          EMAIL_TO_CC:     ${{ secrets.EMAIL_TO_CC }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python run.py
+
+      - name: Commitear DB y reportes
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/precios.db reports/ || true
+          if git diff --cached --quiet; then
+            echo "Sin cambios para commitear."
+          else
+            git commit -m "chore: relevamiento $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: Upload reportes como artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-${{ github.run_id }}
+          path: |
+            reports/*.md
+            reports/*.xlsx
+            reports/*.pdf
+            reports/graficos_*/**
+          if-no-files-found: ignore
+          retention-days: 30

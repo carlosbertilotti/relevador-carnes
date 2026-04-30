@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Datos generados (no commitear histórico ni reportes)
+data/*.db
+data/*.db-journal
+reports/*.md
+reports/*.xlsx
+reports/*.pdf
+
+# Editores
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Secretos
+.env
+
+# Mantener carpetas vacías
+!data/.gitkeep
+!reports/.gitkeep
