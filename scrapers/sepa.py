@@ -139,129 +139,145 @@ class SepaScraper(ScraperBase):
         r = await self._request(url)
         return r.content
 
-    def _procesar_zip(self, contenido: bytes) -> list[PrecioRelevado]:
+    def _open_csv(self, zf: zipfile.ZipFile, name: str):
+        """Abre un CSV del zip auto-detectando delimitador (| o ,)."""
+        with zf.open(name) as fp:
+            raw = fp.read().decode("utf-8", errors="replace")
+        first = raw.split("\n", 1)[0] if raw else ""
+        delimiter = "|" if "|" in first else ","
+        return csv.DictReader(io.StringIO(raw), delimiter=delimiter)
+
+    def _find_csv(self, zf: zipfile.ZipFile, *keywords: str) -> str | None:
+        for n in zf.namelist():
+            low = n.lower()
+            if low.endswith((".csv", ".txt")) and any(k in low for k in keywords):
+                return n
+        return None
+
+    def _procesar_comercio_zip(self, sub_data: bytes, sub_name: str) -> list[PrecioRelevado]:
+        """Procesa el ZIP interno de UN comercio."""
         try:
-            zf = zipfile.ZipFile(io.BytesIO(contenido))
-        except zipfile.BadZipFile as e:
-            raise ScraperError(f"SEPA: ZIP corrupto: {e}")
+            zf = zipfile.ZipFile(io.BytesIO(sub_data))
+        except zipfile.BadZipFile:
+            return []
 
-        log.info(f"[SEPA] archivos en el ZIP: {zf.namelist()[:10]}...")
-
-        # SEPA típicamente expone CSVs llamados productos.csv, precios.csv,
-        # sucursales.csv, comercio.csv (puede variar la mayúsculas o tener prefijo)
-        def _abrir(name_pat: str):
-            for n in zf.namelist():
-                if name_pat in n.lower() and n.endswith(".csv"):
-                    log.debug(f"[SEPA] usando archivo {n}")
-                    return io.TextIOWrapper(zf.open(n), encoding="utf-8", errors="replace")
-            return None
-
-        f_productos = _abrir("producto")
-        f_precios = _abrir("precio")
-        f_comercio = _abrir("comercio")
-        f_sucursales = _abrir("sucursal")
+        f_comercio = self._find_csv(zf, "comercio")
+        f_productos = self._find_csv(zf, "productos", "producto")
+        f_precios = self._find_csv(zf, "precios", "precio")
 
         if not (f_productos and f_precios):
-            raise ScraperError(
-                f"SEPA: ZIP no tiene los CSVs esperados "
-                f"(productos.csv, precios.csv). Encontrados: {zf.namelist()}"
-            )
+            return []
 
-        # Mapa id_comercio → bandera normalizada
-        bandera_por_comercio: dict[str, str] = {}
+        # Detectar bandera del comercio
+        bandera = None
         if f_comercio:
-            reader = csv.DictReader(f_comercio, delimiter="|")
-            # Si | no funciona, probar coma
-            for row in reader:
-                if not row:
-                    continue
-                if len(row) <= 1:
-                    f_comercio.seek(0)
-                    reader = csv.DictReader(f_comercio, delimiter=",")
-                    break
-            f_comercio.seek(0)
-            reader = csv.DictReader(f_comercio, delimiter="|" if "|" in f_comercio.readline() else ",")
-            f_comercio.seek(0)
-            reader = csv.DictReader(f_comercio)  # auto-detect
-            for row in reader:
-                cid = row.get("id_comercio") or row.get("comercio_id") or ""
-                cnom = row.get("comercio_razon_social") or row.get("razon_social") or row.get("comercio_nombre") or ""
-                bandera = _normalizar_bandera(cnom)
-                if cid and bandera:
-                    bandera_por_comercio[cid] = bandera
-
-        # Mapa id_sucursal → id_comercio
-        comercio_por_sucursal: dict[str, str] = {}
-        if f_sucursales:
-            reader = csv.DictReader(f_sucursales)
-            for row in reader:
-                sid = row.get("id_sucursal") or row.get("sucursal_id") or ""
-                cid = row.get("id_comercio") or row.get("comercio_id") or ""
-                if sid and cid:
-                    comercio_por_sucursal[sid] = cid
-
-        # Mapa id_producto → (nombre, corte_normalizado)
-        productos_carne: dict[str, tuple[str, str]] = {}
-        reader = csv.DictReader(f_productos)
-        for row in reader:
-            pid = row.get("id_producto") or row.get("producto_id") or ""
-            nombre = (row.get("productos_descripcion")
-                      or row.get("producto_nombre")
-                      or row.get("nombre")
-                      or "")
-            if not pid or not nombre:
-                continue
-            corte = normalizar(nombre)
-            if corte:
-                productos_carne[pid] = (nombre, corte)
-
-        log.info(f"[SEPA] {len(productos_carne)} productos de carne encontrados")
-        log.info(f"[SEPA] {len(bandera_por_comercio)} comercios de interés mapeados")
-
-        # Acumulamos precios por (bandera, producto) → mediana de sucursales
-        # (la mediana descarta outliers de promos puntuales)
-        bucket: dict[tuple[str, str], list[float]] = defaultdict(list)
-
-        reader = csv.DictReader(f_precios)
-        ahora = datetime.now()
-        n_filas = 0
-        for row in reader:
-            n_filas += 1
-            pid = row.get("id_producto") or row.get("producto_id") or ""
-            if pid not in productos_carne:
-                continue
-            sid = row.get("id_sucursal") or row.get("sucursal_id") or ""
-            cid = comercio_por_sucursal.get(sid) or row.get("id_comercio") or ""
-            bandera = bandera_por_comercio.get(cid)
-            if not bandera:
-                continue
             try:
-                precio = float(row.get("productos_precio_lista") or
-                               row.get("precio_lista") or
-                               row.get("precio") or 0)
-            except (ValueError, TypeError):
-                continue
-            if precio <= 100:    # filtra ruido
-                continue
-            bucket[(bandera, pid)].append(precio)
+                for row in self._open_csv(zf, f_comercio):
+                    nombre = (row.get("comercio_razon_social")
+                              or row.get("razon_social")
+                              or row.get("comercio_bandera_nombre")
+                              or row.get("comercio_nombre") or "")
+                    bandera = _normalizar_bandera(nombre)
+                    if bandera:
+                        break
+            except Exception:
+                pass
 
-        log.info(f"[SEPA] {n_filas} filas de precios procesadas, "
-                 f"{len(bucket)} combinaciones bandera×producto")
+        if not bandera:
+            return []
 
+        # Productos de carne en este comercio
+        productos_carne: dict[str, tuple[str, str]] = {}
+        try:
+            for row in self._open_csv(zf, f_productos):
+                pid = (row.get("id_producto") or row.get("producto_id") or "").strip()
+                nombre = (row.get("productos_descripcion")
+                          or row.get("producto_nombre")
+                          or row.get("descripcion") or "").strip()
+                if not pid or not nombre:
+                    continue
+                corte = normalizar(nombre)
+                if corte:
+                    productos_carne[pid] = (nombre, corte)
+        except Exception:
+            return []
+
+        if not productos_carne:
+            return []
+
+        # Precios → mediana por producto
+        bucket: dict[str, list[float]] = defaultdict(list)
+        try:
+            for row in self._open_csv(zf, f_precios):
+                pid = (row.get("id_producto") or row.get("producto_id") or "").strip()
+                if pid not in productos_carne:
+                    continue
+                try:
+                    precio = float(row.get("productos_precio_lista")
+                                   or row.get("precio_lista")
+                                   or row.get("precio") or 0)
+                except (ValueError, TypeError):
+                    continue
+                if precio > 100:
+                    bucket[pid].append(precio)
+        except Exception:
+            pass
+
+        ahora = datetime.now()
         resultados: list[PrecioRelevado] = []
-        for (bandera, pid), precios in bucket.items():
+        for pid, precios in bucket.items():
+            if not precios:
+                continue
             nombre, corte = productos_carne[pid]
-            precio_kg = round(median(precios), 2)
             resultados.append(PrecioRelevado(
                 carniceria=bandera,
                 corte_original=nombre,
                 corte_normalizado=corte,
-                precio_kg=precio_kg,
+                precio_kg=round(median(precios), 2),
                 fecha=ahora,
                 segmento=SEGMENTOS.get(bandera, "commodity"),
                 url_fuente=SEPA_DATASET_URL,
             ))
         return resultados
+
+    def _procesar_zip(self, contenido: bytes) -> list[PrecioRelevado]:
+        try:
+            zf_madre = zipfile.ZipFile(io.BytesIO(contenido))
+        except zipfile.BadZipFile as e:
+            raise ScraperError(f"SEPA: ZIP corrupto: {e}")
+
+        # SEPA actual: ZIP de ZIPs, uno por comercio (cadena)
+        sub_zips = [n for n in zf_madre.namelist() if n.endswith(".zip")]
+        log.info(f"[SEPA] ZIP madre con {len(sub_zips)} sub-ZIPs (uno por comercio)")
+
+        if not sub_zips:
+            raise ScraperError(
+                f"SEPA: ZIP no tiene sub-ZIPs ni CSVs reconocibles. "
+                f"Encontrados: {zf_madre.namelist()[:5]}"
+            )
+
+        todos: list[PrecioRelevado] = []
+        procesados, con_carne = 0, 0
+        for sub_name in sub_zips:
+            try:
+                sub_data = zf_madre.read(sub_name)
+                precios = self._procesar_comercio_zip(sub_data, sub_name)
+                procesados += 1
+                if precios:
+                    con_carne += 1
+                    todos.extend(precios)
+            except Exception as e:
+                log.warning(f"[SEPA] error procesando {sub_name}: {e}")
+                continue
+
+        log.info(f"[SEPA] Procesados {procesados} comercios, {con_carne} con cortes "
+                 f"de interés. Total: {len(todos)} precios.")
+        if not todos:
+            raise ScraperError(
+                "SEPA: ningún sub-ZIP devolvió cortes vacunos reconocibles. "
+                "Probable cambio en estructura de columnas."
+            )
+        return todos
 
     async def relevar(self) -> list[PrecioRelevado]:
         zip_url = await self._resolver_zip_url()
