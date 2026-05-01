@@ -189,13 +189,69 @@ def enviar_email(paths_reportes: dict[str, Path],
         return False
 
 
+# ─── Telegram (push al celular) ──────────────────────────────────────────
+
+def enviar_telegram(texto: str | None = None, analisis_ia: str | None = None) -> bool:
+    """
+    Manda un mensaje al chat configurado vía Bot API.
+    Telegram limita los mensajes a 4096 caracteres → si el análisis IA es largo,
+    lo partimos en varios mensajes.
+    """
+    if not config.telegram_configurado():
+        log.info("📱 Telegram omitido: configurar TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID")
+        return False
+
+    import httpx
+
+    url = f"https://api.telegram.org/bot{config.TELEGRAM_BOT_TOKEN}/sendMessage"
+    cuerpo = texto if texto is not None else construir_resumen()
+
+    mensajes = [cuerpo]
+    if analisis_ia:
+        mensajes.append("🤖 *Análisis IA*\n\n" + analisis_ia)
+
+    LIMITE = 4000  # margen de seguridad sobre los 4096
+    chunks: list[str] = []
+    for m in mensajes:
+        while len(m) > LIMITE:
+            corte = m.rfind("\n", 0, LIMITE)
+            if corte <= 0:
+                corte = LIMITE
+            chunks.append(m[:corte])
+            m = m[corte:].lstrip()
+        if m:
+            chunks.append(m)
+
+    try:
+        with httpx.Client(timeout=15) as client:
+            for i, chunk in enumerate(chunks):
+                resp = client.post(url, json={
+                    "chat_id": config.TELEGRAM_CHAT_ID,
+                    "text": chunk,
+                    "parse_mode": "Markdown",
+                    "disable_web_page_preview": True,
+                })
+                if resp.status_code != 200:
+                    # Si falla por Markdown mal formado, reintentamos sin parse_mode
+                    resp = client.post(url, json={
+                        "chat_id": config.TELEGRAM_CHAT_ID,
+                        "text": chunk,
+                    })
+                    resp.raise_for_status()
+        log.info(f"📱 Telegram enviado ({len(chunks)} mensaje/s)")
+        return True
+    except Exception as e:
+        log.error(f"📱 Falló envío Telegram: {e}")
+        return False
+
+
 # ─── Función todo-en-uno ─────────────────────────────────────────────────
 
 def notificar_todo(paths_reportes: dict[str, Path],
                    paths_graficos: dict[str, Path] | None = None,
                    analisis_ia: str | None = None) -> dict:
-    """Notifica por email y devuelve link de WhatsApp para que el usuario haga click."""
-    resultado = {"email_enviado": False, "wa_link": None}
+    """Notifica por email + Telegram y devuelve link de WhatsApp para hacer click."""
+    resultado = {"email_enviado": False, "telegram_enviado": False, "wa_link": None}
 
     if config.email_configurado():
         resultado["email_enviado"] = enviar_email(
@@ -203,6 +259,9 @@ def notificar_todo(paths_reportes: dict[str, Path],
         )
     else:
         log.info("📧 Email omitido: configurar SMTP_* en .env para activar")
+
+    if config.telegram_configurado():
+        resultado["telegram_enviado"] = enviar_telegram(analisis_ia=analisis_ia)
 
     if config.whatsapp_configurado():
         try:
