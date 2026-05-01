@@ -112,7 +112,8 @@ def whatsapp_link(numero: str | None = None, texto: str | None = None) -> str:
 
 def enviar_email(paths_reportes: dict[str, Path],
                  paths_graficos: dict[str, Path] | None = None,
-                 asunto: str | None = None) -> bool:
+                 asunto: str | None = None,
+                 analisis_ia: str | None = None) -> bool:
     """
     Manda email con resumen en el cuerpo + adjuntos:
       - reporte .md
@@ -134,7 +135,13 @@ def enviar_email(paths_reportes: dict[str, Path],
     if config.EMAIL_TO_CC:
         msg["Cc"] = config.EMAIL_TO_CC
 
-    cuerpo_txt = construir_resumen() + "\n\n" + (
+    cuerpo_txt = construir_resumen()
+    if analisis_ia:
+        cuerpo_txt += "\n\n" + "=" * 60 + "\n"
+        cuerpo_txt += "🤖 ANÁLISIS IA (Claude Opus 4.7)\n"
+        cuerpo_txt += "=" * 60 + "\n\n"
+        cuerpo_txt += analisis_ia + "\n"
+    cuerpo_txt += "\n\n" + (
         "Adjunto:\n"
         f"• Reporte detallado en Markdown ({paths_reportes['md'].name})\n"
         f"• Tabla comparativa en Excel ({paths_reportes['xlsx'].name})\n"
@@ -185,12 +192,15 @@ def enviar_email(paths_reportes: dict[str, Path],
 # ─── Función todo-en-uno ─────────────────────────────────────────────────
 
 def notificar_todo(paths_reportes: dict[str, Path],
-                   paths_graficos: dict[str, Path] | None = None) -> dict:
+                   paths_graficos: dict[str, Path] | None = None,
+                   analisis_ia: str | None = None) -> dict:
     """Notifica por email y devuelve link de WhatsApp para que el usuario haga click."""
     resultado = {"email_enviado": False, "wa_link": None}
 
     if config.email_configurado():
-        resultado["email_enviado"] = enviar_email(paths_reportes, paths_graficos)
+        resultado["email_enviado"] = enviar_email(
+            paths_reportes, paths_graficos, analisis_ia=analisis_ia
+        )
     else:
         log.info("📧 Email omitido: configurar SMTP_* en .env para activar")
 

@@ -8,6 +8,7 @@ Uso:
     python run.py --no-notif           # genera reportes pero no notifica
     python run.py --no-graficos        # más rápido
     python run.py --no-alertas         # sin alertas activas
+    python run.py --no-ia              # sin análisis IA (Claude)
     python run.py --concurrencia 4     # cuántos scrapers en paralelo (default 6)
     python run.py -v                   # logging detallado
 """
@@ -182,9 +183,21 @@ async def main_async(args):
         log.info("🚨 Detectando alertas (variaciones >5%)...")
         detectar_y_notificar_alertas(umbral_pct=5.0)
 
+    analisis_ia = None
+    if not args.no_ia:
+        try:
+            from analisis_ia import analizar_precios
+            log.info("🤖 Generando análisis IA con Claude...")
+            analisis_ia = analizar_precios(dias=30)
+            ia_path = Path(__file__).parent / "reports" / f"analisis_ia_{datetime.now():%Y-%m-%d}.md"
+            ia_path.write_text(analisis_ia, encoding="utf-8")
+            log.info(f"   {ia_path}")
+        except Exception as e:
+            log.warning(f"⚠️  Análisis IA falló (sigo sin él): {e}")
+
     if not args.no_notif:
         log.info("─" * 60)
-        notificar_todo(paths, paths_graficos)
+        notificar_todo(paths, paths_graficos, analisis_ia=analisis_ia)
 
     if fallidos:
         log.warning(f"⚠️  {len(fallidos)} scraper(s) fallaron:")
@@ -208,6 +221,8 @@ def main():
     parser.add_argument("--no-notif", action="store_true")
     parser.add_argument("--no-graficos", action="store_true")
     parser.add_argument("--no-alertas", action="store_true")
+    parser.add_argument("--no-ia", action="store_true",
+                        help="Saltar el análisis IA (Claude API)")
     parser.add_argument("--concurrencia", type=int, default=6,
                         help="Cantidad de scrapers en paralelo (default 6)")
     parser.add_argument("-v", "--verbose", action="store_true")

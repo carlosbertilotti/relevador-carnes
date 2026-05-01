@@ -94,7 +94,7 @@ def detectar_alertas_df(df: pd.DataFrame, umbral_pct: float) -> pd.DataFrame:
 
 def correr_relevamiento_async(opciones: list[str], log_path: Path):
     """Lanza run.py en background, escribe stdout a un log file."""
-    cmd = [sys.executable, "run.py", "--no-notif", "--no-graficos"] + opciones
+    cmd = [sys.executable, "run.py", "--no-notif", "--no-graficos", "--no-ia"] + opciones
     with open(log_path, "w") as f:
         f.write(f"$ {' '.join(cmd)}\n\n")
         f.flush()
@@ -247,12 +247,14 @@ col4.metric("Productos relevados", len(df_hoy))
 
 # ─── Tabs ─────────────────────────────────────────────────────────────────
 
-tab_heatmap, tab_tendencia, tab_ranking, tab_alertas, tab_salud = st.tabs([
+tab_heatmap, tab_tendencia, tab_ranking, tab_alertas, tab_salud, tab_ia, tab_chat = st.tabs([
     "📊 Heatmap actual",
     "📈 Tendencia",
     "🏆 Ranking por corte",
     "🚨 Alertas",
     "❤️  Salud scrapers",
+    "🤖 Análisis IA",
+    "💬 Chat con IA",
 ])
 
 
@@ -379,6 +381,70 @@ with tab_salud:
         ultimas.columns = ["Estado", "Cadena", "Última corrida",
                            "Cortes", "Duración (s)", "Error"]
         st.dataframe(ultimas, use_container_width=True, hide_index=True)
+
+
+with tab_ia:
+    st.subheader("🤖 Análisis automático con Claude (Opus 4.7)")
+    st.caption(
+        "Claude lee el histórico de la base, detecta tendencias y te recomienda "
+        "qué cortes comprar y en qué cadenas."
+    )
+
+    col_a, col_b = st.columns([1, 3])
+    with col_a:
+        dias_ia = st.slider("Días a analizar", 7, 90, 30, key="dias_ia")
+    with col_b:
+        st.write("")
+        st.write("")
+        generar = st.button("✨ Generar análisis", type="primary", use_container_width=True)
+
+    if generar:
+        try:
+            from analisis_ia import analizar_precios
+            with st.spinner("Pensando... (puede tardar 20-40 seg)"):
+                texto = analizar_precios(dias=dias_ia)
+            st.session_state["ultimo_analisis_ia"] = texto
+            st.session_state["ultimo_analisis_fecha"] = datetime.now().strftime("%d/%m/%Y %H:%M")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+    if st.session_state.get("ultimo_analisis_ia"):
+        st.caption(f"Generado: {st.session_state.get('ultimo_analisis_fecha', '—')}")
+        st.markdown(st.session_state["ultimo_analisis_ia"])
+
+
+with tab_chat:
+    st.subheader("💬 Preguntale a la IA sobre tus precios")
+    st.caption(
+        "Hacele preguntas como: '¿cuál es el corte más barato hoy?', "
+        "'¿en qué cadena conviene comprar matambre?', '¿el asado subió esta semana?'"
+    )
+
+    if "chat_messages" not in st.session_state:
+        st.session_state["chat_messages"] = []
+
+    for msg in st.session_state["chat_messages"]:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    if pregunta := st.chat_input("Escribí tu pregunta..."):
+        st.session_state["chat_messages"].append({"role": "user", "content": pregunta})
+        with st.chat_message("user"):
+            st.markdown(pregunta)
+
+        try:
+            from agente_ia import responder_pregunta
+            with st.chat_message("assistant"):
+                with st.spinner("Consultando la base..."):
+                    respuesta = responder_pregunta(pregunta, st.session_state["chat_messages"])
+                st.markdown(respuesta)
+            st.session_state["chat_messages"].append({"role": "assistant", "content": respuesta})
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+    if st.session_state["chat_messages"] and st.button("🗑️ Limpiar chat"):
+        st.session_state["chat_messages"] = []
+        st.rerun()
 
 
 st.caption(
