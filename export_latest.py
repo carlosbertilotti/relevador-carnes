@@ -30,25 +30,8 @@ from datetime import datetime, timezone
 DB_PATH = Path(__file__).parent / "data" / "precios.db"
 OUT_PATH = Path(__file__).parent / "data" / "latest.json"
 
-# Cortes que queremos exponer (los más relevantes para asado / día a día)
-CORTES_DESTACADOS = [
-    "asado",
-    "bife_angosto",
-    "bife_ancho",
-    "vacio",
-    "matambre",
-    "peceto",
-    "cuadril",
-    "tapa_cuadril",
-    "colita_cuadril",
-    "tapa_asado",
-    "lomo",
-    "osobuco",
-    "picada_comun",
-    "picada_especial",
-    "entrana",
-    "nalga",
-]
+# Cortes con suficientes datos para mostrar (mínimo 2 carnicerías en últimos 30 días)
+MIN_CARNICERIAS = 2
 
 
 def main():
@@ -76,8 +59,17 @@ def main():
         "SELECT DISTINCT carniceria FROM precios WHERE fecha = ? ORDER BY carniceria", (ultima,)
     )]
 
+    # Sacamos todos los cortes disponibles en la última corrida (filtrando los muy pobres)
+    cortes_disponibles = [r["corte"] for r in cur.execute(
+        "SELECT corte_normalizado AS corte, COUNT(DISTINCT carniceria) AS n "
+        "FROM precios WHERE fecha = ? AND disponible = 1 "
+        "GROUP BY corte_normalizado HAVING n >= ? "
+        "ORDER BY corte_normalizado",
+        (ultima, MIN_CARNICERIAS)
+    )]
+
     cortes_out = {}
-    for corte in CORTES_DESTACADOS:
+    for corte in cortes_disponibles:
         rows = list(cur.execute(
             "SELECT carniceria, precio_kg, url_fuente FROM precios "
             "WHERE fecha = ? AND corte_normalizado = ? AND disponible = 1 "
