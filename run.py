@@ -208,6 +208,14 @@ async def main_async(args):
         for nombre, n in sospechosos:
             log.warning(f"     - {nombre}: solo {n} cortes")
 
+    # Exportar snapshot a data/latest.json (consumido por Midia desde GitHub raw)
+    try:
+        log.info("📤 Exportando latest.json...")
+        from export_latest import main as export_main
+        export_main()
+    except Exception as e:
+        log.warning(f"⚠️  Export latest.json falló (sigo): {e}")
+
     log.info("✅ Listo.")
 
 

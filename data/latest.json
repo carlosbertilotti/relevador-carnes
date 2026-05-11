@@ -1,0 +1,683 @@
+{
+  "ultima_corrida": "2026-05-01",
+  "anterior": "2026-04-30",
+  "generado": "2026-05-11T13:21:53.108243+00:00",
+  "carnicerias": [
+    "ChangoMás",
+    "Día",
+    "La Anónima",
+    "RES",
+    "Toledo",
+    "Vea"
+  ],
+  "cortes": {
+    "asado": {
+      "mejor_precio": 10499.0,
+      "mejor_carniceria": "ChangoMás",
+      "promedio": 22346.98,
+      "variacion_pct": 1.6,
+      "precios": [
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 10499.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 11399.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 11499.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 11900.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "La Anónima",
+          "precio_kg": 12490.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "La Anónima",
+          "precio_kg": 13490.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 13990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "La Anónima",
+          "precio_kg": 15588.24,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        }
+      ]
+    },
+    "bife_angosto": {
+      "mejor_precio": 2376.0,
+      "mejor_carniceria": "ChangoMás",
+      "promedio": 22025.62,
+      "variacion_pct": 2.0,
+      "precios": [
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 2376.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Día",
+          "precio_kg": 10290.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 16999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 17990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 25556.0,
+          "url": "https://www.res.com.ar/bife-angosto.html"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 28195.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 30799.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 44000.0,
+          "url": "https://www.res.com.ar/bife-de-chorizo.html"
+        }
+      ]
+    },
+    "bife_ancho": {
+      "mejor_precio": 2337.0,
+      "mejor_carniceria": "ChangoMás",
+      "promedio": 24638.0,
+      "variacion_pct": 0.0,
+      "precios": [
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 2337.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Día",
+          "precio_kg": 10290.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 17399.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 17990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 22100.0,
+          "url": "https://www.res.com.ar/bife-ancho.html"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 23209.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 23209.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 30999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        }
+      ]
+    },
+    "vacio": {
+      "mejor_precio": 6990.0,
+      "mejor_carniceria": "Día",
+      "promedio": 20700.04,
+      "variacion_pct": 2.1,
+      "precios": [
+        {
+          "carniceria": "Día",
+          "precio_kg": 6990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 7999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 8199.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Día",
+          "precio_kg": 8490.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 12247.5,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 12398.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 12399.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 14499.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        }
+      ]
+    },
+    "matambre": {
+      "mejor_precio": 6490.0,
+      "mejor_carniceria": "Día",
+      "promedio": 20580.69,
+      "variacion_pct": 0.0,
+      "precios": [
+        {
+          "carniceria": "Día",
+          "precio_kg": 6490.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "La Anónima",
+          "precio_kg": 13990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 15699.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 16599.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 17990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 21590.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 23850.0,
+          "url": "https://www.res.com.ar/matambre.html"
+        },
+        {
+          "carniceria": "La Anónima",
+          "precio_kg": 48437.5,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        }
+      ]
+    },
+    "peceto": {
+      "mejor_precio": 20000.0,
+      "mejor_carniceria": "ChangoMás",
+      "promedio": 32900.08,
+      "variacion_pct": 4.4,
+      "precios": [
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 20000.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 22699.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 23799.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 25000.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 27990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 29999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 29999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 29999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        }
+      ]
+    },
+    "cuadril": {
+      "mejor_precio": 8390.0,
+      "mejor_carniceria": "Día",
+      "promedio": 19675.88,
+      "variacion_pct": -3.9,
+      "precios": [
+        {
+          "carniceria": "Día",
+          "precio_kg": 8390.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 11999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 19199.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 20000.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 22699.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 23990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 25140.0,
+          "url": "https://www.res.com.ar/cuadril.html"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 25990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        }
+      ]
+    },
+    "tapa_cuadril": {
+      "mejor_precio": 26799.0,
+      "mejor_carniceria": "ChangoMás",
+      "promedio": 34329.5,
+      "variacion_pct": -18.0,
+      "precios": [
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 26799.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 41860.0,
+          "url": "https://www.res.com.ar/pica-a.html"
+        }
+      ]
+    },
+    "colita_cuadril": {
+      "mejor_precio": 10990.0,
+      "mejor_carniceria": "Día",
+      "promedio": 23433.8,
+      "variacion_pct": 0.7,
+      "precios": [
+        {
+          "carniceria": "Día",
+          "precio_kg": 10990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "La Anónima",
+          "precio_kg": 16990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "La Anónima",
+          "precio_kg": 16990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 23199.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 49000.0,
+          "url": "https://www.res.com.ar/colita-de-cuadril.html"
+        }
+      ]
+    },
+    "tapa_asado": {
+      "mejor_precio": 6990.0,
+      "mejor_carniceria": "Día",
+      "promedio": 14338.1,
+      "variacion_pct": 0.3,
+      "precios": [
+        {
+          "carniceria": "Día",
+          "precio_kg": 6990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 7349.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 10999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "La Anónima",
+          "precio_kg": 13490.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "La Anónima",
+          "precio_kg": 13490.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 16475.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 16499.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 18199.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        }
+      ]
+    },
+    "lomo": {
+      "mejor_precio": 11290.0,
+      "mejor_carniceria": "Día",
+      "promedio": 33654.94,
+      "variacion_pct": 12.2,
+      "precios": [
+        {
+          "carniceria": "Día",
+          "precio_kg": 11290.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 16890.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 17326.67,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 19893.62,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 20000.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 20725.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 23256.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 25990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        }
+      ]
+    },
+    "osobuco": {
+      "mejor_precio": 10999.0,
+      "mejor_carniceria": "ChangoMás",
+      "promedio": 11777.4,
+      "variacion_pct": 0.8,
+      "precios": [
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 10999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 10999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 10999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 12900.0,
+          "url": "https://www.res.com.ar/osobuco.html"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 12990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        }
+      ]
+    },
+    "picada_comun": {
+      "mejor_precio": 6999.0,
+      "mejor_carniceria": "ChangoMás",
+      "promedio": 11220.8,
+      "variacion_pct": 0.0,
+      "precios": [
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 6999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 7789.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 9996.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 11990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 19330.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        }
+      ]
+    },
+    "picada_especial": {
+      "mejor_precio": 10990.0,
+      "mejor_carniceria": "Toledo",
+      "promedio": 15087.0,
+      "variacion_pct": 0.0,
+      "precios": [
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 10990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 14499.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 14999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 19860.0,
+          "url": "https://www.res.com.ar/picada-premium.html"
+        }
+      ]
+    },
+    "entrana": {
+      "mejor_precio": 10399.0,
+      "mejor_carniceria": "ChangoMás",
+      "promedio": 22475.43,
+      "variacion_pct": 12.7,
+      "precios": [
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 10399.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Día",
+          "precio_kg": 10990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 19950.0,
+          "url": "https://www.res.com.ar/entra-a.html"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 20000.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 23990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 31999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Día",
+          "precio_kg": 40000.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        }
+      ]
+    },
+    "nalga": {
+      "mejor_precio": 4299.0,
+      "mejor_carniceria": "ChangoMás",
+      "promedio": 20581.47,
+      "variacion_pct": -35.7,
+      "precios": [
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 4299.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "La Anónima",
+          "precio_kg": 16490.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "La Anónima",
+          "precio_kg": 16490.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 19599.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 19599.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 19990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 19999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 21990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        }
+      ]
+    }
+  }
+}
