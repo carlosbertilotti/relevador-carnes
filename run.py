@@ -35,6 +35,9 @@ from scrapers.vea import VeaScraper
 from scrapers.changomas import ChangoMasScraper
 # from scrapers.diaexpress import DiaExpressScraper  # activar si querés diferenciar
 from scrapers.maxiconsumo import MaxiconsumoScraper
+from scrapers.hiper_libertad import HiperLibertadScraper
+from scrapers.atomo import AtomoScraper
+from scrapers.hiper_tehuelche import HiperTehuelcheScraper
 
 # HTML / WooCommerce / custom
 from scrapers.la_anonima import LaAnonimaScraper
@@ -85,6 +88,9 @@ SCRAPERS = {
     "jumbo":        JumboScraper,
     "disco":        DiscoScraper,
     "maxiconsumo":  MaxiconsumoScraper,
+    "hiper_libertad": HiperLibertadScraper,
+    "atomo":        AtomoScraper,
+    "hiper_tehuelche": HiperTehuelcheScraper,
 
     # ─── Benchmark ───
     "ipcva":        IpcvaScraper,

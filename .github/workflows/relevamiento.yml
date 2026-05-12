@@ -2,8 +2,8 @@ name: Relevamiento de precios
 
 on:
   schedule:
-    # Martes y viernes 9:00 hora Argentina (UTC-3 → 12:00 UTC)
-    - cron: "0 12 * * 2,5"
+    # Todos los días 9:00 hora Argentina (UTC-3 → 12:00 UTC)
+    - cron: "0 12 * * *"
   workflow_dispatch:        # disparar manualmente desde la pestaña Actions
 
 permissions:
@@ -46,7 +46,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
           ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
-        run: python run.py
+        run: python run.py --todos
 
       - name: Commitear DB y reportes
         run: |
