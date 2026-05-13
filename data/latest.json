@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-05-12",
+  "ultima_corrida": "2026-05-13",
   "anterior": null,
-  "generado": "2026-05-12T18:37:51.930173+00:00",
+  "generado": "2026-05-13T12:58:19.158494+00:00",
   "carnicerias": [
     "Carrefour",
     "ChangoMás",
@@ -112,7 +112,7 @@
     "bife_angosto": {
       "mejor_precio": 2376.0,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 22467.31,
+      "promedio": 22015.91,
       "variacion_pct": null,
       "precios": [
         {
@@ -141,11 +141,6 @@
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         },
         {
-          "carniceria": "Jumbo",
-          "precio_kg": 21705.0,
-          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
-        },
-        {
           "carniceria": "Carrefour",
           "precio_kg": 22900.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
@@ -154,6 +149,11 @@
           "carniceria": "RES",
           "precio_kg": 25556.0,
           "url": "https://www.res.com.ar/bife-angosto.html"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 26990.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         }
       ]
     },
@@ -385,7 +385,7 @@
     "lomo": {
       "mejor_precio": 11290.0,
       "mejor_carniceria": "Día",
-      "promedio": 34307.15,
+      "promedio": 34851.29,
       "variacion_pct": null,
       "precios": [
         {
@@ -572,7 +572,7 @@
     "paleta": {
       "mejor_precio": 7490.0,
       "mejor_carniceria": "Día",
-      "promedio": 17846.93,
+      "promedio": 17887.25,
       "variacion_pct": null,
       "precios": [
         {
@@ -714,16 +714,11 @@
       ]
     },
     "picada_especial": {
-      "mejor_precio": 6900.0,
-      "mejor_carniceria": "Día",
-      "promedio": 17312.0,
+      "mejor_precio": 9999.0,
+      "mejor_carniceria": "Jumbo",
+      "promedio": 17824.5,
       "variacion_pct": null,
       "precios": [
-        {
-          "carniceria": "Día",
-          "precio_kg": 6900.0,
-          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
-        },
         {
           "carniceria": "Jumbo",
           "precio_kg": 9999.0,
@@ -733,6 +728,11 @@
           "carniceria": "Toledo",
           "precio_kg": 10990.0,
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "Día",
+          "precio_kg": 11000.0,
+          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
           "carniceria": "ChangoMás",
@@ -878,7 +878,7 @@
     "tapa_nalga": {
       "mejor_precio": 14790.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 18733.17,
+      "promedio": 18541.5,
       "variacion_pct": null,
       "precios": [
         {
@@ -902,9 +902,9 @@
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         },
         {
-          "carniceria": "Vea",
-          "precio_kg": 18245.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "Día",
+          "precio_kg": 17000.0,
+          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
           "carniceria": "Vea",
@@ -917,9 +917,9 @@
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         },
         {
-          "carniceria": "Jumbo",
+          "carniceria": "Vea",
           "precio_kg": 18245.0,
-          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         }
       ]
     },
@@ -944,7 +944,7 @@
     "vacio": {
       "mejor_precio": 6990.0,
       "mejor_carniceria": "Día",
-      "promedio": 20587.95,
+      "promedio": 20345.36,
       "variacion_pct": null,
       "precios": [
         {
@@ -983,9 +983,9 @@
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         },
         {
-          "carniceria": "Vea",
-          "precio_kg": 14125.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "Jumbo",
+          "precio_kg": 13215.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         }
       ]
     }
