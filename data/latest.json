@@ -1,7 +1,7 @@
 {
   "ultima_corrida": "2026-05-13",
   "anterior": null,
-  "generado": "2026-05-13T13:16:05.694892+00:00",
+  "generado": "2026-05-13T18:42:23.697747+00:00",
   "carnicerias": [
     "Carrefour",
     "ChangoMás",
@@ -112,7 +112,7 @@
     "bife_angosto": {
       "mejor_precio": 2376.0,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 22015.91,
+      "promedio": 21990.0,
       "variacion_pct": null,
       "precios": [
         {
@@ -141,6 +141,11 @@
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         },
         {
+          "carniceria": "Jumbo",
+          "precio_kg": 21705.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
+        },
+        {
           "carniceria": "Carrefour",
           "precio_kg": 22900.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
@@ -149,11 +154,6 @@
           "carniceria": "RES",
           "precio_kg": 25556.0,
           "url": "https://www.res.com.ar/bife-angosto.html"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 26990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         }
       ]
     },
