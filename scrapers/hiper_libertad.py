@@ -11,5 +11,6 @@ class HiperLibertadScraper(VTEXScraper):
     base_url = "https://www.hiperlibertad.com.ar"
     # ⚠️ Verificar con: python discover_vtex.py https://www.hiperlibertad.com.ar
     # Categoría "Carnicería / Carne Vacuna" — fallback al ID típico de VTEX-supers (322).
-    categoria_carne_id = "322"
+    # Categoría "Carnes > Carne vacuna" descubierta vía catalog tree
+    categoria_carne_id = "588"
     sales_channel = 1
