@@ -33,6 +33,36 @@ OUT_PATH = Path(__file__).parent / "data" / "latest.json"
 # Cortes con suficientes datos para mostrar (mínimo 2 carnicerías en últimos 30 días)
 MIN_CARNICERIAS = 2
 
+# Pisos mínimos esperados por kg (en pesos AR, mid-2026).
+# Productos por debajo se descartan como anomalías (probablemente "BIFE BANDEJA"
+# o sea bandejas chicas de 100-200g donde el scraper toma precio_unidad como precio_kg).
+PRECIO_MIN_POR_CORTE = {
+    "asado": 6000,
+    "bife_angosto": 8000,
+    "bife_ancho": 8000,
+    "vacio": 5000,
+    "matambre": 5000,
+    "peceto": 10000,
+    "lomo": 10000,
+    "cuadril": 8000,
+    "tapa_cuadril": 8000,
+    "colita_cuadril": 7000,
+    "tapa_asado": 5000,
+    "osobuco": 4000,
+    "picada_comun": 4000,
+    "picada_especial": 5000,
+    "entrana": 7000,
+    "nalga": 8000,
+    "tapa_nalga": 8000,
+    "paleta": 5000,
+    "roast_beef": 5000,
+    "bola_lomo": 7000,
+    "aguja": 4000,
+    "falda": 4000,
+    "tortuguita": 5000,
+}
+PRECIO_MIN_DEFAULT = 4000  # piso global para cortes no listados
+
 
 def main():
     if not DB_PATH.exists():
@@ -69,9 +99,11 @@ def main():
     )]
 
     cortes_out = {}
+    descartados = 0
     for corte in cortes_disponibles:
+        piso = PRECIO_MIN_POR_CORTE.get(corte, PRECIO_MIN_DEFAULT)
         rows = list(cur.execute(
-            "SELECT carniceria, precio_kg, url_fuente FROM precios "
+            "SELECT carniceria, corte_original, precio_kg, url_fuente FROM precios "
             "WHERE fecha = ? AND corte_normalizado = ? AND disponible = 1 "
             "ORDER BY precio_kg ASC",
             (ultima, corte)
@@ -79,10 +111,23 @@ def main():
         if not rows:
             continue
 
-        precios = [
-            {"carniceria": r["carniceria"], "precio_kg": r["precio_kg"], "url": r["url_fuente"] or ""}
-            for r in rows
-        ]
+        # Filtramos anomalías: precios irrazonablemente bajos (probablemente bandejas chicas mal parseadas)
+        # Y nombres con palabras delatoras de tamaño chico
+        anomaly_keywords = ("bandeja", "paquete", "bj.", "bja", "tray", "x100", "x150", "x200", "x250", "x300", "x350", "x400")
+        precios = []
+        for r in rows:
+            if r["precio_kg"] < piso:
+                descartados += 1
+                continue
+            nombre_low = (r["corte_original"] or "").lower()
+            if any(k in nombre_low for k in anomaly_keywords) and r["precio_kg"] < piso * 1.5:
+                # bandeja + precio sospechosamente bajo → probable error
+                descartados += 1
+                continue
+            precios.append({"carniceria": r["carniceria"], "precio_kg": r["precio_kg"], "url": r["url_fuente"] or ""})
+
+        if not precios:
+            continue
         mejor = precios[0]
         promedio = round(sum(p["precio_kg"] for p in precios) / len(precios), 2)
 
@@ -116,6 +161,8 @@ def main():
     OUT_PATH.parent.mkdir(exist_ok=True)
     OUT_PATH.write_text(json.dumps(out, indent=2, ensure_ascii=False))
     print(f"✅ Exportado {OUT_PATH}: {len(cortes_out)} cortes, corrida {ultima}")
+    if descartados:
+        print(f"   ⚠️  {descartados} precios descartados por anomalías (bandejas chicas, etc)")
 
 
 if __name__ == "__main__":
