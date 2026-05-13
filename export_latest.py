@@ -23,9 +23,31 @@ Output: data/latest.json con estructura
 }
 """
 import json
+import re
 import sqlite3
 from pathlib import Path
 from datetime import datetime, timezone
+
+
+def _peso_kg_del_nombre(nombre: str):
+    """Si el nombre dice 'x250g', '500 g', '1kg', '1,5 kg', devuelve el peso en kg.
+    Útil para convertir precio por unidad → precio por kg."""
+    if not nombre:
+        return None
+    s = nombre.lower().replace(",", ".")
+    # Buscamos kg: '1 kg', '1.5kg', 'x 2 kg'
+    m = re.search(r"(\d+(?:\.\d+)?)\s*kg\b", s)
+    if m:
+        kg = float(m.group(1))
+        if 0.1 <= kg <= 10:
+            return kg
+    # Buscamos g: 'x250g', '500 g', '500gr', '250gramos'
+    m = re.search(r"(\d{2,4})\s*(?:gr?|gramos?)\b", s)
+    if m:
+        g = int(m.group(1))
+        if 100 <= g <= 5000:
+            return g / 1000.0
+    return None
 
 DB_PATH = Path(__file__).parent / "data" / "precios.db"
 OUT_PATH = Path(__file__).parent / "data" / "latest.json"
@@ -100,10 +122,11 @@ def main():
 
     cortes_out = {}
     descartados = 0
+    normalizados = 0
     for corte in cortes_disponibles:
         piso = PRECIO_MIN_POR_CORTE.get(corte, PRECIO_MIN_DEFAULT)
         rows = list(cur.execute(
-            "SELECT carniceria, corte_original, precio_kg, url_fuente FROM precios "
+            "SELECT carniceria, corte_original, precio_kg, peso_g, url_fuente FROM precios "
             "WHERE fecha = ? AND corte_normalizado = ? AND disponible = 1 "
             "ORDER BY precio_kg ASC",
             (ultima, corte)
@@ -111,21 +134,29 @@ def main():
         if not rows:
             continue
 
-        # Filtramos anomalías: precios irrazonablemente bajos (probablemente bandejas chicas mal parseadas)
-        # Y nombres con palabras delatoras de tamaño chico
-        anomaly_keywords = ("bandeja", "paquete", "bj.", "bja", "tray", "x100", "x150", "x200", "x250", "x300", "x350", "x400")
         precios = []
         for r in rows:
-            if r["precio_kg"] < piso:
-                descartados += 1
-                continue
-            nombre_low = (r["corte_original"] or "").lower()
-            if any(k in nombre_low for k in anomaly_keywords) and r["precio_kg"] < piso * 1.5:
-                # bandeja + precio sospechosamente bajo → probable error
-                descartados += 1
-                continue
-            precios.append({"carniceria": r["carniceria"], "precio_kg": r["precio_kg"], "url": r["url_fuente"] or ""})
+            precio_actual = r["precio_kg"]
+            nombre = r["corte_original"] or ""
 
+            # 1) Si tiene peso explícito en el nombre Y el precio está MUY por debajo del piso,
+            #    asumimos que es precio por unidad → convertir a precio/kg.
+            peso_kg = _peso_kg_del_nombre(nombre)
+            if peso_kg and peso_kg < 1.0 and precio_actual < piso:
+                nuevo = round(precio_actual / peso_kg, 2)
+                if nuevo >= piso:
+                    precio_actual = nuevo
+                    normalizados += 1
+
+            # 2) Filtro de outliers: cualquier precio aún por debajo del piso → descartar
+            if precio_actual < piso:
+                descartados += 1
+                continue
+
+            precios.append({"carniceria": r["carniceria"], "precio_kg": precio_actual, "url": r["url_fuente"] or ""})
+
+        # re-ordenar por precio_kg ascendente (porque ajustamos algunos)
+        precios.sort(key=lambda p: p["precio_kg"])
         if not precios:
             continue
         mejor = precios[0]
@@ -161,8 +192,10 @@ def main():
     OUT_PATH.parent.mkdir(exist_ok=True)
     OUT_PATH.write_text(json.dumps(out, indent=2, ensure_ascii=False))
     print(f"✅ Exportado {OUT_PATH}: {len(cortes_out)} cortes, corrida {ultima}")
+    if normalizados:
+        print(f"   🔧 {normalizados} precios normalizados (peso explícito en nombre → /kg)")
     if descartados:
-        print(f"   ⚠️  {descartados} precios descartados por anomalías (bandejas chicas, etc)")
+        print(f"   ⚠️  {descartados} precios descartados por anomalías irrecuperables")
 
 
 if __name__ == "__main__":
