@@ -1,11 +1,12 @@
 {
   "ultima_corrida": "2026-05-13",
   "anterior": null,
-  "generado": "2026-05-13T18:42:23.697747+00:00",
+  "generado": "2026-05-13T19:22:47.558587+00:00",
   "carnicerias": [
     "Carrefour",
     "ChangoMás",
     "Día",
+    "IPCVA (referencia)",
     "Jumbo",
     "La Anónima",
     "RES",
@@ -16,7 +17,7 @@
     "asado": {
       "mejor_precio": 4717.65,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 23545.16,
+      "promedio": 23353.15,
       "variacion_pct": null,
       "precios": [
         {
@@ -256,7 +257,7 @@
     "cuadril": {
       "mejor_precio": 8390.0,
       "mejor_carniceria": "Día",
-      "promedio": 21767.17,
+      "promedio": 21731.94,
       "variacion_pct": null,
       "precios": [
         {
@@ -285,14 +286,14 @@
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         },
         {
+          "carniceria": "IPCVA (referencia)",
+          "precio_kg": 21309.27,
+          "url": "https://datos.gob.ar/dataset?q=105.1_I2C_2016_M_16"
+        },
+        {
           "carniceria": "ChangoMás",
           "precio_kg": 22699.0,
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Día",
-          "precio_kg": 23400.0,
-          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
           "carniceria": "Día",
@@ -481,7 +482,7 @@
     "nalga": {
       "mejor_precio": 16990.0,
       "mejor_carniceria": "La Anónima",
-      "promedio": 23190.71,
+      "promedio": 23069.58,
       "variacion_pct": null,
       "precios": [
         {
@@ -515,14 +516,14 @@
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         },
         {
+          "carniceria": "IPCVA (referencia)",
+          "precio_kg": 22100.56,
+          "url": "https://datos.gob.ar/dataset?q=105.1_I2N_2016_M_14"
+        },
+        {
           "carniceria": "RES",
           "precio_kg": 32000.0,
           "url": "https://www.res.com.ar/nalga.html"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 35358.67,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         }
       ]
     },
@@ -572,7 +573,7 @@
     "paleta": {
       "mejor_precio": 7490.0,
       "mejor_carniceria": "Día",
-      "promedio": 17887.25,
+      "promedio": 17856.53,
       "variacion_pct": null,
       "precios": [
         {
@@ -668,7 +669,7 @@
     "picada_comun": {
       "mejor_precio": 7789.0,
       "mejor_carniceria": "Vea",
-      "promedio": 11410.5,
+      "promedio": 11289.83,
       "variacion_pct": null,
       "precios": [
         {
@@ -692,6 +693,11 @@
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         },
         {
+          "carniceria": "IPCVA (referencia)",
+          "precio_kg": 10324.46,
+          "url": "https://datos.gob.ar/dataset?q=105.1_I2CPC_2016_M_27"
+        },
+        {
           "carniceria": "Vea",
           "precio_kg": 11990.0,
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
@@ -705,11 +711,6 @@
           "carniceria": "Día",
           "precio_kg": 13000.0,
           "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
-        },
-        {
-          "carniceria": "Vea",
-          "precio_kg": 19330.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         }
       ]
     },
