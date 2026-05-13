@@ -57,7 +57,12 @@ jobs:
             echo "Sin cambios para commitear."
           else
             git commit -m "chore: relevamiento $(date -u +%Y-%m-%d)"
-            git push
+            # Reintentamos hasta 3 veces con pull --rebase para resistir pushes paralelos
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push origin main && break
+              echo "Push falló (intento $i), reintentando en 5s..."
+              sleep 5
+            done
           fi
 
       - name: Upload reportes como artifact
