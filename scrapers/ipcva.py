@@ -1,107 +1,96 @@
 """
-Scraper "IPCVA": precio mayorista de referencia.
+Benchmark oficial: precios INDEC IPC-GBA por corte (mensual, en pesos/kg).
 
-El Instituto de Promoción de la Carne Vacuna Argentina publica precios
-sugeridos / mayoristas semanales. Usamos esto como benchmark para contrastar
-los precios minoristas que relevamos en supers.
+El sitio web de IPCVA migró a Next.js client-side y no es scrapeable sin
+browser automation. Como reemplazo usamos la API pública de datos.gob.ar
+que expone las series temporales del IPC-GBA de INDEC, donde figura el
+precio mensual sugerido por kg de varios cortes.
 
-Hay dos fuentes posibles:
-1. https://www.ipcva.com.ar/index.php?seccion=precios — HTML semanal
-2. Mercado Agroganadero (Cañuelas) — datos diarios de hacienda en pie
+API: https://apis.datos.gob.ar/series/api/series/?ids=<serie>&representation_mode=value&sort=desc&limit=1
 
-Por ahora parseamos la página pública del IPCVA. Si cambia el HTML,
-actualizar SELECTORES.
+Series confirmadas (todas en Pesos/kg, frecuencia mensual):
+- 105.1_I2A_2016_M_14   → Asado
+- 105.1_I2N_2016_M_14   → Nalga
+- 105.1_I2P_2016_M_15   → Paleta
+- 105.1_I2C_2016_M_16   → Cuadril
+- 105.1_I2CPC_2016_M_27 → Carne picada común
+
+Si INDEC publica más cortes en el futuro, agregarlos a SERIES.
 """
 import logging
-import re
 from datetime import datetime
-
-from bs4 import BeautifulSoup
+from typing import Optional
 
 from .base import ScraperBase, PrecioRelevado, ScraperError
-from normalizador import normalizar
 
 log = logging.getLogger(__name__)
 
 
-URL = "https://www.ipcva.com.ar/index.php?seccion=precios"
+# corte_normalizado → id de serie en datos.gob.ar
+SERIES = {
+    "asado":        "105.1_I2A_2016_M_14",
+    "nalga":        "105.1_I2N_2016_M_14",
+    "paleta":       "105.1_I2P_2016_M_15",
+    "cuadril":      "105.1_I2C_2016_M_16",
+    "picada_comun": "105.1_I2CPC_2016_M_27",
+}
 
-
-def _parsear_precio(texto: str):
-    if not texto:
-        return None
-    limpio = re.sub(r"[^\d,.]", "", texto)
-    if not limpio:
-        return None
-    if "," in limpio and "." in limpio:
-        limpio = limpio.replace(".", "").replace(",", ".")
-    elif "," in limpio:
-        limpio = limpio.replace(",", ".")
-    try:
-        return float(limpio)
-    except ValueError:
-        return None
+API_BASE = "https://apis.datos.gob.ar/series/api/series/"
 
 
 class IpcvaScraper(ScraperBase):
     """
-    Benchmark mayorista del IPCVA.
+    Benchmark oficial INDEC IPC-GBA — precios mensuales sugeridos por kg.
 
-    Devuelve un único precio por corte estándar (no hay "carnicería").
-    Lo guardamos con carniceria='IPCVA (referencia)' y segmento='benchmark'
-    para que el dashboard pueda usarlo como línea base.
+    Devuelve un precio por corte (no hay carnicería específica).
+    carniceria='IPCVA (referencia)' (mantenido por compatibilidad).
+    segmento='benchmark'.
     """
     nombre = "IPCVA (referencia)"
     segmento = "benchmark"
-    base_url = "https://www.ipcva.com.ar"
+    base_url = "https://apis.datos.gob.ar"
     min_cortes_esperados = 3
+    timeout = 20.0
+    delay_range = (0.2, 0.4)
+
+    async def _fetch_latest(self, serie_id: str) -> Optional[tuple[str, float]]:
+        """Devuelve (fecha_iso, precio) del último dato disponible para la serie."""
+        url = (
+            f"{API_BASE}?ids={serie_id}"
+            f"&representation_mode=value&sort=desc&limit=1"
+        )
+        try:
+            data = await self.get_json(url)
+        except Exception as e:
+            log.warning(f"[IPCVA] serie {serie_id} falló: {e}")
+            return None
+        rows = data.get("data", [])
+        if not rows:
+            return None
+        fecha, valor = rows[0][0], rows[0][1]
+        if valor is None:
+            return None
+        return fecha, float(valor)
 
     async def relevar(self) -> list[PrecioRelevado]:
-        try:
-            html = await self.get_html(URL)
-        except Exception as e:
-            raise ScraperError(f"IPCVA: no se pudo descargar la tabla: {e}")
-
-        soup = BeautifulSoup(html, "lxml")
-        tablas = soup.find_all("table")
-        if not tablas:
-            raise ScraperError("IPCVA: no se encontró tabla de precios")
-
-        ahora = datetime.now()
         resultados: list[PrecioRelevado] = []
-        vistos: set[str] = set()
+        ahora = datetime.now()
 
-        for tabla in tablas:
-            filas = tabla.find_all("tr")
-            for fila in filas:
-                celdas = fila.find_all(["td", "th"])
-                if len(celdas) < 2:
-                    continue
-                nombre = celdas[0].get_text(" ", strip=True)
-                if not nombre or nombre in vistos:
-                    continue
-                vistos.add(nombre)
-                corte = normalizar(nombre)
-                if not corte:
-                    continue
-                # tomamos la última celda numérica como precio sugerido
-                for celda in reversed(celdas[1:]):
-                    precio = _parsear_precio(celda.get_text())
-                    if precio and precio > 100:   # filtra ruido
-                        resultados.append(PrecioRelevado(
-                            carniceria=self.nombre,
-                            corte_original=nombre,
-                            corte_normalizado=corte,
-                            precio_kg=precio,
-                            fecha=ahora,
-                            segmento=self.segmento,
-                            url_fuente=URL,
-                        ))
-                        break
+        for corte_norm, serie_id in SERIES.items():
+            r = await self._fetch_latest(serie_id)
+            if r is None:
+                continue
+            fecha_str, precio = r
+            resultados.append(PrecioRelevado(
+                carniceria=self.nombre,
+                corte_original=f"INDEC IPC-GBA · {corte_norm} ({fecha_str[:7]})",
+                corte_normalizado=corte_norm,
+                precio_kg=precio,
+                fecha=ahora,
+                segmento=self.segmento,
+                url_fuente=f"https://datos.gob.ar/dataset?q={serie_id}",
+            ))
 
         if not resultados:
-            raise ScraperError(
-                "IPCVA: tabla parseada pero sin cortes reconocibles. "
-                "Probable cambio de estructura HTML."
-            )
+            raise ScraperError("INDEC IPC-GBA: 0 series devolvieron datos")
         return resultados
