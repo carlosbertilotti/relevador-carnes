@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-05-13",
-  "anterior": null,
-  "generado": "2026-05-13T20:48:51.809523+00:00",
+  "ultima_corrida": "2026-05-14",
+  "anterior": "2026-05-13",
+  "generado": "2026-05-14T18:35:02.121076+00:00",
   "carnicerias": [
     "Carrefour",
     "ChangoMás",
@@ -18,7 +18,7 @@
       "mejor_precio": 10499.0,
       "mejor_carniceria": "ChangoMás",
       "promedio": 23995.75,
-      "variacion_pct": null,
+      "variacion_pct": 2.8,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -66,7 +66,7 @@
       "mejor_precio": 10290.0,
       "mejor_carniceria": "Día",
       "promedio": 26868.1,
-      "variacion_pct": null,
+      "variacion_pct": 9.1,
       "precios": [
         {
           "carniceria": "Día",
@@ -114,7 +114,7 @@
       "mejor_precio": 10290.0,
       "mejor_carniceria": "Día",
       "promedio": 23773.09,
-      "variacion_pct": null,
+      "variacion_pct": 8.1,
       "precios": [
         {
           "carniceria": "Día",
@@ -162,7 +162,7 @@
       "mejor_precio": 15490.0,
       "mejor_carniceria": "La Anónima",
       "promedio": 21259.5,
-      "variacion_pct": null,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "La Anónima",
@@ -210,7 +210,7 @@
       "mejor_precio": 10990.0,
       "mejor_carniceria": "Día",
       "promedio": 24833.5,
-      "variacion_pct": null,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Día",
@@ -258,7 +258,7 @@
       "mejor_precio": 8390.0,
       "mejor_carniceria": "Día",
       "promedio": 21731.94,
-      "variacion_pct": null,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Día",
@@ -306,7 +306,7 @@
       "mejor_precio": 10399.0,
       "mejor_carniceria": "ChangoMás",
       "promedio": 25758.67,
-      "variacion_pct": null,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -354,7 +354,7 @@
       "mejor_precio": 9290.0,
       "mejor_carniceria": "La Anónima",
       "promedio": 14755.8,
-      "variacion_pct": null,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "La Anónima",
@@ -387,7 +387,7 @@
       "mejor_precio": 11290.0,
       "mejor_carniceria": "Día",
       "promedio": 34851.29,
-      "variacion_pct": null,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Día",
@@ -435,7 +435,7 @@
       "mejor_precio": 6490.0,
       "mejor_carniceria": "Día",
       "promedio": 22793.94,
-      "variacion_pct": null,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Día",
@@ -483,7 +483,7 @@
       "mejor_precio": 16990.0,
       "mejor_carniceria": "La Anónima",
       "promedio": 23069.58,
-      "variacion_pct": null,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "La Anónima",
@@ -531,7 +531,7 @@
       "mejor_precio": 9335.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 11488.86,
-      "variacion_pct": null,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -574,7 +574,7 @@
       "mejor_precio": 7490.0,
       "mejor_carniceria": "Día",
       "promedio": 17856.53,
-      "variacion_pct": null,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Día",
@@ -621,8 +621,8 @@
     "peceto": {
       "mejor_precio": 15999.0,
       "mejor_carniceria": "Jumbo",
-      "promedio": 31156.31,
-      "variacion_pct": null,
+      "promedio": 31840.07,
+      "variacion_pct": 2.2,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -633,11 +633,6 @@
           "carniceria": "ChangoMás",
           "precio_kg": 20000.0,
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Carrefour",
-          "precio_kg": 20900.0,
-          "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
           "carniceria": "ChangoMás",
@@ -663,6 +658,11 @@
           "carniceria": "Toledo",
           "precio_kg": 27990.0,
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 29999.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         }
       ]
     },
@@ -670,7 +670,7 @@
       "mejor_precio": 7789.0,
       "mejor_carniceria": "Vea",
       "promedio": 11289.83,
-      "variacion_pct": null,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -718,7 +718,7 @@
       "mejor_precio": 9999.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 17824.5,
-      "variacion_pct": null,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -766,7 +766,7 @@
       "mejor_precio": 7390.0,
       "mejor_carniceria": "Día",
       "promedio": 15081.78,
-      "variacion_pct": null,
+      "variacion_pct": 17.6,
       "precios": [
         {
           "carniceria": "Día",
@@ -814,7 +814,7 @@
       "mejor_precio": 6990.0,
       "mejor_carniceria": "Día",
       "promedio": 14794.62,
-      "variacion_pct": null,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Día",
@@ -862,7 +862,7 @@
       "mejor_precio": 26799.0,
       "mejor_carniceria": "ChangoMás",
       "promedio": 34329.5,
-      "variacion_pct": null,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -880,7 +880,7 @@
       "mejor_precio": 14790.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 18541.5,
-      "variacion_pct": null,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -928,7 +928,7 @@
       "mejor_precio": 14990.0,
       "mejor_carniceria": "Toledo",
       "promedio": 15244.5,
-      "variacion_pct": null,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Toledo",
@@ -945,8 +945,8 @@
     "vacio": {
       "mejor_precio": 6990.0,
       "mejor_carniceria": "Día",
-      "promedio": 20345.36,
-      "variacion_pct": null,
+      "promedio": 20973.15,
+      "variacion_pct": 3.1,
       "precios": [
         {
           "carniceria": "Día",
@@ -984,9 +984,9 @@
           "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         },
         {
-          "carniceria": "Jumbo",
-          "precio_kg": 13215.0,
-          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
+          "carniceria": "Vea",
+          "precio_kg": 14125.0,
+          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         }
       ]
     }
