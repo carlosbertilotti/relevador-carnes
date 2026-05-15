@@ -1,140 +1,48 @@
 {
-  "ultima_corrida": "2026-05-14",
-  "anterior": "2026-05-13",
-  "generado": "2026-05-14T18:35:02.121076+00:00",
+  "ultima_corrida": "2026-05-15",
+  "anterior": "2026-05-14",
+  "generado": "2026-05-15T17:17:36.166936+00:00",
   "carnicerias": [
     "Carrefour",
-    "ChangoMás",
     "Día",
     "IPCVA (referencia)",
     "Jumbo",
-    "La Anónima",
-    "RES",
-    "Toledo",
-    "Vea"
+    "RES"
   ],
   "cortes": {
     "asado": {
-      "mejor_precio": 10499.0,
-      "mejor_carniceria": "ChangoMás",
-      "promedio": 23995.75,
-      "variacion_pct": 2.8,
+      "mejor_precio": 12490.0,
+      "mejor_carniceria": "Carrefour",
+      "promedio": 17091.6,
+      "variacion_pct": -26.8,
       "precios": [
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 10499.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 11399.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 11499.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 11900.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "La Anónima",
-          "precio_kg": 12490.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
         {
           "carniceria": "Carrefour",
           "precio_kg": 12490.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
-          "carniceria": "La Anónima",
-          "precio_kg": 13490.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 13990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        }
-      ]
-    },
-    "bife_ancho": {
-      "mejor_precio": 10290.0,
-      "mejor_carniceria": "Día",
-      "promedio": 26868.1,
-      "variacion_pct": 9.1,
-      "precios": [
-        {
-          "carniceria": "Día",
-          "precio_kg": 10290.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 17399.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 17990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "IPCVA (referencia)",
+          "precio_kg": 17784.79,
+          "url": "https://datos.gob.ar/dataset?q=105.1_I2A_2016_M_14"
         },
         {
           "carniceria": "RES",
-          "precio_kg": 22100.0,
-          "url": "https://www.res.com.ar/bife-ancho.html"
-        },
-        {
-          "carniceria": "Vea",
-          "precio_kg": 23209.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Vea",
-          "precio_kg": 23209.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 30999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Vea",
-          "precio_kg": 39485.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "precio_kg": 21000.0,
+          "url": "https://www.res.com.ar/asado.html"
         }
       ]
     },
     "bife_angosto": {
-      "mejor_precio": 10290.0,
-      "mejor_carniceria": "Día",
-      "promedio": 23773.09,
-      "variacion_pct": 8.1,
+      "mejor_precio": 16900.0,
+      "mejor_carniceria": "Carrefour",
+      "promedio": 26542.67,
+      "variacion_pct": 20.7,
       "precios": [
-        {
-          "carniceria": "Día",
-          "precio_kg": 10290.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
         {
           "carniceria": "Carrefour",
           "precio_kg": 16900.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 16999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 17990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         },
         {
           "carniceria": "Jumbo",
@@ -152,81 +60,23 @@
           "url": "https://www.res.com.ar/bife-angosto.html"
         },
         {
-          "carniceria": "Toledo",
-          "precio_kg": 26990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        }
-      ]
-    },
-    "bola_lomo": {
-      "mejor_precio": 15490.0,
-      "mejor_carniceria": "La Anónima",
-      "promedio": 21259.5,
-      "variacion_pct": 0.0,
-      "precios": [
-        {
-          "carniceria": "La Anónima",
-          "precio_kg": 15490.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 17399.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 18599.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 18599.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 18899.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 18990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "Jumbo",
+          "precio_kg": 28195.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
           "carniceria": "RES",
-          "precio_kg": 22100.0,
-          "url": "https://www.res.com.ar/bola-de-lomo.html"
-        },
-        {
-          "carniceria": "Día",
-          "precio_kg": 40000.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "precio_kg": 44000.0,
+          "url": "https://www.res.com.ar/bife-de-chorizo.html"
         }
       ]
     },
     "colita_cuadril": {
-      "mejor_precio": 10990.0,
-      "mejor_carniceria": "Día",
-      "promedio": 24833.5,
-      "variacion_pct": 0.0,
+      "mejor_precio": 17999.0,
+      "mejor_carniceria": "Jumbo",
+      "promedio": 29833.0,
+      "variacion_pct": 20.1,
       "precios": [
-        {
-          "carniceria": "Día",
-          "precio_kg": 10990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "La Anónima",
-          "precio_kg": 17490.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "La Anónima",
-          "precio_kg": 17490.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
         {
           "carniceria": "Jumbo",
           "precio_kg": 17999.0,
@@ -238,16 +88,6 @@
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
-          "carniceria": "ChangoMás",
-          "precio_kg": 23199.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Día",
-          "precio_kg": 40000.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
           "carniceria": "RES",
           "precio_kg": 49000.0,
           "url": "https://www.res.com.ar/colita-de-cuadril.html"
@@ -255,266 +95,80 @@
       ]
     },
     "cuadril": {
-      "mejor_precio": 8390.0,
-      "mejor_carniceria": "Día",
-      "promedio": 21731.94,
-      "variacion_pct": -0.0,
+      "mejor_precio": 21309.27,
+      "mejor_carniceria": "IPCVA (referencia)",
+      "promedio": 22842.07,
+      "variacion_pct": 5.1,
       "precios": [
-        {
-          "carniceria": "Día",
-          "precio_kg": 8390.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 11999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Jumbo",
-          "precio_kg": 16999.0,
-          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 19199.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 20000.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
         {
           "carniceria": "IPCVA (referencia)",
           "precio_kg": 21309.27,
           "url": "https://datos.gob.ar/dataset?q=105.1_I2C_2016_M_16"
         },
         {
-          "carniceria": "ChangoMás",
-          "precio_kg": 22699.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "Jumbo",
+          "precio_kg": 21519.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
           "carniceria": "Día",
           "precio_kg": 23400.0,
           "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 25140.0,
+          "url": "https://www.res.com.ar/cuadril.html"
         }
       ]
     },
     "entrana": {
-      "mejor_precio": 10399.0,
-      "mejor_carniceria": "ChangoMás",
-      "promedio": 25758.67,
-      "variacion_pct": 0.0,
+      "mejor_precio": 19950.0,
+      "mejor_carniceria": "RES",
+      "promedio": 27225.0,
+      "variacion_pct": 5.7,
       "precios": [
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 10399.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Día",
-          "precio_kg": 10990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
         {
           "carniceria": "RES",
           "precio_kg": 19950.0,
           "url": "https://www.res.com.ar/entra-a.html"
         },
         {
-          "carniceria": "ChangoMás",
-          "precio_kg": 20000.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 23990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 31999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
           "carniceria": "Día",
           "precio_kg": 34500.0,
           "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
-        },
-        {
-          "carniceria": "Día",
-          "precio_kg": 40000.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        }
-      ]
-    },
-    "falda": {
-      "mejor_precio": 9290.0,
-      "mejor_carniceria": "La Anónima",
-      "promedio": 14755.8,
-      "variacion_pct": 0.0,
-      "precios": [
-        {
-          "carniceria": "La Anónima",
-          "precio_kg": 9290.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "La Anónima",
-          "precio_kg": 9990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 11500.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 12999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 30000.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         }
       ]
     },
     "lomo": {
-      "mejor_precio": 11290.0,
+      "mejor_precio": 35700.0,
       "mejor_carniceria": "Día",
-      "promedio": 34851.29,
-      "variacion_pct": -0.0,
+      "promedio": 53166.33,
+      "variacion_pct": 52.6,
       "precios": [
         {
           "carniceria": "Día",
-          "precio_kg": 11290.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "precio_kg": 35700.0,
+          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
-          "carniceria": "Toledo",
-          "precio_kg": 17169.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 20000.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 21022.5,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Vea",
-          "precio_kg": 23256.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 23274.47,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 24726.67,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 25990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        }
-      ]
-    },
-    "matambre": {
-      "mejor_precio": 6490.0,
-      "mejor_carniceria": "Día",
-      "promedio": 22793.94,
-      "variacion_pct": -0.0,
-      "precios": [
-        {
-          "carniceria": "Día",
-          "precio_kg": 6490.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "La Anónima",
-          "precio_kg": 14490.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 15699.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 16599.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 17990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Vea",
-          "precio_kg": 21590.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "Jumbo",
+          "precio_kg": 48999.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
           "carniceria": "RES",
-          "precio_kg": 23850.0,
-          "url": "https://www.res.com.ar/matambre.html"
-        },
-        {
-          "carniceria": "Día",
-          "precio_kg": 40000.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "precio_kg": 74800.0,
+          "url": "https://www.res.com.ar/lomo.html"
         }
       ]
     },
     "nalga": {
-      "mejor_precio": 16990.0,
-      "mejor_carniceria": "La Anónima",
-      "promedio": 23069.58,
-      "variacion_pct": -0.0,
+      "mejor_precio": 22100.56,
+      "mejor_carniceria": "IPCVA (referencia)",
+      "promedio": 27050.28,
+      "variacion_pct": 17.3,
       "precios": [
-        {
-          "carniceria": "La Anónima",
-          "precio_kg": 16990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 19599.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 19599.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 19990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 19999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 21990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
         {
           "carniceria": "IPCVA (referencia)",
           "precio_kg": 22100.56,
@@ -530,8 +184,8 @@
     "osobuco": {
       "mejor_precio": 9335.0,
       "mejor_carniceria": "Jumbo",
-      "promedio": 11488.86,
-      "variacion_pct": 0.0,
+      "promedio": 11478.33,
+      "variacion_pct": -0.1,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -539,29 +193,9 @@
           "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
-          "carniceria": "ChangoMás",
-          "precio_kg": 10999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 10999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 10999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
           "carniceria": "Carrefour",
           "precio_kg": 11200.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 12990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         },
         {
           "carniceria": "RES",
@@ -571,112 +205,67 @@
       ]
     },
     "paleta": {
-      "mejor_precio": 7490.0,
-      "mejor_carniceria": "Día",
-      "promedio": 17856.53,
-      "variacion_pct": 0.0,
+      "mejor_precio": 14390.0,
+      "mejor_carniceria": "Carrefour",
+      "promedio": 18366.69,
+      "variacion_pct": 2.9,
       "precios": [
-        {
-          "carniceria": "Día",
-          "precio_kg": 7490.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 10999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 11880.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 12972.22,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 13460.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "La Anónima",
-          "precio_kg": 13740.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
         {
           "carniceria": "Carrefour",
           "precio_kg": 14390.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
-          "carniceria": "La Anónima",
-          "precio_kg": 14490.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "IPCVA (referencia)",
+          "precio_kg": 17088.45,
+          "url": "https://datos.gob.ar/dataset?q=105.1_I2P_2016_M_15"
+        },
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 17355.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 21000.0,
+          "url": "https://www.res.com.ar/paleta.html"
+        },
+        {
+          "carniceria": "Día",
+          "precio_kg": 22000.0,
+          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         }
       ]
     },
     "peceto": {
-      "mejor_precio": 15999.0,
-      "mejor_carniceria": "Jumbo",
-      "promedio": 31840.07,
-      "variacion_pct": 2.2,
+      "mejor_precio": 23900.0,
+      "mejor_carniceria": "Carrefour",
+      "promedio": 29171.67,
+      "variacion_pct": -8.4,
       "precios": [
-        {
-          "carniceria": "Jumbo",
-          "precio_kg": 15999.0,
-          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 20000.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 22699.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 23799.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
         {
           "carniceria": "Carrefour",
           "precio_kg": 23900.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
-          "carniceria": "ChangoMás",
-          "precio_kg": 25000.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "Jumbo",
+          "precio_kg": 28615.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
-          "carniceria": "Toledo",
-          "precio_kg": 27990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 29999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "RES",
+          "precio_kg": 35000.0,
+          "url": "https://www.res.com.ar/peceto.html"
         }
       ]
     },
     "picada_comun": {
       "mejor_precio": 7789.0,
-      "mejor_carniceria": "Vea",
-      "promedio": 11289.83,
-      "variacion_pct": 0.0,
+      "mejor_carniceria": "Jumbo",
+      "promedio": 9878.36,
+      "variacion_pct": -12.5,
       "precios": [
-        {
-          "carniceria": "Vea",
-          "precio_kg": 7789.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
         {
           "carniceria": "Jumbo",
           "precio_kg": 7789.0,
@@ -688,24 +277,9 @@
           "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
-          "carniceria": "Vea",
-          "precio_kg": 9996.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
           "carniceria": "IPCVA (referencia)",
           "precio_kg": 10324.46,
           "url": "https://datos.gob.ar/dataset?q=105.1_I2CPC_2016_M_27"
-        },
-        {
-          "carniceria": "Vea",
-          "precio_kg": 11990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 12990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         },
         {
           "carniceria": "Día",
@@ -715,35 +289,20 @@
       ]
     },
     "picada_especial": {
-      "mejor_precio": 9999.0,
-      "mejor_carniceria": "Jumbo",
-      "promedio": 17824.5,
-      "variacion_pct": 0.0,
+      "mejor_precio": 11000.0,
+      "mejor_carniceria": "Día",
+      "promedio": 16268.5,
+      "variacion_pct": -8.7,
       "precios": [
-        {
-          "carniceria": "Jumbo",
-          "precio_kg": 9999.0,
-          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 10990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
         {
           "carniceria": "Día",
           "precio_kg": 11000.0,
           "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
-          "carniceria": "ChangoMás",
-          "precio_kg": 14499.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 14999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "Jumbo",
+          "precio_kg": 12965.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
           "carniceria": "Jumbo",
@@ -754,35 +313,15 @@
           "carniceria": "RES",
           "precio_kg": 21200.0,
           "url": "https://www.res.com.ar/picada-premium.html"
-        },
-        {
-          "carniceria": "Día",
-          "precio_kg": 40000.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
         }
       ]
     },
     "roast_beef": {
-      "mejor_precio": 7390.0,
-      "mejor_carniceria": "Día",
-      "promedio": 15081.78,
-      "variacion_pct": 17.6,
+      "mejor_precio": 12990.0,
+      "mejor_carniceria": "Carrefour",
+      "promedio": 18089.75,
+      "variacion_pct": 41.1,
       "precios": [
-        {
-          "carniceria": "Día",
-          "precio_kg": 7390.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 10999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 11499.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
         {
           "carniceria": "Carrefour",
           "precio_kg": 12990.0,
@@ -794,93 +333,50 @@
           "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
-          "carniceria": "ChangoMás",
-          "precio_kg": 16499.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 16990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
           "carniceria": "RES",
           "precio_kg": 21200.0,
           "url": "https://www.res.com.ar/roast-beef.html"
+        },
+        {
+          "carniceria": "Día",
+          "precio_kg": 22100.0,
+          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         }
       ]
     },
     "tapa_asado": {
-      "mejor_precio": 6990.0,
-      "mejor_carniceria": "Día",
-      "promedio": 14794.62,
-      "variacion_pct": 0.0,
+      "mejor_precio": 13290.0,
+      "mejor_carniceria": "Carrefour",
+      "promedio": 17763.75,
+      "variacion_pct": 20.1,
       "precios": [
-        {
-          "carniceria": "Día",
-          "precio_kg": 6990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 7349.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 10999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
         {
           "carniceria": "Carrefour",
           "precio_kg": 13290.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
-          "carniceria": "La Anónima",
-          "precio_kg": 13990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "La Anónima",
-          "precio_kg": 13990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
           "carniceria": "Jumbo",
-          "precio_kg": 14499.0,
+          "precio_kg": 16965.0,
           "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
-          "carniceria": "Vea",
-          "precio_kg": 16475.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        }
-      ]
-    },
-    "tapa_cuadril": {
-      "mejor_precio": 26799.0,
-      "mejor_carniceria": "ChangoMás",
-      "promedio": 34329.5,
-      "variacion_pct": 0.0,
-      "precios": [
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 26799.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "RES",
+          "precio_kg": 19900.0,
+          "url": "https://www.res.com.ar/tapa-de-asado.html"
         },
         {
-          "carniceria": "RES",
-          "precio_kg": 41860.0,
-          "url": "https://www.res.com.ar/pica-a.html"
+          "carniceria": "Día",
+          "precio_kg": 20900.0,
+          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         }
       ]
     },
     "tapa_nalga": {
       "mejor_precio": 14790.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 18541.5,
-      "variacion_pct": 0.0,
+      "promedio": 19971.25,
+      "variacion_pct": 7.7,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -888,105 +384,52 @@
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
-          "carniceria": "La Anónima",
-          "precio_kg": 15490.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "La Anónima",
-          "precio_kg": 15490.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 16899.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
           "carniceria": "Día",
           "precio_kg": 17000.0,
           "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
-          "carniceria": "Vea",
+          "carniceria": "Jumbo",
           "precio_kg": 18245.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
-          "carniceria": "Vea",
-          "precio_kg": 18245.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Vea",
-          "precio_kg": 18245.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        }
-      ]
-    },
-    "tortuguita": {
-      "mejor_precio": 14990.0,
-      "mejor_carniceria": "Toledo",
-      "promedio": 15244.5,
-      "variacion_pct": 0.0,
-      "precios": [
-        {
-          "carniceria": "Toledo",
-          "precio_kg": 14990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 15499.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "RES",
+          "precio_kg": 29850.0,
+          "url": "https://www.res.com.ar/tapa-de-nalga.html"
         }
       ]
     },
     "vacio": {
-      "mejor_precio": 6990.0,
+      "mejor_precio": 18000.0,
       "mejor_carniceria": "Día",
-      "promedio": 20973.15,
-      "variacion_pct": 3.1,
+      "promedio": 21279.8,
+      "variacion_pct": 1.5,
       "precios": [
         {
           "carniceria": "Día",
-          "precio_kg": 6990.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 7999.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 8199.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "precio_kg": 18000.0,
+          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
           "carniceria": "Día",
-          "precio_kg": 8490.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "precio_kg": 18000.0,
+          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
-          "carniceria": "Vea",
-          "precio_kg": 12247.5,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "Carrefour",
+          "precio_kg": 18500.0,
+          "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
-          "carniceria": "Vea",
-          "precio_kg": 12398.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "Jumbo",
+          "precio_kg": 21999.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
-          "carniceria": "ChangoMás",
-          "precio_kg": 12399.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
-        },
-        {
-          "carniceria": "Vea",
-          "precio_kg": 14125.0,
-          "url": "https://datos.produccion.gob.ar/dataset/sepa-precios"
+          "carniceria": "RES",
+          "precio_kg": 29900.0,
+          "url": "https://www.res.com.ar/vacio.html"
         }
       ]
     }
