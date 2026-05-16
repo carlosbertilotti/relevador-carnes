@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-05-15",
-  "anterior": "2026-05-14",
-  "generado": "2026-05-15T17:17:36.166936+00:00",
+  "ultima_corrida": "2026-05-16",
+  "anterior": "2026-05-15",
+  "generado": "2026-05-16T15:39:43.402301+00:00",
   "carnicerias": [
     "Carrefour",
     "Día",
@@ -14,7 +14,7 @@
       "mejor_precio": 12490.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 17091.6,
-      "variacion_pct": -26.8,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -37,7 +37,7 @@
       "mejor_precio": 16900.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 26542.67,
-      "variacion_pct": 20.7,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -75,7 +75,7 @@
       "mejor_precio": 17999.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 29833.0,
-      "variacion_pct": 20.1,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -98,7 +98,7 @@
       "mejor_precio": 21309.27,
       "mejor_carniceria": "IPCVA (referencia)",
       "promedio": 22842.07,
-      "variacion_pct": 5.1,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "IPCVA (referencia)",
@@ -126,7 +126,7 @@
       "mejor_precio": 19950.0,
       "mejor_carniceria": "RES",
       "promedio": 27225.0,
-      "variacion_pct": 5.7,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "RES",
@@ -144,7 +144,7 @@
       "mejor_precio": 35700.0,
       "mejor_carniceria": "Día",
       "promedio": 53166.33,
-      "variacion_pct": 52.6,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Día",
@@ -167,7 +167,7 @@
       "mejor_precio": 22100.56,
       "mejor_carniceria": "IPCVA (referencia)",
       "promedio": 27050.28,
-      "variacion_pct": 17.3,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "IPCVA (referencia)",
@@ -185,7 +185,7 @@
       "mejor_precio": 9335.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 11478.33,
-      "variacion_pct": -0.1,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -208,7 +208,7 @@
       "mejor_precio": 14390.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 18366.69,
-      "variacion_pct": 2.9,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -241,7 +241,7 @@
       "mejor_precio": 23900.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 29171.67,
-      "variacion_pct": -8.4,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -264,7 +264,7 @@
       "mejor_precio": 7789.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 9878.36,
-      "variacion_pct": -12.5,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -292,7 +292,7 @@
       "mejor_precio": 11000.0,
       "mejor_carniceria": "Día",
       "promedio": 16268.5,
-      "variacion_pct": -8.7,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Día",
@@ -320,7 +320,7 @@
       "mejor_precio": 12990.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 18089.75,
-      "variacion_pct": 41.1,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -348,7 +348,7 @@
       "mejor_precio": 13290.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 17763.75,
-      "variacion_pct": 20.1,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -376,7 +376,7 @@
       "mejor_precio": 14790.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 19971.25,
-      "variacion_pct": 7.7,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -404,7 +404,7 @@
       "mejor_precio": 18000.0,
       "mejor_carniceria": "Día",
       "promedio": 21279.8,
-      "variacion_pct": 1.5,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Día",
