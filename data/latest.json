@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-05-18",
-  "anterior": "2026-05-17",
-  "generado": "2026-05-18T18:24:08.405288+00:00",
+  "ultima_corrida": "2026-05-19",
+  "anterior": "2026-05-18",
+  "generado": "2026-05-19T18:28:51.877953+00:00",
   "carnicerias": [
     "Carrefour",
     "Día",
@@ -36,12 +36,17 @@
     "bife_angosto": {
       "mejor_precio": 16900.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 27040.25,
-      "variacion_pct": 1.9,
+      "promedio": 25630.2,
+      "variacion_pct": -5.2,
       "precios": [
         {
           "carniceria": "Carrefour",
           "precio_kg": 16900.0,
+          "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
+        },
+        {
+          "carniceria": "Carrefour",
+          "precio_kg": 19990.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
@@ -65,7 +70,7 @@
       "mejor_precio": 22500.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 34019.67,
-      "variacion_pct": 14.0,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -88,7 +93,7 @@
       "mejor_precio": 16999.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 21712.07,
-      "variacion_pct": -4.9,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -195,14 +200,14 @@
       ]
     },
     "paleta": {
-      "mejor_precio": 14390.0,
+      "mejor_precio": 13990.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 18366.69,
-      "variacion_pct": 0.0,
+      "promedio": 18286.69,
+      "variacion_pct": -0.4,
       "precios": [
         {
           "carniceria": "Carrefour",
-          "precio_kg": 14390.0,
+          "precio_kg": 13990.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
@@ -230,18 +235,13 @@
     "peceto": {
       "mejor_precio": 15999.0,
       "mejor_carniceria": "Jumbo",
-      "promedio": 23949.75,
-      "variacion_pct": -17.9,
+      "promedio": 24966.33,
+      "variacion_pct": 4.2,
       "precios": [
         {
           "carniceria": "Jumbo",
           "precio_kg": 15999.0,
           "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
-        },
-        {
-          "carniceria": "Carrefour",
-          "precio_kg": 20900.0,
-          "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
           "carniceria": "Carrefour",
@@ -287,7 +287,7 @@
       "mejor_precio": 9999.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 15527.0,
-      "variacion_pct": -4.6,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -312,14 +312,14 @@
       ]
     },
     "roast_beef": {
-      "mejor_precio": 12990.0,
+      "mejor_precio": 13290.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 18089.75,
-      "variacion_pct": 0.0,
+      "promedio": 18164.75,
+      "variacion_pct": 0.4,
       "precios": [
         {
           "carniceria": "Carrefour",
-          "precio_kg": 12990.0,
+          "precio_kg": 13290.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
@@ -340,14 +340,14 @@
       ]
     },
     "tapa_asado": {
-      "mejor_precio": 13290.0,
+      "mejor_precio": 12490.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 17763.75,
-      "variacion_pct": 0.0,
+      "promedio": 17563.75,
+      "variacion_pct": -1.1,
       "precios": [
         {
           "carniceria": "Carrefour",
-          "precio_kg": 13290.0,
+          "precio_kg": 12490.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
@@ -370,8 +370,8 @@
     "tapa_nalga": {
       "mejor_precio": 14790.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 19971.25,
-      "variacion_pct": 0.0,
+      "promedio": 20546.25,
+      "variacion_pct": 2.9,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -379,14 +379,14 @@
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
-          "carniceria": "Día",
-          "precio_kg": 17000.0,
-          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
-        },
-        {
           "carniceria": "Jumbo",
           "precio_kg": 18245.0,
           "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
+        },
+        {
+          "carniceria": "Día",
+          "precio_kg": 19300.0,
+          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
           "carniceria": "RES",
@@ -399,7 +399,7 @@
       "mejor_precio": 13215.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 22866.67,
-      "variacion_pct": -2.9,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
