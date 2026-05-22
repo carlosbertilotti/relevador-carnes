@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-05-21",
-  "anterior": "2026-05-20",
-  "generado": "2026-05-21T15:37:42.620498+00:00",
+  "ultima_corrida": "2026-05-22",
+  "anterior": "2026-05-21",
+  "generado": "2026-05-22T14:47:35.159129+00:00",
   "carnicerias": [
     "Carrefour",
     "Día",
@@ -67,20 +67,20 @@
       ]
     },
     "colita_cuadril": {
-      "mejor_precio": 22500.0,
-      "mejor_carniceria": "Carrefour",
-      "promedio": 34019.67,
-      "variacion_pct": 0.0,
+      "mejor_precio": 17999.0,
+      "mejor_carniceria": "Jumbo",
+      "promedio": 29833.0,
+      "variacion_pct": -12.3,
       "precios": [
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 17999.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
+        },
         {
           "carniceria": "Carrefour",
           "precio_kg": 22500.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
-        },
-        {
-          "carniceria": "Jumbo",
-          "precio_kg": 30559.0,
-          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
           "carniceria": "RES",
@@ -90,20 +90,20 @@
       ]
     },
     "cuadril": {
-      "mejor_precio": 16999.0,
-      "mejor_carniceria": "Jumbo",
-      "promedio": 21712.07,
-      "variacion_pct": 0.0,
+      "mejor_precio": 21309.27,
+      "mejor_carniceria": "IPCVA (referencia)",
+      "promedio": 22842.07,
+      "variacion_pct": 5.2,
       "precios": [
-        {
-          "carniceria": "Jumbo",
-          "precio_kg": 16999.0,
-          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
-        },
         {
           "carniceria": "IPCVA (referencia)",
           "precio_kg": 21309.27,
           "url": "https://datos.gob.ar/dataset?q=105.1_I2C_2016_M_16"
+        },
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 21519.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
           "carniceria": "Día",
@@ -202,8 +202,8 @@
     "paleta": {
       "mejor_precio": 13990.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 18286.69,
-      "variacion_pct": 1.3,
+      "promedio": 17484.69,
+      "variacion_pct": -4.4,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -221,14 +221,14 @@
           "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
+          "carniceria": "Día",
+          "precio_kg": 17990.0,
+          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
+        },
+        {
           "carniceria": "RES",
           "precio_kg": 21000.0,
           "url": "https://www.res.com.ar/paleta.html"
-        },
-        {
-          "carniceria": "Día",
-          "precio_kg": 22000.0,
-          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         }
       ]
     },
@@ -398,8 +398,8 @@
     "vacio": {
       "mejor_precio": 18500.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 24797.0,
-      "variacion_pct": 0.0,
+      "promedio": 22857.8,
+      "variacion_pct": -7.8,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -408,18 +408,18 @@
         },
         {
           "carniceria": "Día",
-          "precio_kg": 22900.0,
-          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
-        },
-        {
-          "carniceria": "Día",
-          "precio_kg": 24500.0,
+          "precio_kg": 20990.0,
           "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
           "carniceria": "Jumbo",
-          "precio_kg": 28185.0,
+          "precio_kg": 21999.0,
           "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
+        },
+        {
+          "carniceria": "Día",
+          "precio_kg": 22900.0,
+          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
           "carniceria": "RES",
