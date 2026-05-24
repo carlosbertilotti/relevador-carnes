@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-05-23",
-  "anterior": "2026-05-22",
-  "generado": "2026-05-23T13:44:44.274423+00:00",
+  "ultima_corrida": "2026-05-24",
+  "anterior": "2026-05-23",
+  "generado": "2026-05-24T13:44:17.639339+00:00",
   "carnicerias": [
     "Carrefour",
     "Día",
@@ -14,7 +14,7 @@
       "mejor_precio": 11990.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 16924.93,
-      "variacion_pct": -1.0,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -37,7 +37,7 @@
       "mejor_precio": 19990.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 27812.75,
-      "variacion_pct": 8.5,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -197,13 +197,18 @@
     "paleta": {
       "mejor_precio": 13990.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 17484.69,
-      "variacion_pct": 0.0,
+      "promedio": 18045.41,
+      "variacion_pct": 3.2,
       "precios": [
         {
           "carniceria": "Carrefour",
           "precio_kg": 13990.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
+        },
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 16839.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
           "carniceria": "IPCVA (referencia)",
@@ -216,14 +221,14 @@
           "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
-          "carniceria": "Día",
-          "precio_kg": 17990.0,
-          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
-        },
-        {
           "carniceria": "RES",
           "precio_kg": 21000.0,
           "url": "https://www.res.com.ar/paleta.html"
+        },
+        {
+          "carniceria": "Día",
+          "precio_kg": 22000.0,
+          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         }
       ]
     },
@@ -366,7 +371,7 @@
       "mejor_precio": 14790.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 21313.33,
-      "variacion_pct": 3.7,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -389,7 +394,7 @@
       "mejor_precio": 13215.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 21250.67,
-      "variacion_pct": -7.0,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
