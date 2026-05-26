@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-05-25",
-  "anterior": "2026-05-24",
-  "generado": "2026-05-25T15:16:50.281132+00:00",
+  "ultima_corrida": "2026-05-26",
+  "anterior": "2026-05-25",
+  "generado": "2026-05-26T15:44:16.470624+00:00",
   "carnicerias": [
     "Carrefour",
     "Día",
@@ -11,14 +11,14 @@
   ],
   "cortes": {
     "asado": {
-      "mejor_precio": 11990.0,
+      "mejor_precio": 12490.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 16924.93,
-      "variacion_pct": 0.0,
+      "promedio": 17091.6,
+      "variacion_pct": 1.0,
       "precios": [
         {
           "carniceria": "Carrefour",
-          "precio_kg": 11990.0,
+          "precio_kg": 12490.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
@@ -65,7 +65,7 @@
       "mejor_precio": 22500.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 34019.67,
-      "variacion_pct": 14.0,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -197,13 +197,18 @@
     "paleta": {
       "mejor_precio": 13990.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 18286.69,
-      "variacion_pct": 1.3,
+      "promedio": 18045.41,
+      "variacion_pct": -1.3,
       "precios": [
         {
           "carniceria": "Carrefour",
           "precio_kg": 13990.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
+        },
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 16839.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
           "carniceria": "IPCVA (referencia)",
@@ -388,8 +393,8 @@
     "vacio": {
       "mejor_precio": 13215.0,
       "mejor_carniceria": "Jumbo",
-      "promedio": 22281.67,
-      "variacion_pct": 4.9,
+      "promedio": 22866.67,
+      "variacion_pct": 2.6,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -403,12 +408,12 @@
         },
         {
           "carniceria": "Día",
-          "precio_kg": 20990.0,
+          "precio_kg": 22900.0,
           "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
           "carniceria": "Día",
-          "precio_kg": 22900.0,
+          "precio_kg": 24500.0,
           "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         },
         {
