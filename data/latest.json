@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-05-27",
-  "anterior": "2026-05-26",
-  "generado": "2026-05-27T15:55:17.385650+00:00",
+  "ultima_corrida": "2026-05-28",
+  "anterior": "2026-05-27",
+  "generado": "2026-05-28T16:07:59.528623+00:00",
   "carnicerias": [
     "Carrefour",
     "Día",
@@ -37,7 +37,7 @@
       "mejor_precio": 16900.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 26212.2,
-      "variacion_pct": -5.8,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -155,6 +155,24 @@
           "carniceria": "RES",
           "precio_kg": 74800.0,
           "url": "https://www.res.com.ar/lomo.html"
+        }
+      ]
+    },
+    "matambre": {
+      "mejor_precio": 5247.0,
+      "mejor_carniceria": "Día",
+      "promedio": 14548.5,
+      "variacion_pct": -39.0,
+      "precios": [
+        {
+          "carniceria": "Día",
+          "precio_kg": 5247.0,
+          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 23850.0,
+          "url": "https://www.res.com.ar/matambre.html"
         }
       ]
     },
@@ -347,8 +365,8 @@
     "tapa_asado": {
       "mejor_precio": 13290.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 17272.25,
-      "variacion_pct": -1.7,
+      "promedio": 16063.0,
+      "variacion_pct": -7.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -364,11 +382,6 @@
           "carniceria": "RES",
           "precio_kg": 19900.0,
           "url": "https://www.res.com.ar/tapa-de-asado.html"
-        },
-        {
-          "carniceria": "Día",
-          "precio_kg": 20900.0,
-          "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
         }
       ]
     },
@@ -399,7 +412,7 @@
       "mejor_precio": 18500.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 24797.0,
-      "variacion_pct": 8.4,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
