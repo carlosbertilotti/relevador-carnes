@@ -218,6 +218,14 @@ async def main_async(args):
     except Exception as e:
         log.warning(f"⚠️  Export latest.json falló (sigo): {e}")
 
+    # Subir snapshot a Supabase (lo consume el panel de Carlos en vivo)
+    try:
+        log.info("☁️  Subiendo snapshot a Supabase...")
+        from subir_snapshot import main as subir_main
+        subir_main()
+    except Exception as e:
+        log.warning(f"⚠️  Subida a Supabase falló (sigo): {e}")
+
     log.info("✅ Listo.")
 
 
