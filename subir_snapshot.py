@@ -26,6 +26,11 @@ def main():
         return
 
     payload = json.loads(LATEST.read_text())
+    corrida = payload.get("ultima_corrida")
+    # Fila 'latest' (la que lee el panel en vivo) + fila por fecha (histórico para gráficos)
+    rows = [{"id": "latest", "payload": payload, "updated_at": "now()"}]
+    if corrida:
+        rows.append({"id": corrida, "payload": payload, "updated_at": "now()"})
     resp = httpx.post(
         f"{url}/rest/v1/carnes_precios_snapshot?on_conflict=id",
         headers={
@@ -34,11 +39,11 @@ def main():
             "Content-Type": "application/json",
             "Prefer": "resolution=merge-duplicates,return=minimal",
         },
-        json={"id": "latest", "payload": payload, "updated_at": "now()"},
+        json=rows,
         timeout=30,
     )
     if resp.status_code in (200, 201, 204):
-        print(f"✅ Snapshot subido a Supabase (corrida {payload.get('ultima_corrida')})")
+        print(f"✅ Snapshot subido a Supabase (corrida {corrida}, {len(rows)} filas)")
     else:
         print(f"❌ Supabase respondió {resp.status_code}: {resp.text[:200]}")
         raise SystemExit(1)
