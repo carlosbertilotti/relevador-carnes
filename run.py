@@ -52,6 +52,12 @@ from scrapers.carrefour_html import CarrefourHtmlScraper
 from scrapers.jumbo_html import JumboHtmlScraper
 from scrapers.dia_html import DiaHtmlScraper
 
+# VTEX intelligent-search (API nueva — la vieja devolvía 0). Cubre 20+ cortes c/u.
+from scrapers.vea_is import VeaIsScraper
+from scrapers.disco_is import DiscoIsScraper
+from scrapers.changomas_is import ChangoMasIsScraper
+from scrapers.jumbo_is import JumboIsScraper
+
 # Benchmark
 from scrapers.ipcva import IpcvaScraper
 
@@ -66,6 +72,12 @@ SCRAPERS = {
     # ─── Fuente principal: SEPA oficial (cubre ~50 cadenas) ───
     "sepa":         SepaScraper,
 
+    # ─── VTEX intelligent-search (API nueva, 20+ cortes c/u) ───
+    "vea":          VeaIsScraper,
+    "disco":        DiscoIsScraper,
+    "changomas":    ChangoMasIsScraper,
+    "jumbo":        JumboIsScraper,
+
     # ─── HTML scrapers (cuando la API VTEX da 0) ───
     "carrefour_html": CarrefourHtmlScraper,
     "jumbo_html":     JumboHtmlScraper,
@@ -77,14 +89,10 @@ SCRAPERS = {
     "res":          ResScraper,
     "josimar":      JosimarScraper,
 
-    # ─── VTEX API (siguen disponibles, pueden devolver 0) ───
-    "coto":         CotoScraper,
+    # ─── VTEX API vieja (rota, dejada por si revive; usar las _is en su lugar) ───
+    "coto_old":     CotoScraper,
     "carrefour":    CarrefourScraper,
     "dia":          DiaScraper,
-    "vea":          VeaScraper,
-    "changomas":    ChangoMasScraper,
-    "jumbo":        JumboScraper,
-    "disco":        DiscoScraper,
     "maxiconsumo":  MaxiconsumoScraper,
     "hiper_libertad": HiperLibertadScraper,
 
@@ -92,9 +100,15 @@ SCRAPERS = {
     "ipcva":        IpcvaScraper,
 }
 
-# Subset por defecto: solo los confiables (SEPA + HTML scrapers).
-# Para correr TODOS, usar --solo o --todos.
-SCRAPERS_DEFAULT = ["sepa", "la_anonima", "las_heras", "res", "josimar"]
+# Subset por defecto: los confiables que devuelven data hoy.
+# SEPA cubre ~50 cadenas (cuando el host del gobierno está online);
+# vea/disco/changomas/jumbo vía intelligent-search; res premium; dia_html/carrefour_html.
+SCRAPERS_DEFAULT = [
+    "sepa",
+    "vea", "disco", "changomas", "jumbo",
+    "dia_html", "carrefour_html",
+    "res", "ipcva",
+]
 
 
 def configurar_logging(verboso: bool):

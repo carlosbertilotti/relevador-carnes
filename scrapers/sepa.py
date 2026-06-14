@@ -39,7 +39,10 @@ log = logging.getLogger(__name__)
 #
 # Como la URL del último ZIP cambia, parseamos la página del dataset para
 # encontrarlo. Si SEPA cambia de URL/portal, actualizar SEPA_DATASET_URL.
-SEPA_DATASET_URL = "https://datos.produccion.gob.ar/dataset/sepa-precios"
+SEPA_DATASET_URL = "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
+# Catálogo CKAN ESTABLE (no se cae como el host de descarga). Lista los ZIP por día.
+SEPA_CKAN_API = ("https://datos.gob.ar/api/3/action/package_show"
+                 "?id=produccion-precios-claros---base-sepa")
 
 # Si querés forzar un ZIP específico (por ej. de un mirror o caché propio):
 # SEPA_FORCED_ZIP_URL = "https://tu-mirror.com/sepa-2026-04.zip"
@@ -106,33 +109,42 @@ class SepaScraper(ScraperBase):
     min_cortes_esperados = 50    # SEPA tiene mucha data
     delay_range = (0.5, 1.0)
 
-    async def _resolver_zip_url(self) -> str:
-        """Encuentra la URL del ZIP más reciente parseando la página del dataset."""
+    async def _resolver_zip_urls(self) -> list[str]:
+        """
+        Lista las URLs de los ZIP (uno por día de la semana) desde el catálogo
+        ESTABLE datos.gob.ar (CKAN API). El host de descarga
+        (datos.produccion.gob.ar) a veces se cae, pero el catálogo no.
+
+        Devuelve las URLs ordenadas: el día de hoy primero, luego el resto,
+        para que `relevar` pruebe en orden hasta que una baje.
+        """
         if SEPA_FORCED_ZIP_URL:
-            return SEPA_FORCED_ZIP_URL
+            return [SEPA_FORCED_ZIP_URL]
 
         try:
-            html = await self.get_html(SEPA_DATASET_URL)
+            data = await self.get_json(SEPA_CKAN_API)
         except Exception as e:
             raise ScraperError(
-                f"SEPA: no se pudo cargar {SEPA_DATASET_URL}: {e}. "
-                f"¿El portal sigue activo? Probar https://datos.gob.ar"
+                f"SEPA: no se pudo leer el catálogo datos.gob.ar: {e}"
             )
 
-        import re
-        # Buscar primer link a un .zip
-        m = re.search(r'href=["\']([^"\']+\.zip)["\']', html, re.I)
-        if not m:
+        recursos = data.get("result", {}).get("resources", [])
+        zips = [r["url"] for r in recursos
+                if (r.get("format", "").upper() == "ZIP" and r.get("url"))]
+        if not zips:
             raise ScraperError(
-                "SEPA: no se encontró link a .zip en la página del dataset. "
-                "Probable cambio de portal — actualizar SEPA_DATASET_URL "
-                "o usar SEPA_FORCED_ZIP_URL en scrapers/sepa.py"
+                "SEPA: el catálogo no listó ningún ZIP. "
+                "Probable cambio de estructura del dataset."
             )
-        url = m.group(1)
-        if url.startswith("/"):
-            url = "https://datos.produccion.gob.ar" + url
-        log.info(f"[SEPA] dataset ZIP: {url}")
-        return url
+
+        # Ordenar para probar el día de hoy primero (más fresco).
+        # weekday(): 0=lunes ... 6=domingo (independiente del locale).
+        import datetime as _dt
+        dias = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"]
+        hoy = dias[_dt.datetime.now().weekday()]
+        zips.sort(key=lambda u: 0 if hoy in u.lower() else 1)
+        log.info(f"[SEPA] {len(zips)} ZIPs en catálogo, probando '{hoy}' primero")
+        return zips
 
     async def _descargar_zip(self, url: str) -> bytes:
         log.info(f"[SEPA] descargando {url} (puede tardar 1-2 min)...")
@@ -301,7 +313,23 @@ class SepaScraper(ScraperBase):
         return todos
 
     async def relevar(self) -> list[PrecioRelevado]:
-        zip_url = await self._resolver_zip_url()
-        contenido = await self._descargar_zip(zip_url)
-        log.info(f"[SEPA] ZIP descargado ({len(contenido) / 1e6:.1f} MB), procesando...")
-        return self._procesar_zip(contenido)
+        urls = await self._resolver_zip_urls()
+        ultimo_error = None
+        # Probar los ZIP en orden (hoy primero) hasta que uno baje y procese.
+        for url in urls:
+            try:
+                contenido = await self._descargar_zip(url)
+                log.info(f"[SEPA] ZIP descargado ({len(contenido)/1e6:.1f} MB), procesando...")
+                precios = self._procesar_zip(contenido)
+                if precios:
+                    return precios
+            except Exception as e:
+                ultimo_error = e
+                log.warning(f"[SEPA] {url.split('/')[-1]} falló ({type(e).__name__}), "
+                            f"probando siguiente día...")
+                continue
+        raise ScraperError(
+            f"SEPA: ninguno de los {len(urls)} ZIP se pudo descargar/procesar. "
+            f"El host datos.produccion.gob.ar puede estar caído. "
+            f"Último error: {ultimo_error}"
+        )
