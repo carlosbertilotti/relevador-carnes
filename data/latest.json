@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-06-13",
-  "anterior": "2026-06-12",
-  "generado": "2026-06-13T14:08:05.087072+00:00",
+  "ultima_corrida": "2026-06-14",
+  "anterior": "2026-06-13",
+  "generado": "2026-06-14T14:17:29.415744+00:00",
   "carnicerias": [
     "Carrefour",
     "Día",
@@ -14,7 +14,7 @@
       "mejor_precio": 12490.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 16909.11,
-      "variacion_pct": -0.5,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -111,7 +111,7 @@
       "mejor_precio": 21163.92,
       "mejor_carniceria": "IPCVA (referencia)",
       "promedio": 22607.64,
-      "variacion_pct": -1.0,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "IPCVA (referencia)",
@@ -175,7 +175,7 @@
       "mejor_precio": 21300.0,
       "mejor_carniceria": "Día",
       "promedio": 25036.82,
-      "variacion_pct": -7.2,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Día",
@@ -221,7 +221,7 @@
       "mejor_precio": 14390.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 18900.11,
-      "variacion_pct": 1.6,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -272,7 +272,7 @@
       "mejor_precio": 8335.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 9368.61,
-      "variacion_pct": -0.2,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -425,7 +425,7 @@
       "mejor_precio": 5097.0,
       "mejor_carniceria": "Día",
       "promedio": 19900.83,
-      "variacion_pct": 4.3,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Día",
