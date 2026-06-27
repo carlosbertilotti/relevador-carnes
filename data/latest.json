@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-06-26",
-  "anterior": "2026-06-25",
-  "generado": "2026-06-26T14:33:45.037848+00:00",
+  "ultima_corrida": "2026-06-27",
+  "anterior": "2026-06-26",
+  "generado": "2026-06-27T13:52:14.570766+00:00",
   "carnicerias": [
     "Carrefour",
     "ChangoMás",
@@ -16,8 +16,8 @@
     "aguja": {
       "mejor_precio": 8486.9,
       "mejor_carniceria": "Vea",
-      "promedio": 14297.3,
-      "variacion_pct": 42.1,
+      "promedio": 14291.94,
+      "variacion_pct": 42.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -36,17 +36,17 @@
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 20107.7,
+          "precio_kg": 20096.98,
           "url": "https://www.vea.com.ar/aguja-novillito-ca-2/p"
         },
         {
           "carniceria": "Disco",
-          "precio_kg": 20107.7,
+          "precio_kg": 20096.98,
           "url": "https://www.disco.com.ar/aguja-novillito-ca-2/p"
         },
         {
           "carniceria": "Jumbo",
-          "precio_kg": 20107.7,
+          "precio_kg": 20096.98,
           "url": "https://www.jumbo.com.ar/aguja-novillito-ca-2/p"
         }
       ]
@@ -54,8 +54,8 @@
     "asado": {
       "mejor_precio": 8678.9,
       "mejor_carniceria": "Vea",
-      "promedio": 37671.77,
-      "variacion_pct": 7.1,
+      "promedio": 37686.67,
+      "variacion_pct": 7.8,
       "precios": [
         {
           "carniceria": "Vea",
@@ -79,12 +79,12 @@
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 12713.98,
+          "precio_kg": 12707.18,
           "url": "https://www.vea.com.ar/asado-de-novillito-gondola-bandeja/p"
         },
         {
           "carniceria": "Jumbo",
-          "precio_kg": 12713.98,
+          "precio_kg": 12707.18,
           "url": "https://www.jumbo.com.ar/asado-de-novillito-gondola-bandeja/p"
         },
         {
@@ -102,8 +102,8 @@
     "bife_ancho": {
       "mejor_precio": 15510.4,
       "mejor_carniceria": "Vea",
-      "promedio": 64448.95,
-      "variacion_pct": 13.2,
+      "promedio": 64385.25,
+      "variacion_pct": 11.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -121,24 +121,24 @@
           "url": "https://www.jumbo.com.ar/ojo-de-bife-3/p"
         },
         {
+          "carniceria": "RES",
+          "precio_kg": 17892.0,
+          "url": "https://www.res.com.ar/bife-ancho.html"
+        },
+        {
           "carniceria": "Vea",
-          "precio_kg": 18246.98,
+          "precio_kg": 18237.26,
           "url": "https://www.vea.com.ar/bife-ancho-2/p"
         },
         {
           "carniceria": "Disco",
-          "precio_kg": 18246.98,
+          "precio_kg": 18237.26,
           "url": "https://www.disco.com.ar/bife-ancho-2/p"
         },
         {
           "carniceria": "Jumbo",
-          "precio_kg": 18246.98,
+          "precio_kg": 18237.26,
           "url": "https://www.jumbo.com.ar/bife-ancho-2/p"
-        },
-        {
-          "carniceria": "RES",
-          "precio_kg": 19880.0,
-          "url": "https://www.res.com.ar/bife-ancho.html"
         },
         {
           "carniceria": "Vea",
@@ -150,8 +150,8 @@
     "bife_angosto": {
       "mejor_precio": 14986.9,
       "mejor_carniceria": "Vea",
-      "promedio": 56573.16,
-      "variacion_pct": 14.6,
+      "promedio": 56517.88,
+      "variacion_pct": 14.4,
       "precios": [
         {
           "carniceria": "Vea",
@@ -170,7 +170,7 @@
         },
         {
           "carniceria": "RES",
-          "precio_kg": 19880.0,
+          "precio_kg": 17892.0,
           "url": "https://www.res.com.ar/bife-angosto.html"
         },
         {
@@ -180,7 +180,7 @@
         },
         {
           "carniceria": "Disco",
-          "precio_kg": 24127.1,
+          "precio_kg": 24114.18,
           "url": "https://www.disco.com.ar/bife-de-chorizo-2/p"
         },
         {
@@ -198,13 +198,18 @@
     "bola_lomo": {
       "mejor_precio": 18799.0,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 20898.6,
-      "variacion_pct": 40.9,
+      "promedio": 22084.62,
+      "variacion_pct": 48.9,
       "precios": [
         {
           "carniceria": "ChangoMás",
           "precio_kg": 18799.0,
           "url": "https://www.masonline.com.ar/bola-de-lomo-feteada-de-novillito-x-600-gr/p"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 19890.0,
+          "url": "https://www.res.com.ar/bola-de-lomo.html"
         },
         {
           "carniceria": "Vea",
@@ -222,17 +227,27 @@
           "url": "https://www.jumbo.com.ar/bola-de-lomo-de-novillo/p"
         },
         {
-          "carniceria": "RES",
-          "precio_kg": 22100.0,
-          "url": "https://www.res.com.ar/bola-de-lomo.html"
+          "carniceria": "Vea",
+          "precio_kg": 24798.0,
+          "url": "https://www.vea.com.ar/bola-de-lomo-por-kg/p"
+        },
+        {
+          "carniceria": "Disco",
+          "precio_kg": 24798.0,
+          "url": "https://www.disco.com.ar/bola-de-lomo-por-kg/p"
+        },
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 24798.0,
+          "url": "https://www.jumbo.com.ar/bola-de-lomo-por-kg/p"
         }
       ]
     },
     "colita_cuadril": {
       "mejor_precio": 16999.0,
       "mejor_carniceria": "Jumbo",
-      "promedio": 48106.81,
-      "variacion_pct": 6.9,
+      "promedio": 50184.55,
+      "variacion_pct": 15.4,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -271,30 +286,30 @@
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 30096.94,
+          "precio_kg": 30080.86,
           "url": "https://www.vea.com.ar/colita-de-cuadril-novillito-especial-2/p"
         }
       ]
     },
     "cuadril": {
-      "mejor_precio": 18255.74,
+      "mejor_precio": 18245.98,
       "mejor_carniceria": "Vea",
-      "promedio": 28781.11,
-      "variacion_pct": 19.7,
+      "promedio": 29057.93,
+      "variacion_pct": 20.8,
       "precios": [
         {
           "carniceria": "Vea",
-          "precio_kg": 18255.74,
+          "precio_kg": 18245.98,
           "url": "https://www.vea.com.ar/cuadril-trozo-4/p"
         },
         {
           "carniceria": "Disco",
-          "precio_kg": 18255.74,
+          "precio_kg": 18245.98,
           "url": "https://www.disco.com.ar/cuadril-trozo-4/p"
         },
         {
           "carniceria": "Jumbo",
-          "precio_kg": 18255.74,
+          "precio_kg": 18245.98,
           "url": "https://www.jumbo.com.ar/cuadril-trozo-4/p"
         },
         {
@@ -313,21 +328,21 @@
           "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
+          "carniceria": "RES",
+          "precio_kg": 21997.5,
+          "url": "https://www.res.com.ar/cuadril.html"
+        },
+        {
           "carniceria": "Vea",
           "precio_kg": 23017.04,
           "url": "https://www.vea.com.ar/cuadril-mostrador-x-kg-bsa-kg-1-2/p"
-        },
-        {
-          "carniceria": "Disco",
-          "precio_kg": 23017.04,
-          "url": "https://www.disco.com.ar/cuadril-mostrador-x-kg-bsa-kg-1-2/p"
         }
       ]
     },
     "entrana": {
       "mejor_precio": 16525.58,
       "mejor_carniceria": "Vea",
-      "promedio": 40413.34,
+      "promedio": 40408.71,
       "variacion_pct": 27.1,
       "precios": [
         {
@@ -398,8 +413,8 @@
     "lomo": {
       "mejor_precio": 17719.34,
       "mejor_carniceria": "Vea",
-      "promedio": 61709.94,
-      "variacion_pct": 19.3,
+      "promedio": 52019.67,
+      "variacion_pct": 0.6,
       "precios": [
         {
           "carniceria": "Vea",
@@ -433,21 +448,21 @@
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 23727.03,
-          "url": "https://www.vea.com.ar/lomo-premium-la-hacienda-2/p"
+          "precio_kg": 21998.0,
+          "url": "https://www.vea.com.ar/lomo-liso-de-novillo-sin-atributo-sin-atributo-sin-atributo-sin-atributo/p"
         },
         {
-          "carniceria": "ChangoMás",
-          "precio_kg": 27499.17,
-          "url": "https://www.masonline.com.ar/lomo-de-novillito-x-800-gr/p"
+          "carniceria": "Vea",
+          "precio_kg": 21998.0,
+          "url": "https://www.vea.com.ar/lomo-veteado-sin-atributo-sin-atributo-sin-atributo-sin-atributo-2/p"
         }
       ]
     },
     "matambre": {
       "mejor_precio": 5099.7,
       "mejor_carniceria": "Vea",
-      "promedio": 38522.24,
-      "variacion_pct": 18.0,
+      "promedio": 38304.0,
+      "variacion_pct": 17.8,
       "precios": [
         {
           "carniceria": "Vea",
@@ -486,7 +501,7 @@
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 17401.7,
+          "precio_kg": 17392.38,
           "url": "https://www.vea.com.ar/matambre-novillito-especial/p"
         }
       ]
@@ -494,8 +509,8 @@
     "nalga": {
       "mejor_precio": 19799.0,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 24695.89,
-      "variacion_pct": 88.6,
+      "promedio": 23895.89,
+      "variacion_pct": 82.5,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -513,26 +528,26 @@
           "url": "https://datos.gob.ar/dataset?q=105.1_I2N_2016_M_14"
         },
         {
+          "carniceria": "RES",
+          "precio_kg": 28000.0,
+          "url": "https://www.res.com.ar/nalga.html"
+        },
+        {
           "carniceria": "ChangoMás",
           "precio_kg": 28570.0,
           "url": "https://www.masonline.com.ar/nalga-feteada-de-novillito-x-600-gr-2/p"
-        },
-        {
-          "carniceria": "RES",
-          "precio_kg": 32000.0,
-          "url": "https://www.res.com.ar/nalga.html"
         }
       ]
     },
     "osobuco": {
-      "mejor_precio": 7794.14,
+      "mejor_precio": 7789.98,
       "mejor_carniceria": "Vea",
-      "promedio": 17879.67,
-      "variacion_pct": 40.7,
+      "promedio": 17875.58,
+      "variacion_pct": 32.2,
       "precios": [
         {
           "carniceria": "Vea",
-          "precio_kg": 7794.14,
+          "precio_kg": 7789.98,
           "url": "https://www.vea.com.ar/osobuco-2/p"
         },
         {
@@ -552,45 +567,40 @@
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 15359.9,
+          "precio_kg": 15351.74,
           "url": "https://www.vea.com.ar/osobuco-de-novillito-por-kg/p"
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 15359.9,
+          "precio_kg": 15351.74,
           "url": "https://www.vea.com.ar/osobuco-de-novillito-ca-bja-1-kg-2/p"
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 15359.9,
+          "precio_kg": 15351.74,
           "url": "https://www.vea.com.ar/osobuco-hammer-2/p"
         },
         {
           "carniceria": "Disco",
-          "precio_kg": 15359.9,
+          "precio_kg": 15351.74,
           "url": "https://www.disco.com.ar/osobuco-de-novillito-por-kg/p"
         }
       ]
     },
     "paleta": {
-      "mejor_precio": 7437.25,
+      "mejor_precio": 7433.29,
       "mejor_carniceria": "Vea",
-      "promedio": 30425.6,
-      "variacion_pct": 34.7,
+      "promedio": 28752.98,
+      "variacion_pct": 28.4,
       "precios": [
         {
           "carniceria": "Vea",
-          "precio_kg": 7437.25,
+          "precio_kg": 7433.29,
           "url": "https://www.vea.com.ar/paleta-churrasco-3/p"
         },
         {
-          "carniceria": "Disco",
-          "precio_kg": 7437.25,
-          "url": "https://www.disco.com.ar/paleta-churrasco-3/p"
-        },
-        {
           "carniceria": "Jumbo",
-          "precio_kg": 7437.25,
+          "precio_kg": 7433.29,
           "url": "https://www.jumbo.com.ar/paleta-churrasco-3/p"
         },
         {
@@ -617,14 +627,19 @@
           "carniceria": "Carrefour",
           "precio_kg": 14390.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 14439.94,
+          "url": "https://www.vea.com.ar/paleta-americano/p"
         }
       ]
     },
     "peceto": {
       "mejor_precio": 11472.7,
       "mejor_carniceria": "Vea",
-      "promedio": 56457.9,
-      "variacion_pct": 14.1,
+      "promedio": 56451.34,
+      "variacion_pct": 11.4,
       "precios": [
         {
           "carniceria": "Vea",
@@ -671,8 +686,8 @@
     "picada_comun": {
       "mejor_precio": 8335.0,
       "mejor_carniceria": "Jumbo",
-      "promedio": 19985.36,
-      "variacion_pct": 0.0,
+      "promedio": 19983.64,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -686,22 +701,22 @@
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 12184.78,
+          "precio_kg": 12178.34,
           "url": "https://www.vea.com.ar/carne-vacuna-picada-comun-2/p"
         },
         {
           "carniceria": "Disco",
-          "precio_kg": 12184.78,
+          "precio_kg": 12178.34,
           "url": "https://www.disco.com.ar/carne-vacuna-picada-comun-la-hacienda-2/p"
         },
         {
           "carniceria": "Disco",
-          "precio_kg": 12184.78,
+          "precio_kg": 12178.34,
           "url": "https://www.disco.com.ar/carne-vacuna-picada-comun-2/p"
         },
         {
           "carniceria": "Jumbo",
-          "precio_kg": 12184.78,
+          "precio_kg": 12178.34,
           "url": "https://www.jumbo.com.ar/carne-vacuna-picada-comun-2/p"
         },
         {
@@ -719,8 +734,8 @@
     "picada_especial": {
       "mejor_precio": 6990.0,
       "mejor_carniceria": "Día",
-      "promedio": 19555.63,
-      "variacion_pct": -1.1,
+      "promedio": 19405.12,
+      "variacion_pct": -0.8,
       "precios": [
         {
           "carniceria": "Día",
@@ -767,8 +782,8 @@
     "roast_beef": {
       "mejor_precio": 9027.3,
       "mejor_carniceria": "Vea",
-      "promedio": 25426.72,
-      "variacion_pct": 10.1,
+      "promedio": 25031.92,
+      "variacion_pct": 5.5,
       "precios": [
         {
           "carniceria": "Vea",
@@ -802,12 +817,12 @@
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 12708.38,
+          "precio_kg": 12701.58,
           "url": "https://www.vea.com.ar/roast-beef-trozo-especial/p"
         },
         {
           "carniceria": "Disco",
-          "precio_kg": 12708.38,
+          "precio_kg": 12701.58,
           "url": "https://www.disco.com.ar/roast-beef-trozo-especial/p"
         }
       ]
@@ -815,18 +830,13 @@
     "tapa_asado": {
       "mejor_precio": 6310.9,
       "mejor_carniceria": "Vea",
-      "promedio": 22807.15,
-      "variacion_pct": 1.2,
+      "promedio": 23655.48,
+      "variacion_pct": 3.7,
       "precios": [
         {
           "carniceria": "Vea",
           "precio_kg": 6310.9,
           "url": "https://www.vea.com.ar/tapa-de-asado-promo-x-kg-bja-kg-1/p"
-        },
-        {
-          "carniceria": "Disco",
-          "precio_kg": 6310.9,
-          "url": "https://www.disco.com.ar/tapa-de-asado-promo-x-kg-bja-kg-1/p"
         },
         {
           "carniceria": "Carrefour",
@@ -835,12 +845,12 @@
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 14128.18,
+          "precio_kg": 14120.7,
           "url": "https://www.vea.com.ar/tapa-de-asado-7/p"
         },
         {
           "carniceria": "Disco",
-          "precio_kg": 14128.18,
+          "precio_kg": 14120.7,
           "url": "https://www.disco.com.ar/tapa-de-asado-7/p"
         },
         {
@@ -850,21 +860,26 @@
         },
         {
           "carniceria": "RES",
-          "precio_kg": 19900.0,
+          "precio_kg": 17910.0,
           "url": "https://www.res.com.ar/tapa-de-asado.html"
         },
         {
           "carniceria": "Día",
           "precio_kg": 20900.0,
           "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 26058.38,
+          "url": "https://www.vea.com.ar/tapa-de-asado-de-novillito-kg-2/p"
         }
       ]
     },
     "tapa_cuadril": {
       "mejor_precio": 14888.33,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 41083.13,
-      "variacion_pct": 24.6,
+      "promedio": 40242.38,
+      "variacion_pct": -2.0,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -873,18 +888,18 @@
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 33070.3,
+          "precio_kg": 33052.58,
           "url": "https://www.vea.com.ar/tapa-de-cuadril-premium-la-hacienda-2/p"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 37674.0,
+          "url": "https://www.res.com.ar/pica-a.html"
         },
         {
           "carniceria": "Jumbo",
           "precio_kg": 37799.0,
           "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
-        },
-        {
-          "carniceria": "RES",
-          "precio_kg": 41860.0,
-          "url": "https://www.res.com.ar/pica-a.html"
         },
         {
           "carniceria": "Disco",
@@ -896,8 +911,8 @@
     "tapa_nalga": {
       "mejor_precio": 13076.15,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 25718.28,
-      "variacion_pct": -0.0,
+      "promedio": 25590.07,
+      "variacion_pct": -0.5,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -911,17 +926,17 @@
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 14018.99,
+          "precio_kg": 14011.55,
           "url": "https://www.vea.com.ar/tapa-de-nalga-4/p"
         },
         {
           "carniceria": "Disco",
-          "precio_kg": 14018.99,
+          "precio_kg": 14011.55,
           "url": "https://www.disco.com.ar/tapa-de-nalga-4/p"
         },
         {
           "carniceria": "Jumbo",
-          "precio_kg": 14018.99,
+          "precio_kg": 14011.55,
           "url": "https://www.jumbo.com.ar/tapa-de-nalga-4/p"
         },
         {
@@ -944,8 +959,8 @@
     "tortuguita": {
       "mejor_precio": 10733.7,
       "mejor_carniceria": "Vea",
-      "promedio": 12411.11,
-      "variacion_pct": 41.1,
+      "promedio": 13862.63,
+      "variacion_pct": 57.6,
       "precios": [
         {
           "carniceria": "Vea",
@@ -963,6 +978,21 @@
           "url": "https://www.jumbo.com.ar/tortuguita-de-novillito/p"
         },
         {
+          "carniceria": "Vea",
+          "precio_kg": 15798.0,
+          "url": "https://www.vea.com.ar/tortuguita-novillo-sin-atributo-sin-atributo-sin-atributo-sin-atributo/p"
+        },
+        {
+          "carniceria": "Disco",
+          "precio_kg": 15798.0,
+          "url": "https://www.disco.com.ar/tortuguita-novillo-sin-atributo-sin-atributo-sin-atributo-sin-atributo/p"
+        },
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 15798.0,
+          "url": "https://www.jumbo.com.ar/tortuguita-novillo-sin-atributo-sin-atributo-sin-atributo-sin-atributo/p"
+        },
+        {
           "carniceria": "ChangoMás",
           "precio_kg": 17443.33,
           "url": "https://www.masonline.com.ar/tortuguita-de-novillo-600-g/p"
@@ -972,8 +1002,8 @@
     "vacio": {
       "mejor_precio": 6180.0,
       "mejor_carniceria": "Día",
-      "promedio": 40921.98,
-      "variacion_pct": 3.9,
+      "promedio": 40626.79,
+      "variacion_pct": 4.3,
       "precios": [
         {
           "carniceria": "Día",
