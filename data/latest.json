@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-07-04",
-  "anterior": "2026-07-03",
-  "generado": "2026-07-04T13:42:42.712186+00:00",
+  "ultima_corrida": "2026-07-05",
+  "anterior": "2026-07-04",
+  "generado": "2026-07-05T13:49:54.213609+00:00",
   "carnicerias": [
     "Carrefour",
     "ChangoMás",
@@ -17,7 +17,7 @@
       "mejor_precio": 8486.9,
       "mejor_carniceria": "Vea",
       "promedio": 14191.32,
-      "variacion_pct": 41.1,
+      "variacion_pct": 42.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -54,8 +54,8 @@
     "asado": {
       "mejor_precio": 8678.9,
       "mejor_carniceria": "Vea",
-      "promedio": 36104.65,
-      "variacion_pct": 5.7,
+      "promedio": 36675.81,
+      "variacion_pct": 9.2,
       "precios": [
         {
           "carniceria": "Vea",
@@ -103,7 +103,7 @@
       "mejor_precio": 15510.4,
       "mejor_carniceria": "Vea",
       "promedio": 63538.39,
-      "variacion_pct": 12.8,
+      "variacion_pct": 10.8,
       "precios": [
         {
           "carniceria": "Vea",
@@ -151,7 +151,7 @@
       "mejor_precio": 14986.9,
       "mejor_carniceria": "Vea",
       "promedio": 58503.73,
-      "variacion_pct": 13.8,
+      "variacion_pct": 13.9,
       "precios": [
         {
           "carniceria": "Vea",
@@ -247,7 +247,7 @@
       "mejor_precio": 16999.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 45407.99,
-      "variacion_pct": 10.3,
+      "variacion_pct": 10.5,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -294,8 +294,8 @@
     "cuadril": {
       "mejor_precio": 18063.3,
       "mejor_carniceria": "Vea",
-      "promedio": 28220.72,
-      "variacion_pct": 18.3,
+      "promedio": 27862.23,
+      "variacion_pct": 17.3,
       "precios": [
         {
           "carniceria": "Vea",
@@ -311,6 +311,11 @@
           "carniceria": "Jumbo",
           "precio_kg": 18063.3,
           "url": "https://www.jumbo.com.ar/cuadril-trozo-4/p"
+        },
+        {
+          "carniceria": "Carrefour",
+          "precio_kg": 18900.0,
+          "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
           "carniceria": "ChangoMás",
@@ -331,11 +336,6 @@
           "carniceria": "Vea",
           "precio_kg": 23017.04,
           "url": "https://www.vea.com.ar/cuadril-mostrador-x-kg-bsa-kg-1-2/p"
-        },
-        {
-          "carniceria": "Disco",
-          "precio_kg": 23017.04,
-          "url": "https://www.disco.com.ar/cuadril-mostrador-x-kg-bsa-kg-1-2/p"
         }
       ]
     },
@@ -343,7 +343,7 @@
       "mejor_precio": 16525.58,
       "mejor_carniceria": "Vea",
       "promedio": 40321.72,
-      "variacion_pct": 39.2,
+      "variacion_pct": 27.1,
       "precios": [
         {
           "carniceria": "Vea",
@@ -390,18 +390,13 @@
     "falda": {
       "mejor_precio": 15810.0,
       "mejor_carniceria": "Vea",
-      "promedio": 16282.0,
-      "variacion_pct": -0.0,
+      "promedio": 16284.0,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Vea",
           "precio_kg": 15810.0,
           "url": "https://www.vea.com.ar/falda-2-2/p"
-        },
-        {
-          "carniceria": "Jumbo",
-          "precio_kg": 16278.0,
-          "url": "https://www.jumbo.com.ar/falda-2-2/p"
         },
         {
           "carniceria": "Disco",
@@ -414,7 +409,7 @@
       "mejor_precio": 17719.34,
       "mejor_carniceria": "Vea",
       "promedio": 52182.37,
-      "variacion_pct": 15.9,
+      "variacion_pct": 16.3,
       "precios": [
         {
           "carniceria": "Vea",
@@ -462,7 +457,7 @@
       "mejor_precio": 5099.7,
       "mejor_carniceria": "Vea",
       "promedio": 39027.34,
-      "variacion_pct": 18.3,
+      "variacion_pct": 18.5,
       "precios": [
         {
           "carniceria": "Vea",
@@ -542,13 +537,18 @@
     "osobuco": {
       "mejor_precio": 7711.98,
       "mejor_carniceria": "Vea",
-      "promedio": 17846.77,
-      "variacion_pct": 32.0,
+      "promedio": 16844.21,
+      "variacion_pct": 23.1,
       "precios": [
         {
           "carniceria": "Vea",
           "precio_kg": 7711.98,
           "url": "https://www.vea.com.ar/osobuco-2/p"
+        },
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 7711.98,
+          "url": "https://www.jumbo.com.ar/osobuco-2/p"
         },
         {
           "carniceria": "Jumbo",
@@ -579,24 +579,24 @@
           "carniceria": "Vea",
           "precio_kg": 15197.98,
           "url": "https://www.vea.com.ar/osobuco-hammer-2/p"
-        },
-        {
-          "carniceria": "Disco",
-          "precio_kg": 15197.98,
-          "url": "https://www.disco.com.ar/osobuco-de-novillito-por-kg/p"
         }
       ]
     },
     "paleta": {
       "mejor_precio": 7358.85,
       "mejor_carniceria": "Vea",
-      "promedio": 28411.6,
-      "variacion_pct": 26.5,
+      "promedio": 28692.81,
+      "variacion_pct": 31.5,
       "precios": [
         {
           "carniceria": "Vea",
           "precio_kg": 7358.85,
           "url": "https://www.vea.com.ar/paleta-churrasco-3/p"
+        },
+        {
+          "carniceria": "Disco",
+          "precio_kg": 7358.85,
+          "url": "https://www.disco.com.ar/paleta-churrasco-3/p"
         },
         {
           "carniceria": "Jumbo",
@@ -627,11 +627,6 @@
           "carniceria": "Vea",
           "precio_kg": 14295.34,
           "url": "https://www.vea.com.ar/paleta-americano/p"
-        },
-        {
-          "carniceria": "Disco",
-          "precio_kg": 14295.34,
-          "url": "https://www.disco.com.ar/paleta-americano/p"
         }
       ]
     },
@@ -639,7 +634,7 @@
       "mejor_precio": 11472.7,
       "mejor_carniceria": "Vea",
       "promedio": 54997.08,
-      "variacion_pct": 10.7,
+      "variacion_pct": 10.9,
       "precios": [
         {
           "carniceria": "Vea",
@@ -687,7 +682,7 @@
       "mejor_precio": 8335.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 18709.26,
-      "variacion_pct": 2.0,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -735,7 +730,7 @@
       "mejor_precio": 8252.7,
       "mejor_carniceria": "Vea",
       "promedio": 20630.1,
-      "variacion_pct": -0.2,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -782,8 +777,8 @@
     "roast_beef": {
       "mejor_precio": 9027.3,
       "mejor_carniceria": "Vea",
-      "promedio": 25219.09,
-      "variacion_pct": 9.1,
+      "promedio": 24583.73,
+      "variacion_pct": 3.9,
       "precios": [
         {
           "carniceria": "Vea",
@@ -830,8 +825,8 @@
     "tapa_asado": {
       "mejor_precio": 6310.9,
       "mejor_carniceria": "Vea",
-      "promedio": 21924.53,
-      "variacion_pct": -0.4,
+      "promedio": 22485.37,
+      "variacion_pct": 2.6,
       "precios": [
         {
           "carniceria": "Vea",
@@ -879,7 +874,7 @@
       "mejor_precio": 14888.33,
       "mejor_carniceria": "ChangoMás",
       "promedio": 41013.41,
-      "variacion_pct": -0.2,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -912,7 +907,7 @@
       "mejor_precio": 13076.15,
       "mejor_carniceria": "ChangoMás",
       "promedio": 25176.4,
-      "variacion_pct": 14.0,
+      "variacion_pct": 11.0,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -1002,8 +997,8 @@
     "vacio": {
       "mejor_precio": 6180.0,
       "mejor_carniceria": "Día",
-      "promedio": 43087.15,
-      "variacion_pct": 1.3,
+      "promedio": 42923.35,
+      "variacion_pct": 4.1,
       "precios": [
         {
           "carniceria": "Día",
