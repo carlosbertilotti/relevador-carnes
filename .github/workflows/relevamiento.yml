@@ -1,10 +1,13 @@
 name: Relevamiento de precios
 
+# ⚠️ SIN `on: schedule` (7/7/26): el scheduler de GitHub Actions corría con +1h40
+# a +3h52 de atraso todos los días (throttling en repos privados) y los precios
+# llegaban a Midia a mediodía en vez de a las 9. Ahora lo dispara pg_cron de
+# Supabase Midia (job "relevador-carnes-relevamiento", '0 12 * * *') vía
+# https://cartera-app.vercel.app/api/cron/gh-dispatch?wf=relevamiento, que hace
+# el workflow_dispatch por API de GitHub (arranca en segundos, sin throttle).
 on:
-  schedule:
-    # Todos los días 9:00 hora Argentina (UTC-3 → 12:00 UTC)
-    - cron: "0 12 * * *"
-  workflow_dispatch:        # disparar manualmente desde la pestaña Actions
+  workflow_dispatch:        # disparado por pg_cron vía gh-dispatch, o a mano desde Actions
 
 permissions:
   contents: write           # para poder commitear la DB actualizada
