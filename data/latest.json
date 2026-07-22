@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-07-21",
-  "anterior": "2026-07-20",
-  "generado": "2026-07-21T12:02:46.180767+00:00",
+  "ultima_corrida": "2026-07-22",
+  "anterior": "2026-07-21",
+  "generado": "2026-07-22T12:01:48.255573+00:00",
   "carnicerias": [
     "Carrefour",
     "ChangoMás",
@@ -54,8 +54,8 @@
     "asado": {
       "mejor_precio": 8678.9,
       "mejor_carniceria": "Vea",
-      "promedio": 36338.0,
-      "variacion_pct": 12.1,
+      "promedio": 36802.86,
+      "variacion_pct": 13.4,
       "precios": [
         {
           "carniceria": "Vea",
@@ -150,8 +150,8 @@
     "bife_angosto": {
       "mejor_precio": 14986.9,
       "mejor_carniceria": "Vea",
-      "promedio": 57224.45,
-      "variacion_pct": 13.6,
+      "promedio": 56117.25,
+      "variacion_pct": 11.6,
       "precios": [
         {
           "carniceria": "Vea",
@@ -199,7 +199,7 @@
       "mejor_precio": 19099.0,
       "mejor_carniceria": "ChangoMás",
       "promedio": 21715.98,
-      "variacion_pct": 33.9,
+      "variacion_pct": 35.3,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -284,8 +284,8 @@
     "cuadril": {
       "mejor_precio": 16999.0,
       "mejor_carniceria": "Jumbo",
-      "promedio": 28323.4,
-      "variacion_pct": 20.8,
+      "promedio": 28376.54,
+      "variacion_pct": 21.5,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -332,8 +332,8 @@
     "entrana": {
       "mejor_precio": 16525.58,
       "mejor_carniceria": "Vea",
-      "promedio": 39768.21,
-      "variacion_pct": 27.1,
+      "promedio": 40356.64,
+      "variacion_pct": 28.9,
       "precios": [
         {
           "carniceria": "Vea",
@@ -380,13 +380,18 @@
     "falda": {
       "mejor_precio": 15810.0,
       "mejor_carniceria": "Vea",
-      "promedio": 16284.0,
-      "variacion_pct": 0.0,
+      "promedio": 16282.0,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Vea",
           "precio_kg": 15810.0,
           "url": "https://www.vea.com.ar/falda-2-2/p"
+        },
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 16278.0,
+          "url": "https://www.jumbo.com.ar/falda-2-2/p"
         },
         {
           "carniceria": "Disco",
@@ -398,8 +403,8 @@
     "lomo": {
       "mejor_precio": 17719.34,
       "mejor_carniceria": "Vea",
-      "promedio": 62145.86,
-      "variacion_pct": 22.3,
+      "promedio": 56502.4,
+      "variacion_pct": 11.2,
       "precios": [
         {
           "carniceria": "Vea",
@@ -446,8 +451,8 @@
     "matambre": {
       "mejor_precio": 5099.7,
       "mejor_carniceria": "Vea",
-      "promedio": 38196.35,
-      "variacion_pct": 13.7,
+      "promedio": 37381.25,
+      "variacion_pct": 15.9,
       "precios": [
         {
           "carniceria": "Vea",
@@ -495,7 +500,7 @@
       "mejor_precio": 20099.0,
       "mejor_carniceria": "ChangoMás",
       "promedio": 24001.84,
-      "variacion_pct": 83.5,
+      "variacion_pct": 87.8,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -527,8 +532,8 @@
     "osobuco": {
       "mejor_precio": 7737.18,
       "mejor_carniceria": "Vea",
-      "promedio": 15011.16,
-      "variacion_pct": 37.3,
+      "promedio": 16713.41,
+      "variacion_pct": 46.5,
       "precios": [
         {
           "carniceria": "Vea",
@@ -536,9 +541,9 @@
           "url": "https://www.vea.com.ar/osobuco-2/p"
         },
         {
-          "carniceria": "Jumbo",
+          "carniceria": "Disco",
           "precio_kg": 7737.18,
-          "url": "https://www.jumbo.com.ar/osobuco-2/p"
+          "url": "https://www.disco.com.ar/osobuco-2/p"
         },
         {
           "carniceria": "Jumbo",
@@ -575,8 +580,8 @@
     "paleta": {
       "mejor_precio": 7382.97,
       "mejor_carniceria": "Vea",
-      "promedio": 28550.1,
-      "variacion_pct": 34.2,
+      "promedio": 27799.93,
+      "variacion_pct": 33.4,
       "precios": [
         {
           "carniceria": "Vea",
@@ -624,7 +629,7 @@
       "mejor_precio": 15999.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 60239.02,
-      "variacion_pct": 11.1,
+      "variacion_pct": 11.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -672,7 +677,7 @@
       "mejor_precio": 8335.0,
       "mejor_carniceria": "Jumbo",
       "promedio": 19726.36,
-      "variacion_pct": 6.9,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -720,7 +725,7 @@
       "mejor_precio": 8252.7,
       "mejor_carniceria": "Vea",
       "promedio": 20100.9,
-      "variacion_pct": -1.1,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -767,8 +772,8 @@
     "roast_beef": {
       "mejor_precio": 9027.3,
       "mejor_carniceria": "Vea",
-      "promedio": 24980.86,
-      "variacion_pct": 15.8,
+      "promedio": 25734.07,
+      "variacion_pct": 19.7,
       "precios": [
         {
           "carniceria": "Vea",
@@ -816,7 +821,7 @@
       "mejor_precio": 6310.9,
       "mejor_carniceria": "Vea",
       "promedio": 21165.99,
-      "variacion_pct": -0.6,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -864,7 +869,7 @@
       "mejor_precio": 15110.56,
       "mejor_carniceria": "ChangoMás",
       "promedio": 40242.09,
-      "variacion_pct": -1.9,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -896,8 +901,8 @@
     "tapa_nalga": {
       "mejor_precio": 12999.23,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 24368.32,
-      "variacion_pct": 10.4,
+      "promedio": 24691.99,
+      "variacion_pct": 12.4,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -945,7 +950,7 @@
       "mejor_precio": 10733.7,
       "mejor_carniceria": "Vea",
       "promedio": 13894.38,
-      "variacion_pct": 27.5,
+      "variacion_pct": 27.2,
       "precios": [
         {
           "carniceria": "Vea",
@@ -988,7 +993,7 @@
       "mejor_precio": 6180.0,
       "mejor_carniceria": "Día",
       "promedio": 46355.01,
-      "variacion_pct": 11.3,
+      "variacion_pct": 4.1,
       "precios": [
         {
           "carniceria": "Día",
