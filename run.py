@@ -199,6 +199,14 @@ async def main_async(args):
         log.info("🚨 Detectando alertas (variaciones >5%)...")
         detectar_y_notificar_alertas(umbral_pct=5.0)
 
+    if not args.no_notif:
+        try:
+            from wa_resumen import enviar_resumen_whatsapp
+            log.info("📱 Enviando resumen completo al WhatsApp...")
+            enviar_resumen_whatsapp()
+        except Exception as e:
+            log.warning(f"📱 Resumen WhatsApp falló (sigo sin él): {e}")
+
     analisis_ia = None
     if not args.no_ia:
         try:
