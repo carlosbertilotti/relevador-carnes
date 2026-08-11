@@ -58,6 +58,9 @@ from scrapers.disco_is import DiscoIsScraper
 from scrapers.changomas_is import ChangoMasIsScraper
 from scrapers.jumbo_is import JumboIsScraper
 
+# Precios propios (Supabase Midia)
+from scrapers.eq_carnes import EqCarnesScraper
+
 # Benchmark
 from scrapers.ipcva import IpcvaScraper
 
@@ -96,6 +99,9 @@ SCRAPERS = {
     "maxiconsumo":  MaxiconsumoScraper,
     "hiper_libertad": HiperLibertadScraper,
 
+    # ─── Precios propios ───
+    "eq":           EqCarnesScraper,
+
     # ─── Benchmark ───
     "ipcva":        IpcvaScraper,
 }
@@ -107,7 +113,7 @@ SCRAPERS_DEFAULT = [
     "sepa",
     "vea", "disco", "changomas", "jumbo",
     "dia_html", "carrefour_html",
-    "res", "ipcva",
+    "res", "eq", "ipcva",
 ]
 
 
