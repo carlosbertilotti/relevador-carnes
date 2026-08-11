@@ -142,6 +142,15 @@ IGNORAR = [
     r"\bpescado|\bsalm[óo]n|\bmerluza|\bat[úu]n",
     r"\bvegana?\b|\bplant[\s-]?based\b",
     r"\bcongelad",   # por ahora ignoramos congelados
+    # No-carne que matcheaba por "al vacío", "lomo", "osobuco" en el nombre:
+    r"\bquesos?\b",                          # "Queso Mozzarella al vacío"
+    r"\bsalam[ei]|\bsalamin",                # salame/salamin feteado al vacío
+    r"\bsalchichas?\b",
+    r"\bravioles?\b|\braviol[oó]n|\bsorrentinos?\b|\bcanelones?\b|\btallarines?\b|\b[ñn]oquis\b",
+    r"\bkassler\b",                          # lomo kassler = cerdo ahumado
+    r"\bbocatti\b",                          # marca de fiambres
+    r"\bescabeche\b|\brotiser[ií]a\b",       # preparados de rotisería
+    r"\brellen[oa]s?\b",                     # colita rellena, matambre relleno
 ]
 
 
@@ -157,6 +166,12 @@ def _limpiar(nombre: str) -> str:
 def normalizar(nombre_producto: str) -> Optional[str]:
     """Devuelve el corte_normalizado o None si no es uno de los cortes trackeados."""
     s = _limpiar(nombre_producto)
+
+    # "envasado al vacío" / "ev al vacío" es EMPAQUE, no el corte vacío.
+    # Se remueve antes del matching para que "Queso ... al vacío" no matchee
+    # y "Vacío de Novillito Envasado al Vacío" siga matcheando por su nombre real.
+    s = re.sub(r"\b(envasad[oa]s?\s+)?(e\.?v\.?\s+)?al\s+vacio\b", " ", s)
+    s = re.sub(r"\s+", " ", s).strip()
 
     # Filtros de exclusión
     for ignore_pat in IGNORAR:
@@ -242,6 +257,19 @@ if __name__ == "__main__":
         ("Carne Picada Especial", "picada_especial"),
         ("Picada Magra", "picada_especial"),
 
+        # "al vacío" es empaque, no el corte
+        ("Vacío De Novillito Envasado Al Vacío 1.5 Kg", "vacio"),
+        ("Entraña Parri Novillito Ev Al Vacio", "entrana"),
+        ("Queso Mozzarella al vacío x 1 Kg Barraza", None),
+        ("Queso Cremoso al vacío x 1 Kg Supercrem", None),
+        ("Salame Sabor Pepperoni Feteado al vacio 1 Un", None),
+        ("Salchichas Viena Artesanal 1 Kg al vacío", None),
+        # No-carne que matcheaba por nombre
+        ("Raviolon Osobuco Malbec", None),
+        ("Lomo Kassler X Kg Jumbo Artesanal", None),
+        ("Lomo Feteado 100 Grs Bocatti", None),
+        ("Peceto (rotiseria) Al Escabeche S/e 1 Kg", None),
+        ("Colita De Cuadril Rellena", None),
         # Ignorar (otra carne / no carne / preparados)
         ("Hamburguesas Paty x 4u", None),
         ("Milanesas de carne", None),

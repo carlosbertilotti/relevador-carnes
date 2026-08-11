@@ -129,6 +129,45 @@ def configurar_logging(verboso: bool):
     logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
 
+def sanear_precios(precios):
+    """
+    Descarta precios que no son $/kg plausibles.
+
+    Problema: los supermercados reportan a veces el precio de la bandeja
+    (~100 g) o de la pieza entera envasada como si fuera por kg. Un
+    "Osobuco X Kg $1.370" o un "Matambre $168.744" ensucian el comparativo.
+
+    Reglas (solo para supers — commodity/intermedio/mayorista; las fuentes
+    curadas EQ/RES/INDEC están exentas):
+      1. Piso absoluto: < $6.000/kg no es carne vacuna hoy.
+      2. Banda por corte: fuera de [0.35x, 2.2x] de la mediana del corte
+         (mediana calculada solo con precios de supers, ≥4 muestras).
+    """
+    from collections import defaultdict
+    from statistics import median
+
+    SEGMENTOS_CURADOS = {"premium", "propio", "benchmark"}
+    PISO_ABS = 6000
+
+    por_corte = defaultdict(list)
+    for p in precios:
+        if p.segmento not in SEGMENTOS_CURADOS and p.precio_kg >= PISO_ABS:
+            por_corte[p.corte_normalizado].append(p.precio_kg)
+    medianas = {c: median(v) for c, v in por_corte.items() if len(v) >= 4}
+
+    ok, descartados = [], []
+    for p in precios:
+        if p.segmento in SEGMENTOS_CURADOS:
+            ok.append(p)
+            continue
+        m = medianas.get(p.corte_normalizado)
+        if p.precio_kg < PISO_ABS or (m and not (0.35 * m <= p.precio_kg <= 2.2 * m)):
+            descartados.append(p)
+        else:
+            ok.append(p)
+    return ok, descartados
+
+
 async def correr_scraper(ScraperCls, sem: asyncio.Semaphore, log: logging.Logger):
     """Corre un scraper bajo el semáforo global de concurrencia."""
     async with sem:
@@ -178,6 +217,12 @@ async def main_async(args):
     if not todos_precios:
         log.error("⚠️  Ningún scraper devolvió datos. Revisá la configuración.")
         sys.exit(1)
+
+    todos_precios, descartados = sanear_precios(todos_precios)
+    if descartados:
+        log.info(f"🧹 Saneo: {len(descartados)} precios descartados por no ser $/kg plausible")
+        for p in descartados[:8]:
+            log.debug(f"   descartado ${p.precio_kg:,.0f} {p.carniceria} «{p.corte_original[:50]}»")
 
     log.info(f"📦 Guardando {len(todos_precios)} precios en BD...")
     guardar(todos_precios)
