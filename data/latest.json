@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-09-20",
-  "anterior": "2026-09-19",
-  "generado": "2026-09-20T12:01:14.943700+00:00",
+  "ultima_corrida": "2026-09-21",
+  "anterior": "2026-09-20",
+  "generado": "2026-09-21T12:01:14.166791+00:00",
   "carnicerias": [
     "Carrefour",
     "ChangoMás",
@@ -60,8 +60,8 @@
     "asado": {
       "mejor_precio": 11999.0,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 26331.55,
-      "variacion_pct": -1.0,
+      "promedio": 26230.86,
+      "variacion_pct": -0.4,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -157,7 +157,7 @@
       "mejor_precio": 20000.0,
       "mejor_carniceria": "EQ Carnes 🏠",
       "promedio": 44071.63,
-      "variacion_pct": 1.7,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "EQ Carnes 🏠",
@@ -348,8 +348,8 @@
     "entrana": {
       "mejor_precio": 16525.58,
       "mejor_carniceria": "Vea",
-      "promedio": 34699.24,
-      "variacion_pct": 0.2,
+      "promedio": 35587.65,
+      "variacion_pct": 2.6,
       "precios": [
         {
           "carniceria": "Vea",
@@ -396,8 +396,8 @@
     "falda": {
       "mejor_precio": 15000.0,
       "mejor_carniceria": "EQ Carnes 🏠",
-      "promedio": 16069.2,
-      "variacion_pct": 0.0,
+      "promedio": 15897.0,
+      "variacion_pct": -1.1,
       "precios": [
         {
           "carniceria": "EQ Carnes 🏠",
@@ -418,11 +418,6 @@
           "carniceria": "EQ Carnes 🏠",
           "precio_kg": 16500.0,
           "url": "supabase://carnes_precios"
-        },
-        {
-          "carniceria": "Disco",
-          "precio_kg": 16758.0,
-          "url": "https://www.disco.com.ar/falda-2-2/p"
         }
       ]
     },
@@ -477,8 +472,8 @@
     "matambre": {
       "mejor_precio": 11990.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 28040.49,
-      "variacion_pct": -0.0,
+      "promedio": 28572.22,
+      "variacion_pct": 1.9,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -558,13 +553,18 @@
     "osobuco": {
       "mejor_precio": 7854.98,
       "mejor_carniceria": "Vea",
-      "promedio": 15957.25,
-      "variacion_pct": -0.0,
+      "promedio": 15068.92,
+      "variacion_pct": -5.6,
       "precios": [
         {
           "carniceria": "Vea",
           "precio_kg": 7854.98,
           "url": "https://www.vea.com.ar/osobuco-2/p"
+        },
+        {
+          "carniceria": "Disco",
+          "precio_kg": 7854.98,
+          "url": "https://www.disco.com.ar/osobuco-2/p"
         },
         {
           "carniceria": "Jumbo",
@@ -595,19 +595,14 @@
           "carniceria": "Vea",
           "precio_kg": 15479.78,
           "url": "https://www.vea.com.ar/osobuco-de-novillito-por-kg-2/p"
-        },
-        {
-          "carniceria": "Vea",
-          "precio_kg": 15479.78,
-          "url": "https://www.vea.com.ar/osobuco-de-novillito-ca-bja-1-kg-2/p"
         }
       ]
     },
     "paleta": {
       "mejor_precio": 9137.1,
       "mejor_carniceria": "Vea",
-      "promedio": 27412.4,
-      "variacion_pct": 0.3,
+      "promedio": 27337.5,
+      "variacion_pct": -0.3,
       "precios": [
         {
           "carniceria": "Vea",
@@ -654,8 +649,8 @@
     "peceto": {
       "mejor_precio": 18800.0,
       "mejor_carniceria": "EQ Carnes 🏠",
-      "promedio": 39808.49,
-      "variacion_pct": 2.2,
+      "promedio": 38938.96,
+      "variacion_pct": -2.2,
       "precios": [
         {
           "carniceria": "EQ Carnes 🏠",
@@ -666,6 +661,11 @@
           "carniceria": "ChangoMás",
           "precio_kg": 19415.83,
           "url": "https://www.masonline.com.ar/peceto-feteado-de-novillito-x-600-gr-4/p"
+        },
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 19999.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
           "carniceria": "Jumbo",
@@ -691,11 +691,6 @@
           "carniceria": "Jumbo",
           "precio_kg": 29232.78,
           "url": "https://www.jumbo.com.ar/peceto-mostrador-x-kg-bsa-kg-1/p"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 33284.29,
-          "url": "https://www.masonline.com.ar/peceto-feteado-de-novillito-x-600-gr-6/p"
         }
       ]
     },
@@ -798,8 +793,8 @@
     "roast_beef": {
       "mejor_precio": 9027.3,
       "mejor_carniceria": "Vea",
-      "promedio": 25048.9,
-      "variacion_pct": 0.0,
+      "promedio": 25253.94,
+      "variacion_pct": 0.8,
       "precios": [
         {
           "carniceria": "Vea",
@@ -844,14 +839,14 @@
       ]
     },
     "tapa_asado": {
-      "mejor_precio": 11490.0,
+      "mejor_precio": 13290.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 23032.77,
-      "variacion_pct": 0.0,
+      "promedio": 23138.65,
+      "variacion_pct": 0.5,
       "precios": [
         {
           "carniceria": "Carrefour",
-          "precio_kg": 11490.0,
+          "precio_kg": 13290.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
@@ -1016,11 +1011,16 @@
       ]
     },
     "vacio": {
-      "mejor_precio": 18500.0,
-      "mejor_carniceria": "EQ Carnes 🏠",
-      "promedio": 34601.5,
-      "variacion_pct": -0.0,
+      "mejor_precio": 13532.67,
+      "mejor_carniceria": "ChangoMás",
+      "promedio": 33532.78,
+      "variacion_pct": -3.1,
       "precios": [
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 13532.67,
+          "url": "https://www.masonline.com.ar/vacio-de-novillito-x-800-gr/p"
+        },
         {
           "carniceria": "EQ Carnes 🏠",
           "precio_kg": 18500.0,
@@ -1055,11 +1055,6 @@
           "carniceria": "RES",
           "precio_kg": 29900.0,
           "url": "https://www.res.com.ar/vacio.html"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 33498.75,
-          "url": "https://www.masonline.com.ar/vacio-especial-de-novillito-x-800-gr/p"
         }
       ]
     }
