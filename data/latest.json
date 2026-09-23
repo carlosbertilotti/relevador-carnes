@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-09-22",
-  "anterior": "2026-09-21",
-  "generado": "2026-09-22T12:01:08.648200+00:00",
+  "ultima_corrida": "2026-09-23",
+  "anterior": "2026-09-22",
+  "generado": "2026-09-23T12:01:11.067726+00:00",
   "carnicerias": [
     "Carrefour",
     "ChangoMás",
@@ -60,8 +60,8 @@
     "asado": {
       "mejor_precio": 12490.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 26515.49,
-      "variacion_pct": 1.1,
+      "promedio": 26607.18,
+      "variacion_pct": 0.3,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -108,8 +108,8 @@
     "bife_ancho": {
       "mejor_precio": 18388.94,
       "mejor_carniceria": "Vea",
-      "promedio": 44578.62,
-      "variacion_pct": 3.1,
+      "promedio": 45932.02,
+      "variacion_pct": 3.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -156,8 +156,8 @@
     "bife_angosto": {
       "mejor_precio": 20000.0,
       "mejor_carniceria": "EQ Carnes 🏠",
-      "promedio": 42881.12,
-      "variacion_pct": -2.7,
+      "promedio": 44071.63,
+      "variacion_pct": 2.8,
       "precios": [
         {
           "carniceria": "EQ Carnes 🏠",
@@ -168,11 +168,6 @@
           "carniceria": "Disco",
           "precio_kg": 24313.94,
           "url": "https://www.disco.com.ar/bife-de-chorizo-2/p"
-        },
-        {
-          "carniceria": "Jumbo",
-          "precio_kg": 24313.94,
-          "url": "https://www.jumbo.com.ar/bife-de-chorizo-2/p"
         },
         {
           "carniceria": "RES",
@@ -198,6 +193,11 @@
           "carniceria": "Día",
           "precio_kg": 25990.0,
           "url": "https://diaonline.supermercadosdia.com.ar/frescos/carniceria/carnes-de-vaca"
+        },
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 28195.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         }
       ]
     },
@@ -252,8 +252,8 @@
     "colita_cuadril": {
       "mejor_precio": 19000.0,
       "mejor_carniceria": "EQ Carnes 🏠",
-      "promedio": 41449.75,
-      "variacion_pct": -2.3,
+      "promedio": 34532.55,
+      "variacion_pct": -16.7,
       "precios": [
         {
           "carniceria": "EQ Carnes 🏠",
@@ -349,7 +349,7 @@
       "mejor_precio": 16525.58,
       "mejor_carniceria": "Vea",
       "promedio": 35944.55,
-      "variacion_pct": 1.0,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -397,7 +397,7 @@
       "mejor_precio": 15000.0,
       "mejor_carniceria": "EQ Carnes 🏠",
       "promedio": 16069.2,
-      "variacion_pct": 1.1,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "EQ Carnes 🏠",
@@ -429,8 +429,8 @@
     "lomo": {
       "mejor_precio": 17719.34,
       "mejor_carniceria": "Vea",
-      "promedio": 34731.32,
-      "variacion_pct": 0.0,
+      "promedio": 34247.86,
+      "variacion_pct": -1.4,
       "precios": [
         {
           "carniceria": "Vea",
@@ -475,16 +475,11 @@
       ]
     },
     "matambre": {
-      "mejor_precio": 11990.0,
-      "mejor_carniceria": "Carrefour",
-      "promedio": 26767.35,
-      "variacion_pct": -6.3,
+      "mejor_precio": 12988.5,
+      "mejor_carniceria": "Vea",
+      "promedio": 27259.93,
+      "variacion_pct": 1.8,
       "precios": [
-        {
-          "carniceria": "Carrefour",
-          "precio_kg": 11990.0,
-          "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
-        },
         {
           "carniceria": "Vea",
           "precio_kg": 12988.5,
@@ -519,6 +514,11 @@
           "carniceria": "Jumbo",
           "precio_kg": 16309.1,
           "url": "https://www.jumbo.com.ar/matambre-novillito-especial/p"
+        },
+        {
+          "carniceria": "EQ Carnes 🏠",
+          "precio_kg": 16500.0,
+          "url": "supabase://carnes_precios"
         }
       ]
     },
@@ -559,7 +559,7 @@
       "mejor_precio": 7854.98,
       "mejor_carniceria": "Vea",
       "promedio": 15104.73,
-      "variacion_pct": 0.2,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -606,8 +606,8 @@
     "paleta": {
       "mejor_precio": 9137.1,
       "mejor_carniceria": "Vea",
-      "promedio": 26901.2,
-      "variacion_pct": -1.6,
+      "promedio": 27337.5,
+      "variacion_pct": 1.6,
       "precios": [
         {
           "carniceria": "Vea",
@@ -645,9 +645,9 @@
           "url": "https://www.disco.com.ar/paleta-americano/p"
         },
         {
-          "carniceria": "Jumbo",
-          "precio_kg": 14560.54,
-          "url": "https://www.jumbo.com.ar/paleta-americano/p"
+          "carniceria": "EQ Carnes 🏠",
+          "precio_kg": 15500.0,
+          "url": "supabase://carnes_precios"
         }
       ]
     },
@@ -751,7 +751,7 @@
       "mejor_precio": 8252.7,
       "mejor_carniceria": "Vea",
       "promedio": 17556.3,
-      "variacion_pct": -0.7,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -798,8 +798,8 @@
     "roast_beef": {
       "mejor_precio": 9027.3,
       "mejor_carniceria": "Vea",
-      "promedio": 24697.88,
-      "variacion_pct": -2.2,
+      "promedio": 24492.84,
+      "variacion_pct": -0.8,
       "precios": [
         {
           "carniceria": "Vea",
@@ -846,8 +846,8 @@
     "tapa_asado": {
       "mejor_precio": 11666.78,
       "mejor_carniceria": "Disco",
-      "promedio": 21871.45,
-      "variacion_pct": -5.5,
+      "promedio": 22631.99,
+      "variacion_pct": 3.5,
       "precios": [
         {
           "carniceria": "Disco",
@@ -856,7 +856,7 @@
         },
         {
           "carniceria": "Carrefour",
-          "precio_kg": 13290.0,
+          "precio_kg": 11990.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
         },
         {
@@ -927,8 +927,8 @@
     "tapa_nalga": {
       "mejor_precio": 10136.52,
       "mejor_carniceria": "Vea",
-      "promedio": 24310.71,
-      "variacion_pct": -0.8,
+      "promedio": 24258.65,
+      "variacion_pct": -0.2,
       "precios": [
         {
           "carniceria": "Vea",
@@ -1018,8 +1018,8 @@
     "vacio": {
       "mejor_precio": 18500.0,
       "mejor_carniceria": "EQ Carnes 🏠",
-      "promedio": 35538.27,
-      "variacion_pct": 6.0,
+      "promedio": 34196.73,
+      "variacion_pct": -3.8,
       "precios": [
         {
           "carniceria": "EQ Carnes 🏠",
