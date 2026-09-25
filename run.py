@@ -164,7 +164,7 @@ def sanear_precios(precios):
     from collections import defaultdict
     from statistics import median
 
-    SEGMENTOS_CURADOS = {"premium", "propio", "benchmark"}
+    SEGMENTOS_CURADOS = {"premium", "propio", "propio_mayorista", "benchmark"}
     PISO_ABS = 6000
 
     por_corte = defaultdict(list)

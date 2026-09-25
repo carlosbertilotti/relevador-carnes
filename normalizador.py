@@ -83,7 +83,7 @@ PATRONES: list[tuple[str, str]] = [
     (r"\bcolita\s+de\s+cuadril\b",      "colita_cuadril"),
     (r"\bcolita\b",                    "colita_cuadril"),   # "COLITA" a secas
     (r"\btapa\s+de\s+cuadril\b",        "tapa_cuadril"),
-    (r"\bpica[ñn]a\b",                   "tapa_cuadril"),
+    (r"\bpica(?:[ñn]|nh)a\b",             "tapa_cuadril"),   # picaña / picana / picanha
     (r"\btapa\s+de\s+asado\b",          "tapa_asado"),
     (r"\btapa\s+de\s+nalga\b",          "tapa_nalga"),
     (r"\bjam[óo]n\s+cuadrado\b",        "jamon_cuadrado"),
@@ -278,6 +278,7 @@ if __name__ == "__main__":
         ("Colita De Cuadril Rellena", None),
         ("Falsa entraña", None),
         ("COLITA", "colita_cuadril"),
+        ("Picanha", "tapa_cuadril"),
         ("Lomo Cocido Con Hierbas Feteado Al Vacio", None),
         ("MOLIDA ESPECIAL X KG", "picada_especial"),
         ("OFERTA Molida común x 2kg", "picada_comun"),

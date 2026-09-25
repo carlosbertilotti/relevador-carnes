@@ -47,6 +47,14 @@ def _creds() -> tuple[str, str] | None:
     return None
 
 
+NOMBRE_MINORISTA = "EQ Minorista 🏠"
+NOMBRE_MAYORISTA = "EQ Mayorista 🏠"
+SEGMENTO_MINORISTA = "propio"
+# La mayorista no compite en el ranking contra precios al público:
+# el resumen y latest.json la muestran aparte.
+SEGMENTO_MAYORISTA = "propio_mayorista"
+
+
 class EqCarnesScraper(ScraperBase):
     nombre = "EQ Carnes 🏠"
     segmento = "propio"
@@ -81,6 +89,12 @@ class EqCarnesScraper(ScraperBase):
         out: list[PrecioRelevado] = []
         sin_normalizar = []
 
+        # precio       = lista MAYORISTA (restaurantes / carnicerías)
+        # precio_local = lista MINORISTA (mostrador / web); null = no está en esa lista
+        listas = (
+            ("precio_local", NOMBRE_MINORISTA, SEGMENTO_MINORISTA),
+            ("precio",       NOMBRE_MAYORISTA, SEGMENTO_MAYORISTA),
+        )
         for row in rows:
             nombre = (row.get("corte") or "").strip()
             if not nombre:
@@ -89,21 +103,22 @@ class EqCarnesScraper(ScraperBase):
             if not corte:
                 sin_normalizar.append(nombre)
                 continue
-            try:
-                precio = float(row.get("precio") or 0)
-            except (ValueError, TypeError):
-                continue
-            if precio < 1000 or precio > 200000:
-                continue
-            out.append(PrecioRelevado(
-                carniceria=self.nombre,
-                corte_original=nombre,
-                corte_normalizado=corte,
-                precio_kg=precio,
-                fecha=ahora,
-                segmento=self.segmento,
-                url_fuente="supabase://carnes_precios",
-            ))
+            for columna, carniceria, segmento in listas:
+                try:
+                    precio = float(row.get(columna) or 0)
+                except (ValueError, TypeError):
+                    continue
+                if precio < 1000 or precio > 200000:
+                    continue
+                out.append(PrecioRelevado(
+                    carniceria=carniceria,
+                    corte_original=nombre,
+                    corte_normalizado=corte,
+                    precio_kg=precio,
+                    fecha=ahora,
+                    segmento=segmento,
+                    url_fuente=f"supabase://carnes_precios.{columna}",
+                ))
 
         if sin_normalizar:
             log.debug(f"[EQ] cortes propios sin equivalente en el comparativo: "

@@ -108,13 +108,13 @@ def main():
 
     # Carnicerias activas en la última corrida
     carnicerias = [r["carniceria"] for r in cur.execute(
-        "SELECT DISTINCT carniceria FROM precios WHERE fecha = ? ORDER BY carniceria", (ultima,)
+        "SELECT DISTINCT carniceria FROM precios WHERE fecha = ? AND segmento != 'propio_mayorista' ORDER BY carniceria", (ultima,)
     )]
 
     # Sacamos todos los cortes disponibles en la última corrida (filtrando los muy pobres)
     cortes_disponibles = [r["corte"] for r in cur.execute(
         "SELECT corte_normalizado AS corte, COUNT(DISTINCT carniceria) AS n "
-        "FROM precios WHERE fecha = ? AND disponible = 1 "
+        "FROM precios WHERE fecha = ? AND disponible = 1 AND segmento != 'propio_mayorista' "
         "GROUP BY corte_normalizado HAVING n >= ? "
         "ORDER BY corte_normalizado",
         (ultima, MIN_CARNICERIAS)
@@ -127,7 +127,7 @@ def main():
         piso = PRECIO_MIN_POR_CORTE.get(corte, PRECIO_MIN_DEFAULT)
         rows = list(cur.execute(
             "SELECT carniceria, corte_original, precio_kg, peso_g, url_fuente FROM precios "
-            "WHERE fecha = ? AND corte_normalizado = ? AND disponible = 1 "
+            "WHERE fecha = ? AND corte_normalizado = ? AND disponible = 1 AND segmento != 'propio_mayorista' "
             "ORDER BY precio_kg ASC",
             (ultima, corte)
         ))
@@ -167,7 +167,7 @@ def main():
         if anterior:
             prev_avg = cur.execute(
                 "SELECT AVG(precio_kg) AS a FROM precios "
-                "WHERE fecha = ? AND corte_normalizado = ? AND disponible = 1",
+                "WHERE fecha = ? AND corte_normalizado = ? AND disponible = 1 AND segmento != 'propio_mayorista'",
                 (anterior, corte)
             ).fetchone()["a"]
             if prev_avg and prev_avg > 0:

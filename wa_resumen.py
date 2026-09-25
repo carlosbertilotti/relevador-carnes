@@ -64,9 +64,15 @@ def construir_resumen() -> str:
         SELECT corte_normalizado, carniceria, AVG(precio_kg) p
         FROM precios
         WHERE fecha = (SELECT MAX(fecha) FROM precios)
-          AND segmento != 'benchmark'
+          AND segmento NOT IN ('benchmark', 'propio_mayorista')
         GROUP BY corte_normalizado, carniceria
     """).fetchall()
+    # Lista mayorista propia: referencia, no compite con precios al público
+    mayorista = {r["corte_normalizado"]: r["p"] for r in con.execute("""
+        SELECT corte_normalizado, AVG(precio_kg) p FROM precios
+        WHERE fecha = (SELECT MAX(fecha) FROM precios) AND segmento='propio_mayorista'
+        GROUP BY corte_normalizado
+    """)}
     bench = {r["corte_normalizado"]: r["p"] for r in con.execute("""
         SELECT corte_normalizado, AVG(precio_kg) p FROM precios
         WHERE fecha = (SELECT MAX(fecha) FROM precios) AND segmento='benchmark'
@@ -99,6 +105,8 @@ def construir_resumen() -> str:
                 marca = " 🏆" if carn == barato else ""
                 cba = " 📍" if carn in CORDOBA else ""
                 out += f"  {carn}{cba}: {_fmt(p)}{marca}\n"
+            if corte in mayorista:
+                out += f"  _EQ mayorista: {_fmt(mayorista[corte])}_\n"
             if corte in bench:
                 out += f"  _INDEC ref: {_fmt(bench[corte])}_\n"
 
