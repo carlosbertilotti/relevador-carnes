@@ -122,20 +122,42 @@ def enviar_whatsapp(texto: str) -> bool:
         return False
 
 
+WA_MAX_CHARS = 3800   # WhatsApp corta en 4096; margen para el "(1/2)"
+
+
+def partir_mensajes(texto: str) -> list[str]:
+    """Parte en mensajes ≤ WA_MAX_CHARS cortando entre cortes (bloques \\n\\n)."""
+    bloques = texto.split("\n\n")
+    partes, actual = [], ""
+    for b in bloques:
+        candidato = f"{actual}\n\n{b}" if actual else b
+        if len(candidato) > WA_MAX_CHARS and actual:
+            partes.append(actual)
+            actual = b
+        else:
+            actual = candidato
+    if actual:
+        partes.append(actual)
+    if len(partes) > 1:
+        partes = [f"{p}\n\n_({i}/{len(partes)})_" for i, p in enumerate(partes, 1)]
+    return partes
+
+
 def enviar_resumen_whatsapp() -> bool:
     texto = construir_resumen()
     if not texto:
         log.warning("Sin datos para el resumen de WhatsApp")
         return False
-    return enviar_whatsapp(texto)
+    return all(enviar_whatsapp(p) for p in partir_mensajes(texto))
 
 
 if __name__ == "__main__":
     import sys
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    texto = construir_resumen()
+    partes = partir_mensajes(construir_resumen())
     if "--dry" in sys.argv:
-        print(texto)
+        for p in partes:
+            print(f"--- mensaje de {len(p)} chars ---\n{p}\n")
     else:
-        ok = enviar_whatsapp(texto)
-        print("✅ Enviado" if ok else "❌ Falló")
+        ok = all(enviar_whatsapp(p) for p in partes)
+        print(f"✅ Enviado en {len(partes)} mensaje(s)" if ok else "❌ Falló")

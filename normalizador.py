@@ -117,6 +117,7 @@ PATRONES: list[tuple[str, str]] = [
     (r"\bcogote\b",        "cogote"),
     (r"\bvac[ií]o\b",      "vacio"),
     (r"\bmatambre\b",      "matambre"),
+    (r"\bcostillar\b",     "asado"),     # antes que falda: "costillar s/falda" es asado
     (r"\bfalda\b",         "falda"),
     (r"\basado\b",         "asado"),
 ]
@@ -151,6 +152,7 @@ IGNORAR = [
     r"\bbocatti\b",                          # marca de fiambres
     r"\bescabeche\b|\brotiser[ií]a\b",       # preparados de rotisería
     r"\brellen[oa]s?\b",                     # colita rellena, matambre relleno
+    r"\bfalsa\s+entra",                      # falsa entraña: otro corte, más barato
 ]
 
 
@@ -270,6 +272,8 @@ if __name__ == "__main__":
         ("Lomo Feteado 100 Grs Bocatti", None),
         ("Peceto (rotiseria) Al Escabeche S/e 1 Kg", None),
         ("Colita De Cuadril Rellena", None),
+        ("Falsa entraña", None),
+        ("Costillar c/carne s/falda (asado de tira)", "asado"),
         # Ignorar (otra carne / no carne / preparados)
         ("Hamburguesas Paty x 4u", None),
         ("Milanesas de carne", None),
