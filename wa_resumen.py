@@ -28,6 +28,9 @@ log = logging.getLogger(__name__)
 
 WA_ENDPOINT = "https://cartera-app.vercel.app/api/whatsapp/send"
 
+# Fuentes con locales en Córdoba: se marcan con 📍 en el resumen
+CORDOBA = {"Cordiez", "En Carne Propia"}
+
 SECCIONES_ORDEN = [
     ("trasero_noble", "🥩 TRASERO NOBLE"),
     ("trasero_rueda", "🍖 TRASERO RUEDA"),
@@ -94,7 +97,8 @@ def construir_resumen() -> str:
             out += f"\n*{corte_pretty(corte)}*\n"
             for carn, p in sorted(precios.items(), key=lambda x: x[1]):
                 marca = " 🏆" if carn == barato else ""
-                out += f"  {carn}: {_fmt(p)}{marca}\n"
+                cba = " 📍" if carn in CORDOBA else ""
+                out += f"  {carn}{cba}: {_fmt(p)}{marca}\n"
             if corte in bench:
                 out += f"  _INDEC ref: {_fmt(bench[corte])}_\n"
 

@@ -63,6 +63,11 @@ from scrapers.el_origen import ElOrigenScraper
 from scrapers.beef_club import BeefClubScraper
 from scrapers.justino import JustinoScraper
 
+# Córdoba
+from scrapers.en_carne_propia import EnCarnePropiaScraper
+from scrapers.cordiez import CordiezScraper
+from scrapers.la_senalada import LaSenaladaScraper
+
 # Precios propios (Supabase Midia)
 from scrapers.eq_carnes import EqCarnesScraper
 
@@ -98,6 +103,9 @@ SCRAPERS = {
     "el_origen":    ElOrigenScraper,
     "beef_club":    BeefClubScraper,
     "justino":      JustinoScraper,
+    "la_senalada":  LaSenaladaScraper,
+    "en_carne_propia": EnCarnePropiaScraper,
+    "cordiez":      CordiezScraper,
     "josimar":      JosimarScraper,
 
     # ─── VTEX API vieja (rota, dejada por si revive; usar las _is en su lugar) ───
@@ -121,7 +129,8 @@ SCRAPERS_DEFAULT = [
     "sepa",
     "vea", "disco", "changomas", "jumbo",
     "dia_html", "carrefour_html",
-    "res", "el_origen", "beef_club", "justino",
+    "res", "el_origen", "beef_club", "justino", "la_senalada",
+    "en_carne_propia", "cordiez",
     "eq", "ipcva",
 ]
 

@@ -81,6 +81,7 @@ SECCION = {
 PATRONES: list[tuple[str, str]] = [
     # ─── 2-3 palabras (más específicos primero) ───
     (r"\bcolita\s+de\s+cuadril\b",      "colita_cuadril"),
+    (r"\bcolita\b",                    "colita_cuadril"),   # "COLITA" a secas
     (r"\btapa\s+de\s+cuadril\b",        "tapa_cuadril"),
     (r"\bpica[ñn]a\b",                   "tapa_cuadril"),
     (r"\btapa\s+de\s+asado\b",          "tapa_asado"),
@@ -93,6 +94,8 @@ PATRONES: list[tuple[str, str]] = [
     (r"\bfalda\s+(deshuesada|chica)\b", "falda"),
 
     # ─── Picadas ───
+    (r"\b(carne\s+)?molida\s+especial\b",          "picada_especial"),   # así se dice en Córdoba
+    (r"\b(carne\s+)?molida(\s+comun)?\b",           "picada_comun"),
     (r"\b(carne\s+)?picada\s+especial\b",          "picada_especial"),
     (r"\b(carne\s+)?picada\s+(magra|premium)\b",   "picada_especial"),
     (r"\b(carne\s+)?picada(\s+comun)?\b",          "picada_comun"),
@@ -152,6 +155,7 @@ IGNORAR = [
     r"\bbocatti\b",                          # marca de fiambres
     r"\bescabeche\b|\brotiser[ií]a\b",       # preparados de rotisería
     r"\brellen[oa]s?\b",                     # colita rellena, matambre relleno
+    r"\bcocid[oa]s?\b",                      # lomo cocido = fiambre
     r"\bfalsa\s+entra",                      # falsa entraña: otro corte, más barato
 ]
 
@@ -273,6 +277,10 @@ if __name__ == "__main__":
         ("Peceto (rotiseria) Al Escabeche S/e 1 Kg", None),
         ("Colita De Cuadril Rellena", None),
         ("Falsa entraña", None),
+        ("COLITA", "colita_cuadril"),
+        ("Lomo Cocido Con Hierbas Feteado Al Vacio", None),
+        ("MOLIDA ESPECIAL X KG", "picada_especial"),
+        ("OFERTA Molida común x 2kg", "picada_comun"),
         ("Costillar c/carne s/falda (asado de tira)", "asado"),
         # Ignorar (otra carne / no carne / preparados)
         ("Hamburguesas Paty x 4u", None),
