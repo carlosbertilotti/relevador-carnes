@@ -121,16 +121,19 @@ function loginCard(onDone) {
     panel.replaceChildren(...(mode === 'password'
       ? [h('label.field', h('span', 'Usuario'), user), h('label.field', h('span', 'Contraseña'), pass)]
       : [h('p.muted', 'Si entrás al campus con Google o Microsoft no tenés contraseña del campus: Cuaderno necesita tu clave de acceso. Conseguila de una de estas dos formas (con la sesión del campus abierta en este navegador):'),
+        otherBrowser() ? h('div.browser-warn',
+          h('p', h('strong', 'Estás usando otro navegador, no Safari. '), 'Si el inicio de sesión con Microsoft no te funciona acá, abrí Cuaderno en Safari y conectá el campus desde ahí.'),
+          h('button.btn.small', { type: 'button', onclick: () => copyLink(location.origin + '/#/campus', 'Dirección de Cuaderno copiada: pegala en Safari') }, 'Copiar dirección de Cuaderno')) : null,
         h('ol.token-steps',
           h('li',
             h('strong', 'Claves de seguridad. '),
             'Abrí la página y copiá la clave de la fila "Moodle mobile web service".',
-            h('div', h('a.btn.small', { href: `${campusBase()}/user/managetoken.php`, target: '_blank', rel: 'noopener' }, icon('campus'), 'Abrir Claves de seguridad'))),
+            safariLink(`${campusBase()}/user/managetoken.php`, 'Abrir Claves de seguridad')),
           h('li',
             h('strong', 'Si esa página no existe: '),
             'en la computadora, abrí las herramientas de desarrollador (F12) en la pestaña Red/Network y después tocá el botón. El navegador va a intentar abrir la app oficial y va a fallar: en Network aparece una dirección que empieza con ',
             h('code', 'moodlemobile://token='), '. Copiala entera y pegala acá; Cuaderno saca la clave sola.',
-            h('div', h('a.btn.small', { href: launchUrl(campusBase()), target: '_blank', rel: 'noopener' }, icon('campus'), 'Iniciar sesión como la app oficial')))),
+            safariLink(launchUrl(campusBase()), 'Iniciar sesión como la app oficial'))),
         h('label.field', h('span', 'Clave o dirección'), token),
         tokenState,
         h('p.muted.small-note', 'Esa clave da acceso a tu cuenta del campus: no la compartas. Queda guardada sólo en este dispositivo.')]));
@@ -224,4 +227,28 @@ export async function renderSettings(root) {
         h('li', 'Al apoyar el lápiz por primera vez se activa "sólo lápiz": el dedo desplaza y la palma no raya.'),
         h('li', 'Mantené el lápiz quieto al terminar un trazo para convertirlo en línea recta.'),
         h('li', 'Grabá la clase con el micrófono: después tocá cualquier trazo para escuchar qué se decía en ese momento.')))));
+}
+
+// Los enlaces se abren en el navegador actual; una página no puede elegir otro.
+// En iPad/iPhone sí se puede mandar a Safari con el esquema x-safari-https://.
+const UA = navigator.userAgent;
+const isIOS = () => /iPad|iPhone|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function otherBrowser() {
+  return /CriOS|FxiOS|EdgiOS|OPiOS|Chrome\/|Chromium|Firefox\/|Edg\//.test(UA);
+}
+
+async function copyLink(href, msg = 'Enlace copiado: pegalo en Safari') {
+  try {
+    await navigator.clipboard.writeText(href);
+    toast(msg);
+  } catch {
+    window.prompt('Copiá este enlace y pegalo en Safari:', href);
+  }
+}
+
+function safariLink(href, label) {
+  const target = isIOS() && otherBrowser() ? href.replace(/^https:/, 'x-safari-https:') : href;
+  return h('div.row.link-row',
+    h('a.btn.small', { href: target, target: '_blank', rel: 'noopener' }, icon('campus'), label),
+    h('button.btn.small.ghost', { type: 'button', onclick: () => copyLink(href) }, 'Copiar enlace'));
 }
