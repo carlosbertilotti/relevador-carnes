@@ -1,7 +1,7 @@
 # Cuaderno
 
 App para tomar notas de clase en el iPad con el Apple Pencil, sincronizada con el
-**Campus Virtual Di Tella** (Moodle, `campus.utdt.edu`) y con tu calendario.
+**Campus Virtual Di Tella** (Moodle, `campusvirtual.utdt.edu`) y con tu calendario.
 
 - **Una materia = un cuaderno.** Al conectar el campus se crea un cuaderno por cada
   materia en la que estás inscripto, y se baja todo su material (PDFs, presentaciones, etc.).
@@ -75,8 +75,8 @@ Variables de entorno:
 | Variable | Para qué |
 |---|---|
 | `APP_PASSWORD` | **Recomendado si la publicás.** La app la pide la primera vez que se conecta al servidor. |
-| `MOODLE_ALLOWED_HOSTS` | Campus permitidos, ej. `campus.utdt.edu` (evita que el servidor sirva de proxy a otros sitios). |
-| `MOODLE_URL` | Campus por defecto (default `https://campus.utdt.edu`). |
+| `MOODLE_ALLOWED_HOSTS` | Campus permitidos, ej. `campusvirtual.utdt.edu` (evita que el servidor sirva de proxy a otros sitios). |
+| `MOODLE_URL` | Campus por defecto (default `https://campusvirtual.utdt.edu`). |
 | `PORT` | Puerto del servidor local (default 5173). |
 
 Después, en el iPad: Safari → abrir la URL → Compartir → **Agregar a pantalla de inicio**.
