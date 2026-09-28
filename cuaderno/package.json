@@ -1,0 +1,17 @@
+{
+  "name": "cuaderno",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cuaderno: toma de notas de clase con lápiz, sincronizada con el Campus Virtual Di Tella (Moodle) y tu día.",
+  "type": "module",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node --watch server/server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "pdfjs-dist": "^6.3.289",
+    "perfect-freehand": "^1.2.3"
+  }
+}
