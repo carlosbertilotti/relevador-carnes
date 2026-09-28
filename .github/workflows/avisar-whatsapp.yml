@@ -1,0 +1,30 @@
+name: Avisar por WhatsApp
+
+# Manda un mensaje suelto al WhatsApp de Carlos por el bot de cartera-app
+# (el mismo que usa wa_resumen.py). Se dispara a mano desde Actions o por API.
+on:
+  workflow_dispatch:
+    inputs:
+      mensaje:
+        description: Texto a enviar
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  enviar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Enviar
+        env:
+          WHATSAPP_SEND_KEY: ${{ secrets.WHATSAPP_SEND_KEY }}
+          MENSAJE: ${{ inputs.mensaje }}
+        run: |
+          if [ -z "$WHATSAPP_SEND_KEY" ]; then echo "Falta el secret WHATSAPP_SEND_KEY"; exit 1; fi
+          python3 -c 'import json, os; print(json.dumps({"text": os.environ["MENSAJE"]}))' > body.json
+          curl -sS --fail-with-body -X POST https://cartera-app.vercel.app/api/whatsapp/send \
+            -H "Authorization: Bearer $WHATSAPP_SEND_KEY" \
+            -H "Content-Type: application/json" \
+            --data @body.json
