@@ -176,6 +176,16 @@ body.sidebar-hidden .page { padding-left: 64px; }
 .help summary { cursor: pointer; color: var(--accent-ink); font-weight: 500; margin-top: 12px; }
 .help li, .tips li { margin: 6px 0; }
 .sync-status { min-height: 1.2em; }
+.token-input { width: 100%; resize: vertical; font: 14px/1.4 ui-monospace, "SF Mono", Menlo, monospace; word-break: break-all; }
+.token-steps { padding-left: 20px; margin: 4px 0 8px; }
+.token-steps li { margin: 10px 0; color: var(--muted); }
+.token-steps li strong { color: var(--text); }
+.token-steps .btn { margin-top: 6px; }
+.token-steps code { font-size: 13px; background: color-mix(in srgb, var(--text) 8%, transparent); padding: 1px 5px; border-radius: 5px; color: var(--text); }
+.token-state { min-height: 1.2em; margin: 4px 0; font-size: 14px; }
+.token-state.ok { color: #2e9d5b; }
+.token-state.bad { color: var(--danger); }
+.small-note { font-size: 13px; }
 
 .segmented { display: inline-flex; background: color-mix(in srgb, var(--text) 7%, transparent); border-radius: 10px; padding: 2px; gap: 2px; margin-bottom: 8px; }
 .segmented button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 14px; }

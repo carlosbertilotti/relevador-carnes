@@ -4,7 +4,7 @@
 import http from 'node:http';
 import { fileURLToPath } from 'node:url';
 
-export const TOKEN = 'tok_demo_123';
+export const TOKEN = '5f3c2a9e8b7d6c1f0a4e3d2c1b0a9f8e';
 const now = Math.floor(Date.now() / 1000);
 
 export function tinyPdf(text = 'Clase 1') {
