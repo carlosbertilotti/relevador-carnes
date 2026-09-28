@@ -3,6 +3,7 @@ import * as db from '../db.js';
 import * as store from '../store.js';
 import * as campus from '../campus.js';
 import { parseICS } from '../lib/ics.js';
+import { extractToken, launchUrl } from '../lib/token.js';
 import { h, icon, toast, confirmDialog, downloadBlob } from '../ui.js';
 import { go } from '../router.js';
 import { applyTheme } from '../theme.js';
@@ -96,7 +97,20 @@ function loginCard(onDone) {
   const url = h('input.input', { value: campus.DEFAULT_URL });
   const user = h('input.input', { placeholder: 'Usuario del campus', autocomplete: 'username', autocapitalize: 'off' });
   const pass = h('input.input', { type: 'password', placeholder: 'Contraseña', autocomplete: 'current-password' });
-  const token = h('input.input', { placeholder: 'Clave de seguridad (token)', autocapitalize: 'off' });
+  const token = h('textarea.input.token-input', { rows: 2, placeholder: 'Pegá acá la clave o la dirección moodlemobile://token=…', autocapitalize: 'off', autocorrect: 'off', spellcheck: false });
+  const tokenState = h('p.token-state');
+  token.addEventListener('input', () => {
+    if (!token.value.trim()) { tokenState.textContent = ''; tokenState.className = 'token-state'; return; }
+    try {
+      extractToken(token.value);
+      tokenState.textContent = '✓ Clave reconocida. Tocá Conectar.';
+      tokenState.className = 'token-state ok';
+    } catch (err) {
+      tokenState.textContent = err.message;
+      tokenState.className = 'token-state bad';
+    }
+  });
+  const campusBase = () => { try { return new URL(url.value).origin; } catch { return campus.DEFAULT_URL; } };
   let mode = 'password';
   const panel = h('div');
   const seg = h('div.segmented');
@@ -106,8 +120,20 @@ function loginCard(onDone) {
       h(`button${mode === 'token' ? '.active' : ''}`, { type: 'button', onclick: () => { mode = 'token'; draw(); } }, 'Entro con Google / Microsoft'));
     panel.replaceChildren(...(mode === 'password'
       ? [h('label.field', h('span', 'Usuario'), user), h('label.field', h('span', 'Contraseña'), pass)]
-      : [h('p.muted', 'Si entrás al campus con tu cuenta de Google o Microsoft no hay contraseña del campus. Copiá tu clave de seguridad: en campus.utdt.edu → tu perfil → Preferencias → Claves de seguridad → "Moodle mobile web service" (o pedísela a la mesa de ayuda de Sistemas).'),
-        h('label.field', h('span', 'Clave'), token)]));
+      : [h('p.muted', 'Si entrás al campus con Google o Microsoft no tenés contraseña del campus: Cuaderno necesita tu clave de acceso. Conseguila de una de estas dos formas (con la sesión del campus abierta en este navegador):'),
+        h('ol.token-steps',
+          h('li',
+            h('strong', 'Claves de seguridad. '),
+            'Abrí la página y copiá la clave de la fila "Moodle mobile web service".',
+            h('div', h('a.btn.small', { href: `${campusBase()}/user/managetoken.php`, target: '_blank', rel: 'noopener' }, icon('campus'), 'Abrir Claves de seguridad'))),
+          h('li',
+            h('strong', 'Si esa página no existe: '),
+            'en la computadora, abrí las herramientas de desarrollador (F12) en la pestaña Red/Network y después tocá el botón. El navegador va a intentar abrir la app oficial y va a fallar: en Network aparece una dirección que empieza con ',
+            h('code', 'moodlemobile://token='), '. Copiala entera y pegala acá; Cuaderno saca la clave sola.',
+            h('div', h('a.btn.small', { href: launchUrl(campusBase()), target: '_blank', rel: 'noopener' }, icon('campus'), 'Iniciar sesión como la app oficial')))),
+        h('label.field', h('span', 'Clave o dirección'), token),
+        tokenState,
+        h('p.muted.small-note', 'Esa clave da acceso a tu cuenta del campus: no la compartas. Queda guardada sólo en este dispositivo.')]));
   };
   draw();
   const status = h('p.muted');
@@ -125,7 +151,7 @@ function loginCard(onDone) {
       try {
         await campus.login(mode === 'password'
           ? { url: url.value, username: user.value.trim(), password: pass.value }
-          : { url: url.value, token: token.value.trim() });
+          : { url: url.value, token: extractToken(token.value) });
         status.textContent = 'Conectado. Bajando tus materias…';
         const r = await campus.sync({ onProgress: (m) => { status.textContent = m; } });
         toast(`¡Listo! ${r.courses} materias sincronizadas`);
