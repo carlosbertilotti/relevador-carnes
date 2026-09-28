@@ -33,4 +33,5 @@ test('arma la dirección de inicio de sesión del campus', () => {
   assert.equal(u.pathname, '/admin/tool/mobile/launch.php');
   assert.equal(u.searchParams.get('service'), 'moodle_mobile_app');
   assert.equal(u.searchParams.get('urlscheme'), 'moodlemobile');
+  assert.equal(u.searchParams.get('confirmed'), '1');
 });
