@@ -1,4 +1,4 @@
-// Moodle falso con la misma forma de respuesta que campus.utdt.edu, para tests
+// Moodle falso con la misma forma de respuesta que campusvirtual.utdt.edu, para tests
 // y para probar la app sin la cuenta real: `node test/mock-moodle.js` y en la
 // app conectar a http://localhost:5174 con usuario "alumno" / contraseña "clave".
 import http from 'node:http';

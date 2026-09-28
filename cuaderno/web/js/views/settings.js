@@ -110,7 +110,7 @@ function loginCard(onDone) {
       tokenState.className = 'token-state bad';
     }
   });
-  const campusBase = () => { try { return new URL(url.value).origin; } catch { return campus.DEFAULT_URL; } };
+  const campusBase = () => { try { return new URL(campus.fixCampusUrl(url.value)).origin; } catch { return campus.DEFAULT_URL; } };
   let mode = 'password';
   const panel = h('div');
   const seg = h('div.segmented');

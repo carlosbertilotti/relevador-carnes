@@ -2,9 +2,11 @@
 // oficial "Campus Virtual Di Tella"). Documentación:
 // https://docs.moodle.org/dev/Web_service_API_functions
 
-export const DEFAULT_MOODLE_URL = process.env.MOODLE_URL || 'https://campus.utdt.edu';
-// Si está definida (ej. "campus.utdt.edu"), el servidor sólo habla con esos campus.
+export const DEFAULT_MOODLE_URL = process.env.MOODLE_URL || 'https://campusvirtual.utdt.edu';
+// Si está definida (ej. "campusvirtual.utdt.edu"), el servidor sólo habla con esos campus.
+// El campus por defecto siempre está permitido.
 const ALLOWED_HOSTS = (process.env.MOODLE_ALLOWED_HOSTS || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
+if (ALLOWED_HOSTS.length) ALLOWED_HOSTS.push(new URL(DEFAULT_MOODLE_URL).hostname.toLowerCase());
 
 export class MoodleError extends Error {
   constructor(message, code, status = 502) {

@@ -4,7 +4,7 @@
 import * as db from './db.js';
 import { createNotebook, saveNotebook, emit, normalize } from './store.js';
 
-export const DEFAULT_URL = 'https://campus.utdt.edu';
+export const DEFAULT_URL = 'https://campusvirtual.utdt.edu';
 const AUTO_SYNC_MS = 60 * 60 * 1000;
 const MAX_FILE = 40 * 1024 * 1024;
 
@@ -50,8 +50,15 @@ export async function account() {
   return db.getSetting('campus', null);
 }
 
+// La dirección vieja/incorrecta "campus.utdt.edu" no existe: el campus es campusvirtual.utdt.edu.
+export function fixCampusUrl(url) {
+  let u = String(url || DEFAULT_URL).trim().replace(/\/+$/, '');
+  if (!/^https?:\/\//i.test(u)) u = `https://${u}`;
+  return u.replace(/^https?:\/\/(www\.)?campus\.utdt\.edu/i, 'https://campusvirtual.utdt.edu');
+}
+
 export async function login({ url, username, password, token }) {
-  url = (url || DEFAULT_URL).replace(/\/+$/, '');
+  url = fixCampusUrl(url);
   let site;
   if (token) {
     // Clave de seguridad copiada del campus (sirve para quien entra con Google/Microsoft).

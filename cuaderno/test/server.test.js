@@ -26,9 +26,9 @@ test('aplana parámetros al estilo Moodle', () => {
 });
 
 test('reescribe pluginfile a webservice/pluginfile con token y rechaza otros hosts', () => {
-  const u = fileUrlWithToken('https://campus.utdt.edu', 'https://campus.utdt.edu/pluginfile.php/1/a.pdf', 'T');
-  assert.equal(u.toString(), 'https://campus.utdt.edu/webservice/pluginfile.php/1/a.pdf?token=T');
-  assert.throws(() => fileUrlWithToken('https://campus.utdt.edu', 'https://evil.example/pluginfile.php/1', 'T'));
+  const u = fileUrlWithToken('https://campusvirtual.utdt.edu', 'https://campusvirtual.utdt.edu/pluginfile.php/1/a.pdf', 'T');
+  assert.equal(u.toString(), 'https://campusvirtual.utdt.edu/webservice/pluginfile.php/1/a.pdf?token=T');
+  assert.throws(() => fileUrlWithToken('https://campusvirtual.utdt.edu', 'https://evil.example/pluginfile.php/1', 'T'));
 });
 
 test('login con usuario y contraseña', async () => {

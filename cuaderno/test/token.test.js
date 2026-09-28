@@ -29,7 +29,7 @@ test('rechaza lo que no es una clave', () => {
 });
 
 test('arma la dirección de inicio de sesión del campus', () => {
-  const u = new URL(launchUrl('https://campus.utdt.edu'));
+  const u = new URL(launchUrl('https://campusvirtual.utdt.edu'));
   assert.equal(u.pathname, '/admin/tool/mobile/launch.php');
   assert.equal(u.searchParams.get('service'), 'moodle_mobile_app');
   assert.equal(u.searchParams.get('urlscheme'), 'moodlemobile');
