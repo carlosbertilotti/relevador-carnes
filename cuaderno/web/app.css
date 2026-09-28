@@ -181,6 +181,8 @@ body.sidebar-hidden .page { padding-left: 64px; }
 .token-steps li { margin: 10px 0; color: var(--muted); }
 .token-steps li strong { color: var(--text); }
 .token-steps .btn { margin-top: 6px; }
+.browser-warn { background: color-mix(in srgb, var(--accent) 16%, var(--card)); border-radius: 12px; padding: 10px 14px; margin: 8px 0; font-size: 14px; }
+.browser-warn p { margin: 0 0 8px; }
 .token-steps code { font-size: 13px; background: color-mix(in srgb, var(--text) 8%, transparent); padding: 1px 5px; border-radius: 5px; color: var(--text); }
 .token-state { min-height: 1.2em; margin: 4px 0; font-size: 14px; }
 .token-state.ok { color: #2e9d5b; }
