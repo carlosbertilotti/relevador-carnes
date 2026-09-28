@@ -6,6 +6,7 @@ import http from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import { isIP } from 'node:net';
+import { timingSafeEqual } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Readable } from 'node:stream';
@@ -152,26 +153,45 @@ async function serveStatic(req, res, pathname) {
   }
 }
 
+// Atiende una ruta de la API. Lo usan el servidor local y las funciones de Vercel (api/).
+export async function handleApi(req, res, route) {
+  const handler = api[`${req.method} ${route}`];
+  if (!handler) return send(res, 404, { error: 'Ruta desconocida' });
+  if (APP_PASSWORD && route !== '/api/health' && !sameKey(req.headers['x-cuaderno-key'], APP_PASSWORD)) {
+    return send(res, 401, { error: 'Clave de Cuaderno incorrecta', code: 'appkey' });
+  }
+  try {
+    const body = req.method === 'POST' ? await requestBody(req) : {};
+    const out = await handler(body, res);
+    if (out !== undefined) send(res, 200, out);
+  } catch (err) {
+    const status = err.status || 500;
+    if (status >= 500) console.error(`[${route}]`, err);
+    if (!res.headersSent) send(res, status, { error: err.message || 'Error', code: err.code || null });
+    else res.destroy(err);
+  }
+}
+
+function sameKey(given, expected) {
+  const a = Buffer.from(String(given || ''));
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+// En Vercel el cuerpo ya viene leído en req.body; en el servidor local hay que leerlo.
+async function requestBody(req) {
+  if (req.body && typeof req.body === 'object' && !Buffer.isBuffer(req.body)) return req.body;
+  if (typeof req.body === 'string' || Buffer.isBuffer(req.body)) {
+    try { return JSON.parse(String(req.body) || '{}'); } catch { throw Object.assign(new Error('JSON inválido'), { status: 400 }); }
+  }
+  return readJson(req);
+}
+
 export function createServer() {
   return http.createServer(async (req, res) => {
     const { pathname } = new URL(req.url, 'http://x');
     if (!pathname.startsWith('/api/')) return serveStatic(req, res, pathname);
-
-    const handler = api[`${req.method} ${pathname}`];
-    if (!handler) return send(res, 404, { error: 'Ruta desconocida' });
-    if (APP_PASSWORD && req.headers['x-cuaderno-key'] !== APP_PASSWORD && pathname !== '/api/health') {
-      return send(res, 401, { error: 'Clave de Cuaderno incorrecta', code: 'appkey' });
-    }
-    try {
-      const body = req.method === 'POST' ? await readJson(req) : {};
-      const out = await handler(body, res);
-      if (out !== undefined) send(res, 200, out);
-    } catch (err) {
-      const status = err.status || 500;
-      if (status >= 500) console.error(`[${pathname}]`, err);
-      if (!res.headersSent) send(res, status, { error: err.message || 'Error', code: err.code || null });
-      else res.destroy(err);
-    }
+    return handleApi(req, res, pathname);
   });
 }
 
