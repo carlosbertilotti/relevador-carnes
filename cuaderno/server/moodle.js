@@ -3,6 +3,8 @@
 // https://docs.moodle.org/dev/Web_service_API_functions
 
 export const DEFAULT_MOODLE_URL = process.env.MOODLE_URL || 'https://campus.utdt.edu';
+// Si está definida (ej. "campus.utdt.edu"), el servidor sólo habla con esos campus.
+const ALLOWED_HOSTS = (process.env.MOODLE_ALLOWED_HOSTS || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
 
 export class MoodleError extends Error {
   constructor(message, code, status = 502) {
@@ -27,6 +29,9 @@ export function normalizeBase(url) {
   const u = new URL(url || DEFAULT_MOODLE_URL);
   if (u.protocol !== 'https:' && u.hostname !== 'localhost' && u.hostname !== '127.0.0.1') {
     throw new MoodleError('El campus debe usar https', 'badurl', 400);
+  }
+  if (ALLOWED_HOSTS.length && !ALLOWED_HOSTS.includes(u.hostname.toLowerCase())) {
+    throw new MoodleError(`Este servidor sólo se conecta con ${ALLOWED_HOSTS.join(', ')}`, 'badurl', 400);
   }
   return u.origin + u.pathname.replace(/\/+$/, '');
 }

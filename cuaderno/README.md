@@ -64,21 +64,20 @@ npm start            # http://localhost:5173
 
 ### Usarla en el iPad
 
-El micrófono, el modo sin conexión y "Agregar a pantalla de inicio" necesitan **https**,
-así que lo más cómodo es publicar el servidor en un hosting de Node (Render, Railway,
-Fly.io, un VPS…):
+El micrófono, el modo sin conexión y "Agregar a pantalla de inicio" necesitan **https**.
+La app está preparada para **Vercel** (`vercel.json`, funciones en `api/`): proyecto con
+directorio raíz `cuaderno`; cada push a `main` se publica solo.
 
-```bash
-npm install && npm start      # comando de inicio
-```
+También corre en cualquier hosting de Node con `npm install && npm start`.
 
 Variables de entorno:
 
 | Variable | Para qué |
 |---|---|
-| `PORT` | Puerto (default 5173). |
-| `APP_PASSWORD` | **Recomendado si la publicás.** Clave que la app pide para usar el servidor (se carga en Ajustes). |
+| `APP_PASSWORD` | **Recomendado si la publicás.** La app la pide la primera vez que se conecta al servidor. |
+| `MOODLE_ALLOWED_HOSTS` | Campus permitidos, ej. `campus.utdt.edu` (evita que el servidor sirva de proxy a otros sitios). |
 | `MOODLE_URL` | Campus por defecto (default `https://campus.utdt.edu`). |
+| `PORT` | Puerto del servidor local (default 5173). |
 
 Después, en el iPad: Safari → abrir la URL → Compartir → **Agregar a pantalla de inicio**.
 
@@ -94,6 +93,7 @@ node test/e2e.mjs        # punta a punta en Chromium (requiere playwright)
 ```
 server/server.js     servidor: sirve la app + puente al campus y a calendarios iCal
 server/moodle.js     cliente de la API de Web Services de Moodle
+api/                 funciones de Vercel (usan el mismo manejador que server.js)
 web/js/app.js        navegación y barra lateral
 web/js/store.js      modelo de datos (materias, notas, agenda)
 web/js/campus.js     sincronización con el campus y descarga de material

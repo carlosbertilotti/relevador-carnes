@@ -9,7 +9,21 @@ const AUTO_SYNC_MS = 60 * 60 * 1000;
 const MAX_FILE = 40 * 1024 * 1024;
 
 export const api = {
-  async post(path, body, { raw = false } = {}) {
+  async post(path, body, opts = {}) {
+    try {
+      return await this.request(path, body, opts);
+    } catch (err) {
+      if (err.code !== 'appkey' || opts.retried) throw err;
+      // El servidor está protegido con APP_PASSWORD: pedir la clave una vez y guardarla.
+      const { prompt } = await import('./ui.js');
+      const key = await prompt('Clave de Cuaderno', { placeholder: 'La clave que configuraste en el servidor', ok: 'Continuar' });
+      if (!key) throw err;
+      await db.setSetting('appKey', key);
+      return this.post(path, body, { ...opts, retried: true });
+    }
+  },
+
+  async request(path, body, { raw = false } = {}) {
     const key = await db.getSetting('appKey', '');
     let res;
     try {
