@@ -118,25 +118,30 @@ function loginCard(onDone) {
     seg.replaceChildren(
       h(`button${mode === 'password' ? '.active' : ''}`, { type: 'button', onclick: () => { mode = 'password'; draw(); } }, 'Usuario y contraseña'),
       h(`button${mode === 'token' ? '.active' : ''}`, { type: 'button', onclick: () => { mode = 'token'; draw(); } }, 'Entro con Google / Microsoft'));
-    panel.replaceChildren(...(mode === 'password'
+    panel.replaceChildren(...[].concat(mode === 'password'
       ? [h('label.field', h('span', 'Usuario'), user), h('label.field', h('span', 'Contraseña'), pass)]
-      : [h('p.muted', 'Si entrás al campus con Google o Microsoft no tenés contraseña del campus: Cuaderno necesita tu clave de acceso. Conseguila de una de estas dos formas (con la sesión del campus abierta en este navegador):'),
+      : [h('p.muted', 'Si entrás al campus con Google o Microsoft no tenés contraseña del campus: Cuaderno necesita tu clave de acceso. Conseguila así (con la sesión del campus abierta en este navegador):'),
         otherBrowser() ? h('div.browser-warn',
           h('p', h('strong', 'Estás usando otro navegador, no Safari. '), 'Si el inicio de sesión con Microsoft no te funciona acá, abrí Cuaderno en Safari y conectá el campus desde ahí.'),
           h('button.btn.small', { type: 'button', onclick: () => copyLink(location.origin + '/#/campus', 'Dirección de Cuaderno copiada: pegala en Safari') }, 'Copiar dirección de Cuaderno')) : null,
         h('ol.token-steps',
           h('li',
-            h('strong', 'Claves de seguridad. '),
-            'Abrí la página y copiá la clave de la fila "Moodle mobile web service".',
-            safariLink(`${campusBase()}/user/managetoken.php`, 'Abrir Claves de seguridad')),
+            h('strong', 'Abrí el inicio de sesión de la app oficial. '),
+            'Tocá el botón (con la sesión del campus abierta en Safari). Se abre una página del campus que dice "Haga clic aquí para abrir la app" (o parecido). Si se abre la app de Di Tella, volvé a Safari: la página sigue ahí.',
+            safariLink(launchUrl(campusBase()), 'Iniciar sesión como la app oficial')),
           h('li',
-            h('strong', 'Si esa página no existe: '),
-            'en la computadora, abrí las herramientas de desarrollador (F12) en la pestaña Red/Network y después tocá el botón. El navegador va a intentar abrir la app oficial y va a fallar: en Network aparece una dirección que empieza con ',
-            h('code', 'moodlemobile://token='), '. Copiala entera y pegala acá; Cuaderno saca la clave sola.',
-            safariLink(launchUrl(campusBase()), 'Iniciar sesión como la app oficial'))),
+            h('strong', 'Copiá el enlace. '),
+            'En iPad/iPhone: mantené apretado ese enlace → "Copiar enlace". En la compu: clic derecho → "Copiar dirección del enlace". Empieza con ',
+            h('code', '…://token='), '.'),
+          h('li',
+            h('strong', 'Pegalo acá abajo '),
+            'y tocá Conectar. Cuaderno saca la clave sola.'),
+          h('li.alt',
+            'Otra opción, si tu campus la muestra: la página de Claves de seguridad, fila "Moodle mobile web service".',
+            safariLink(`${campusBase()}/user/managetoken.php`, 'Abrir Claves de seguridad'))),
         h('label.field', h('span', 'Clave o dirección'), token),
         tokenState,
-        h('p.muted.small-note', 'Esa clave da acceso a tu cuenta del campus: no la compartas. Queda guardada sólo en este dispositivo.')]));
+        h('p.muted.small-note', 'Esa clave da acceso a tu cuenta del campus: no la compartas. Queda guardada sólo en este dispositivo.')]).filter(Boolean));
   };
   draw();
   const status = h('p.muted');

@@ -41,5 +41,8 @@ export function launchUrl(base) {
   u.searchParams.set('service', 'moodle_mobile_app');
   u.searchParams.set('passport', String(Math.floor(Math.random() * 1e6)));
   u.searchParams.set('urlscheme', 'moodlemobile');
+  // confirmed=1: en vez de redirigir, el campus muestra una página con el enlace
+  // "…lanzar la app" que contiene la clave; se copia con un toque largo (sin F12).
+  u.searchParams.set('confirmed', '1');
   return u.toString();
 }
