@@ -13,7 +13,7 @@ const browser = await chromium.launch();
 const errors = [];
 const step = (m) => console.log(`✓ ${m}`);
 
-async function device(name, { demo = false } = {}) {
+async function device(name, { demo = false, url = supaUrl } = {}) {
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push(`${name}: ${e.message}`));
@@ -23,7 +23,7 @@ async function device(name, { demo = false } = {}) {
     const db = await import('/js/db.js');
     await db.setSetting('appKey', 'clave-test');
     await db.setSetting('syncUrlOverride', url);
-  }, supaUrl);
+  }, url);
   const run = (fn, arg) => page.evaluate(fn, arg);
   const sync = () => run(async () => (await import('/js/sync.js')).syncNow());
   return { page, run, sync };
@@ -132,7 +132,30 @@ try {
   await ipad.page.locator('.file-row', { hasText: 'clase1.pdf' }).waitFor({ timeout: 10000 });
   step('Materia duplicada en dos dispositivos: se unió en una, con las notas de ambos y el material visible');
 
-  // 6) Sin la clave correcta no se accede.
+  // 6) Un dispositivo que ya había subido cosas nuevas y tiene la conexión del
+  //    campus guardada desde antes de la sincronización (fecha vieja) igual la sube,
+  //    con los eventos del calendario.
+  const supa2 = createMockSupabase();
+  const url2 = await supa2.listen();
+  const safari = await device('safari', { url: url2 });
+  const chrome = await device('chrome', { url: url2 });
+  await safari.run(async () => {
+    const db = await import('/js/db.js');
+    await db.put('kv', { key: 'campus', value: { url: 'https://campusvirtual.utdt.edu', token: 't2', site: { user: 'Carlos Safari' }, lastSync: 1000 } }, { remote: true });
+    await db.put('kv', { key: 'campusEvents', value: [{ id: 'moodle-1', title: 'Entrega TP', start: Date.now() + 86400000, end: Date.now() + 86400000, kind: 'entrega', source: 'campus' }] }, { remote: true });
+    await db.setSetting('syncLegacyStamped', true); // versión anterior: ya "estampado"
+    await db.setSetting('syncCursor', { pushed: Date.now(), pulled: 0 });
+  });
+  await safari.sync(); await chrome.sync();
+  const fromSafari = await chrome.run(async () => {
+    const db = await import('/js/db.js');
+    return { events: ((await db.getSetting('campusEvents')) || []).map((e) => e.title), campus: (await db.getSetting('campus'))?.site?.user };
+  });
+  if (!fromSafari.events.includes('Entrega TP') || !fromSafari.campus) throw new Error(`No llegó el calendario/campus viejo: ${JSON.stringify(fromSafari)}`);
+  supa2.server.close();
+  step(`Campus y calendario guardados antes de sincronizar llegan igual al otro navegador (${fromSafari.campus})`);
+
+  // 7) Sin la clave correcta no se accede.
   const bad = await device('intruso');
   await bad.run(async () => (await import('/js/db.js')).setSetting('appKey', 'otra'));
   const denied = await bad.run(async () => (await import('/js/sync.js')).syncNow().then(() => false, (e) => /Clave/.test(e.message)));

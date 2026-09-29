@@ -61,9 +61,12 @@ function forUpload(store, value) {
 }
 
 // Lo que se guardó antes de que existiera la sincronización no tiene _mod:
-// se le pone su fecha real (así se sube y el más reciente sigue ganando).
+// se le pone su fecha real (así el más reciente sigue ganando) y se vuelve a
+// subir todo una vez. La fecha real puede ser anterior a lo último subido, así
+// que sin volver el cursor a 0 esas cosas (por ejemplo, la conexión del campus
+// y su calendario) nunca llegaban a los otros dispositivos.
 async function stampLegacy() {
-  if (await db.getSetting('syncLegacyStamped', false)) return;
+  if (await db.getSetting('syncLegacyStamped2', false)) return;
   for (const store of db.SYNC_STORES) {
     for (const v of await db.all(store)) {
       if (v._mod) continue;
@@ -75,7 +78,8 @@ async function stampLegacy() {
     const v = row.value;
     await db.put('kv', { ...row, _mod: (v && (v.lastSync || v.connectedAt)) || 1 }, { remote: true });
   }
-  await db.setSetting('syncLegacyStamped', true);
+  await saveCursor({ ...(await cursor()), pushed: 0 });
+  await db.setSetting('syncLegacyStamped2', true);
 }
 
 // ---------- Subir ----------
