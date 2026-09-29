@@ -57,7 +57,7 @@ async function renderNotes(body, nb) {
 }
 
 async function renderMaterial(body, nb) {
-  const files = (await db.all('files')).filter((f) => f.notebookId === nb.id);
+  const files = (await db.all('files')).filter((f) => f.notebookId === nb.id || (nb.courseId != null && f.courseId === nb.courseId));
   const byUrl = new Map(files.map((f) => [f.url, f]));
   const acc = await campus.account();
 
@@ -69,6 +69,17 @@ async function renderMaterial(body, nb) {
       canOpen(f) ? h('button.btn.small.ghost', { type: 'button', title: 'Más opciones', onclick: (e) => annotate(e.currentTarget, nb, f) }, icon('more')) : null,
       h('button.btn.small', { type: 'button', title: 'Abrir el archivo original del campus', onclick: () => openFile(f) }, f.downloaded ? 'Original' : icon('download'), f.downloaded ? null : 'Bajar')),
     f.downloadError && !f.downloaded ? h('small.error-text.file-err', `No se pudo bajar: ${f.downloadError}`) : null);
+
+  // Si un archivo del campus todavía no está registrado en este dispositivo
+  // (por ejemplo, llegó la materia por la nube antes que su material), se registra ahora.
+  const ensure = async (s, m, file) => {
+    if (byUrl.has(file.url) || nb.courseId == null) return;
+    const id = campus.fileIdFor(nb.courseId, file.url);
+    const meta = (await db.get('files', id)) || { id, courseId: nb.courseId, notebookId: nb.id, name: file.name, url: file.url, size: file.size, mimetype: file.mimetype, modified: file.modified, section: s.name, module: m.name, downloaded: false, seen: false, addedAt: Date.now() };
+    if (!meta.downloaded && !(await db.get('files', id))) await db.put('files', meta);
+    byUrl.set(file.url, meta);
+  };
+  for (const s of nb.sections || []) for (const m of s.modules) for (const file of m.files) await ensure(s, m, file);
 
   const sections = (nb.sections || []).map((s) => {
     const modules = s.modules.filter((m) => m.files.length || (m.url && m.type !== 'label'));

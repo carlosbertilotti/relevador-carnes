@@ -8,7 +8,7 @@
 // - Archivos propios (grabaciones, fotos, diapositivas, PDFs importados) se suben
 //   en partes; el material del campus no: cada dispositivo lo baja del campus.
 import * as db from './db.js';
-import { emit } from './store.js';
+import { emit, mergeDuplicateNotebooks } from './store.js';
 
 const SUPABASE_URL = 'https://qickqhaxbbnbcyhpyljm.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFpY2txaGF4YmJuYmN5aHB5bGptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTg5NzMsImV4cCI6MjA5Mzc5NDk3M30.GZ06fdh9QFt5UeZnCbu_7ardjDamRb2l402zqMBXzVA';
@@ -117,7 +117,10 @@ async function pull(k) {
     c = await cursor();
     if (rows.length < 200) break;
   }
-  if (applied) emit('change', { type: 'sync', remote: true });
+  if (applied) {
+    await mergeDuplicateNotebooks();
+    emit('change', { type: 'sync', remote: true });
+  }
   return applied;
 }
 

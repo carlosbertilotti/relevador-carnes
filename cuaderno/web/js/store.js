@@ -32,7 +32,8 @@ export async function listNotebooks() {
 export async function createNotebook(data = {}) {
   const existing = await db.all('notebooks');
   const nb = {
-    id: db.uid('nb_'),
+    // Las materias del campus tienen el mismo id en todos los dispositivos.
+    id: data.courseId != null ? campusNotebookId(data.courseId) : db.uid('nb_'),
     name: data.name || 'Nueva materia',
     color: data.color || COLORS[existing.length % COLORS.length],
     courseId: data.courseId ?? null,
@@ -46,6 +47,43 @@ export async function createNotebook(data = {}) {
   emit('change', { type: 'notebook', id: nb.id });
   return nb;
 }
+export const campusNotebookId = (courseId) => `nb_c${courseId}`;
+
+// Si la misma materia del campus quedó dos veces (por ejemplo, se conectó el
+// campus en dos dispositivos antes de sincronizar), se juntan en una sola:
+// se mueven las notas y el material y se borra la copia.
+export async function mergeDuplicateNotebooks() {
+  const all = await db.all('notebooks');
+  const byCourse = new Map();
+  for (const nb of all) {
+    if (nb.courseId == null) continue;
+    if (!byCourse.has(nb.courseId)) byCourse.set(nb.courseId, []);
+    byCourse.get(nb.courseId).push(nb);
+  }
+  let merged = 0;
+  for (const [courseId, list] of byCourse) {
+    if (list.length < 2) continue;
+    const target = list.find((n) => n.id === campusNotebookId(courseId))
+      || list.slice().sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id))[0];
+    for (const dup of list) {
+      if (dup === target) continue;
+      for (const n of await db.byIndex('notes', 'notebookId', dup.id)) await db.put('notes', { ...n, notebookId: target.id });
+      for (const f of await db.byIndex('files', 'courseId', courseId)) {
+        if (f.notebookId !== target.id) await db.put('files', { ...f, notebookId: target.id });
+      }
+      if (!target.schedule?.length && dup.schedule?.length) target.schedule = dup.schedule;
+      if (!target.nameManual && dup.nameManual) { target.name = dup.name; target.nameManual = true; }
+      if (!target.statusManual && dup.statusManual) { target.status = dup.status; target.statusManual = dup.statusManual; }
+      if (!target.sections?.length && dup.sections?.length) target.sections = dup.sections;
+      await db.del('notebooks', dup.id);
+      merged++;
+    }
+    await db.put('notebooks', target);
+  }
+  if (merged) emit('change', { type: 'notebook' });
+  return merged;
+}
+
 export async function saveNotebook(nb) {
   await db.put('notebooks', nb);
   emit('change', { type: 'notebook', id: nb.id });

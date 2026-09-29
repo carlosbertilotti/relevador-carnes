@@ -1,5 +1,5 @@
 // Service worker: la app abre y funciona sin conexión (las notas ya viven en IndexedDB).
-const VERSION = 'cuaderno-v10';
+const VERSION = 'cuaderno-v11';
 const SHELL = [
   '/', '/index.html', '/app.css', '/manifest.webmanifest', '/icons/icon.svg',
   '/js/app.js', '/js/db.js', '/js/store.js', '/js/campus.js', '/js/ui.js', '/js/router.js', '/js/theme.js', '/js/demo.js',
