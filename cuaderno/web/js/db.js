@@ -51,10 +51,30 @@ async function tx(store, mode, fn) {
 export const get = (store, id) => tx(store, 'readonly', (s) => wrap(s.get(id)));
 export const all = (store) => tx(store, 'readonly', (s) => wrap(s.getAll()));
 export const byIndex = (store, index, value) => tx(store, 'readonly', (s) => wrap(s.index(index).getAll(value)));
-export const put = (store, value) => tx(store, 'readwrite', (s) => wrap(s.put(value)));
-export const del = (store, id) => tx(store, 'readwrite', (s) => wrap(s.delete(id)));
-export const putMany = (store, values) =>
-  tx(store, 'readwrite', (s) => Promise.all(values.map((v) => wrap(s.put(v)))));
+// ---- Qué se sincroniza entre dispositivos (ver sync.js) ----
+// Cada cambio local lleva _mod (milisegundos) para saber qué subir y quién gana.
+export const SYNC_STORES = ['notebooks', 'notes', 'files'];
+export const SYNC_KV = ['campus', 'icsCalendars', 'campusEvents', 'hiddenCourses', 'defaultMode', 'defaultPaper'];
+export const isSynced = (store, value) =>
+  SYNC_STORES.includes(store) || (store === 'kv' && SYNC_KV.includes(value?.key ?? value));
+
+function stamp(store, value, remote) {
+  if (!remote && isSynced(store, value)) value._mod = Math.max(Date.now(), (value._mod || 0) + 1);
+  return value;
+}
+
+// opts.remote: el cambio viene de otro dispositivo (no se vuelve a subir).
+export const put = (store, value, opts = {}) => tx(store, 'readwrite', (s) => wrap(s.put(stamp(store, value, opts.remote))));
+export const putMany = (store, values, opts = {}) =>
+  tx(store, 'readwrite', (s) => Promise.all(values.map((v) => wrap(s.put(stamp(store, v, opts.remote))))));
+export async function del(store, id, opts = {}) {
+  await tx(store, 'readwrite', (s) => wrap(s.delete(id)));
+  if (!opts.remote && isSynced(store, id)) {
+    const tomb = (await get('kv', 'syncTombstones'))?.value || [];
+    tomb.push({ store, id, mod: Date.now() });
+    await tx('kv', 'readwrite', (s) => wrap(s.put({ key: 'syncTombstones', value: tomb })));
+  }
+}
 export const clear = (store) => tx(store, 'readwrite', (s) => wrap(s.clear()));
 
 export async function getSetting(key, fallback = null) {

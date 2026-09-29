@@ -124,6 +124,27 @@ class Editor {
       }
     };
     document.addEventListener('pointerdown', this._onPen, true);
+    // Cambios que llegan de otro dispositivo mientras la nota está abierta.
+    this._onRemote = async (e) => {
+      const d = e.detail || {};
+      if (!d.remote) return;
+      if (d.type === 'blob') {
+        bitmaps.delete(d.id);
+        for (const s of this.sheets.values()) if (s.block.image?.blobId === d.id) { s.bgDirty = true; s.render(); }
+        return;
+      }
+      if (d.type !== 'note' || d.id !== this.note.id) return;
+      const fresh = await db.get('notes', this.note.id);
+      if (!fresh || (fresh._mod || 0) <= (this.note._mod || 0)) return;
+      Object.assign(this.note, fresh);
+      this.titleInput.value = fresh.title || '';
+      this.undoStack = [];
+      this.redoStack = [];
+      this.renderBlocks();
+      this._syncUndo();
+      toast('Nota actualizada desde otro dispositivo');
+    };
+    store.bus.addEventListener('change', this._onRemote);
     if (!this.note.blocks.length) this.addBlock('text');
   }
 
@@ -144,6 +165,7 @@ class Editor {
     document.removeEventListener('keydown', this._onKey);
     document.removeEventListener('visibilitychange', this._onVis);
     document.removeEventListener('pointerdown', this._onPen, true);
+    store.bus.removeEventListener('change', this._onRemote);
   }
 
   _inText(el) {
@@ -155,6 +177,7 @@ class Editor {
     const copy = { ...n, blocks: n.blocks.map((b) => (b.type === 'ink' ? { ...b, strokes: serializeStrokes(b.strokes) } : b)) };
     await store.saveNote(copy);
     n.updatedAt = copy.updatedAt;
+    n._mod = copy._mod;
     this.dirty = true;
   }
 

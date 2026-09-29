@@ -1,5 +1,5 @@
 // PDFs del campus como fondo de hojas para anotar encima (GoodNotes / Notability).
-import { getBlob } from '../campus.js';
+import { getBlob, download } from '../campus.js';
 
 let lib;
 async function pdfjs() {
@@ -14,7 +14,8 @@ const docs = new Map();
 export async function loadPdf(fileId) {
   if (!docs.has(fileId)) {
     docs.set(fileId, (async () => {
-      const blob = await getBlob(fileId);
+      // En otro dispositivo el PDF puede no estar todavía: se baja del campus.
+      const blob = (await getBlob(fileId)) || (await download(fileId).catch(() => null));
       if (!blob) throw new Error('El PDF todavía no se descargó');
       const { getDocument } = await pdfjs();
       return getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
