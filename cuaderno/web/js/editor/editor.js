@@ -9,7 +9,7 @@ import { blocksFromFile, canOpen } from './office.js';
 import { summarizeInBackground, noteNeedsSummary } from '../summary.js';
 import { h, icon, popover, toast, modal, confirmDialog, debounce } from '../ui.js';
 import { InkSheet, tools, serializeStrokes } from './ink.js';
-import { renderPdfPage } from './pdf.js';
+import { renderPdfPage, forgetPdf } from './pdf.js';
 import { Recorder, Player } from './audio.js';
 
 const PEN_COLORS = ['#1c1c1e', '#2f6fde', '#d0342c', '#23915a', '#8e44c9', '#e98a15'];
@@ -127,11 +127,22 @@ class Editor {
     // Cambios que llegan de otro dispositivo mientras la nota está abierta.
     this._onRemote = async (e) => {
       const d = e.detail || {};
-      if (!d.remote) return;
-      if (d.type === 'blob') {
-        bitmaps.delete(d.id);
-        for (const s of this.sheets.values()) if (s.block.image?.blobId === d.id) { s.bgDirty = true; s.render(); }
+      if (!d.remote && d.type !== 'campus') return;
+      if (d.type === 'blob' || d.type === 'file') {
+        const blobId = d.type === 'file' ? `file:${d.id}` : d.id;
+        const fileId = blobId.startsWith('file:') ? blobId.slice(5) : null;
+        bitmaps.delete(blobId);
+        if (fileId) forgetPdf(fileId);
+        for (const s of this.sheets.values()) {
+          if (s.block.image?.blobId === blobId || (fileId && s.block.pdf?.fileId === fileId)) { s.bgDirty = true; s.render(); }
+        }
         return;
+      }
+      if (d.type === 'campus' || d.type === 'sync') {
+        // Llegó la conexión del campus o datos nuevos: reintentar los PDFs que no se
+        // pudieron mostrar (los que sí se mostraron están en memoria y se redibujan rápido).
+        for (const s of this.sheets.values()) if (s.block.pdf) { s.bgDirty = true; s.render(); }
+        if (d.type === 'campus') return;
       }
       if (d.type !== 'note' || d.id !== this.note.id) return;
       const fresh = await db.get('notes', this.note.id);

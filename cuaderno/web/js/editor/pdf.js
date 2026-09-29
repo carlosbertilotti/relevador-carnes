@@ -14,9 +14,11 @@ const docs = new Map();
 export async function loadPdf(fileId) {
   if (!docs.has(fileId)) {
     docs.set(fileId, (async () => {
-      // En otro dispositivo el PDF puede no estar todavía: se baja del campus.
-      const blob = (await getBlob(fileId)) || (await download(fileId).catch(() => null));
-      if (!blob) throw new Error('El PDF todavía no se descargó');
+      // En otro dispositivo el PDF puede no estar todavía: llega por la
+      // sincronización o se baja del campus.
+      let reason = '';
+      const blob = (await getBlob(fileId)) || (await download(fileId).catch((err) => { reason = err.message; return null; }));
+      if (!blob) throw new Error(reason.includes('conexión del campus') ? 'Todavía no llegó a este dispositivo: se está sincronizando.' : reason || 'El PDF todavía no se descargó');
       const { getDocument } = await pdfjs();
       return getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
     })());
@@ -60,7 +62,16 @@ export async function renderPdfPage({ fileId, page }, canvas) {
     ctx.fillStyle = '#999';
     ctx.font = `${Math.round(canvas.width / 30)}px system-ui`;
     ctx.fillText('No se pudo mostrar esta página del PDF', canvas.width * 0.08, canvas.height * 0.1);
+    if (err?.message) {
+      ctx.font = `${Math.round(canvas.width / 45)}px system-ui`;
+      ctx.fillText(err.message.slice(0, 90), canvas.width * 0.08, canvas.height * 0.1 + canvas.width / 22);
+    }
   }
+}
+
+// Cuando llega un PDF que faltaba, se olvida el intento fallido para volver a dibujarlo.
+export function forgetPdf(fileId) {
+  docs.delete(fileId);
 }
 
 // Texto del PDF, para poder buscar dentro del material.

@@ -171,7 +171,12 @@ async function referencedBlobs() {
   const ids = new Set();
   for (const n of await db.all('notes')) {
     for (const rec of n.recordings || []) ids.add(rec.blobId);
-    for (const b of n.blocks || []) if (b.image?.blobId) ids.add(b.image.blobId);
+    for (const b of n.blocks || []) {
+      if (b.image?.blobId) ids.add(b.image.blobId);
+      // PDFs del campus que se usan en una nota: se sincronizan para que la nota
+      // se vea completa en cualquier dispositivo, aunque ahí no esté conectado el campus.
+      if (b.pdf?.fileId) ids.add(`file:${b.pdf.fileId}`);
+    }
   }
   for (const f of await db.all('files')) if (f.local) ids.add(`file:${f.id}`);
   return [...ids];

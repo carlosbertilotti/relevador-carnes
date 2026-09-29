@@ -48,6 +48,10 @@ try {
     const note = (await db.all('notes')).find((n) => n.blocks.some((b) => b.type === 'ink'));
     await db.put('blobs', { id: 'rec:prueba', blob: new Blob(['audio de la clase'], { type: 'audio/mp4' }) });
     note.recordings = [{ id: 'prueba', blobId: 'rec:prueba', startedAt: Date.now(), duration: 1000 }];
+    // PDF del campus anotado en la nota (el otro dispositivo no tiene el campus conectado).
+    await db.put('files', { id: 'c5_pdf1', courseId: 5, notebookId: note.notebookId, name: 'IntroOM.pdf', url: 'https://campusvirtual.utdt.edu/pluginfile.php/1/IntroOM.pdf', downloaded: true });
+    await db.put('blobs', { id: 'file:c5_pdf1', blob: new Blob(['%PDF-falso'], { type: 'application/pdf' }) });
+    note.blocks.push({ id: 'b_pdf', type: 'ink', paper: 'blank', height: 1414, strokes: [], pdf: { fileId: 'c5_pdf1', page: 1, name: 'IntroOM.pdf' } });
     await store.saveNote(note);
     await db.setSetting('campus', { url: 'https://campusvirtual.utdt.edu', token: 't', site: { user: 'Carlos' } });
   });
@@ -60,11 +64,14 @@ try {
       notes: (await db.all('notes')).length,
       audio: await (await db.get('blobs', 'rec:prueba'))?.blob?.text(),
       campus: (await db.getSetting('campus'))?.site?.user,
+      pdf: await (await db.get('blobs', 'file:c5_pdf1'))?.blob?.text(),
+      pdfMarked: (await db.get('files', 'c5_pdf1'))?.downloaded,
     };
   });
   if (got.notebooks.length !== 3 || got.notes !== 3) throw new Error(`El iPad no recibió todo (incluida la nota vieja): ${JSON.stringify(got)}`);
   if (got.audio !== 'audio de la clase') throw new Error('No llegó la grabación');
   if (got.campus !== 'Carlos') throw new Error('No llegó la conexión del campus');
+  if (got.pdf !== '%PDF-falso' || got.pdfMarked !== true) throw new Error(`No llegó el PDF anotado: ${JSON.stringify(got)}`);
   step(`Mac → iPad: ${up.pushed} cambios subidos, ${down.pulled} recibidos (materias, notas, grabación y campus)`);
 
   // 2) Lo que se edita en el iPad vuelve a la Mac.
