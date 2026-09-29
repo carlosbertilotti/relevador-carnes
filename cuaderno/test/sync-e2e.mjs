@@ -33,11 +33,19 @@ try {
   const mac = await device('mac', { demo: true });
   const ipad = await device('ipad');
 
+  // 0) Lo guardado antes de que existiera la sincronización (sin _mod) también se sube.
+  await mac.run(async () => {
+    const db = await import('/js/db.js');
+    await db.put('notes', { id: 'n_legacy', notebookId: (await db.all('notebooks'))[0].id, title: 'Nota vieja', blocks: [], recordings: [], createdAt: 5, updatedAt: 5, classDate: '2026-09-01' }, { remote: true });
+    const legacy = await db.get('notes', 'n_legacy');
+    if (legacy._mod) throw new Error('la nota de prueba no debería tener _mod');
+  });
+
   // 1) Lo cargado en la Mac aparece en el iPad (incluida una grabación).
   await mac.run(async () => {
     const db = await import('/js/db.js');
     const store = await import('/js/store.js');
-    const note = (await db.all('notes'))[0];
+    const note = (await db.all('notes')).find((n) => n.blocks.some((b) => b.type === 'ink'));
     await db.put('blobs', { id: 'rec:prueba', blob: new Blob(['audio de la clase'], { type: 'audio/mp4' }) });
     note.recordings = [{ id: 'prueba', blobId: 'rec:prueba', startedAt: Date.now(), duration: 1000 }];
     await store.saveNote(note);
@@ -54,7 +62,7 @@ try {
       campus: (await db.getSetting('campus'))?.site?.user,
     };
   });
-  if (got.notebooks.length !== 3 || got.notes !== 2) throw new Error(`El iPad no recibió todo: ${JSON.stringify(got)}`);
+  if (got.notebooks.length !== 3 || got.notes !== 3) throw new Error(`El iPad no recibió todo (incluida la nota vieja): ${JSON.stringify(got)}`);
   if (got.audio !== 'audio de la clase') throw new Error('No llegó la grabación');
   if (got.campus !== 'Carlos') throw new Error('No llegó la conexión del campus');
   step(`Mac → iPad: ${up.pushed} cambios subidos, ${down.pulled} recibidos (materias, notas, grabación y campus)`);

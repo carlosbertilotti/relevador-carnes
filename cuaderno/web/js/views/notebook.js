@@ -93,7 +93,12 @@ async function renderMaterial(body, nb) {
   }).filter(Boolean);
 
   const local = files.filter((f) => f.local);
-  fill(body, 
+  const noCampus = nb.courseId != null && !acc?.token
+    ? h('div.card.browser-warn',
+      h('p', h('strong', 'Este dispositivo todavía no tiene la conexión del campus. '), 'Si ya lo conectaste en otro (por ejemplo, Safari en la Mac), abrí Cuaderno ahí: la conexión se pasa sola a este dispositivo en unos segundos.'),
+      h('button.btn.small', { type: 'button', onclick: () => go('/campus') }, icon('campus'), 'Conectar acá'))
+    : null;
+  fill(body, noCampus,
     h('div.row.end',
       acc && nb.courseId ? h('button.btn.small', { type: 'button', onclick: async (e) => {
         e.currentTarget.disabled = true;
