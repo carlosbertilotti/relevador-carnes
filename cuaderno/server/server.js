@@ -11,12 +11,18 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Readable } from 'node:stream';
 import * as moodle from './moodle.js';
+import { resumir } from './resumen.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WEB = path.join(ROOT, 'web');
 const VENDOR = {
   '/vendor/pdfjs/': path.join(ROOT, 'node_modules/pdfjs-dist/legacy/build'),
   '/vendor/perfect-freehand/': path.join(ROOT, 'node_modules/perfect-freehand/dist/esm'),
+  '/vendor/mammoth/': path.join(ROOT, 'node_modules/mammoth'),
+  '/vendor/jszip/': path.join(ROOT, 'node_modules/jszip/dist'),
+  '/vendor/dompurify/': path.join(ROOT, 'node_modules/dompurify/dist'),
+  '/vendor/marked/': path.join(ROOT, 'node_modules/marked/lib'),
+  '/vendor/katex/': path.join(ROOT, 'node_modules/katex/dist'),
 };
 const PORT = Number(process.env.PORT || 5173);
 const HOST = process.env.HOST || '0.0.0.0';
@@ -34,6 +40,9 @@ const MIME = {
   '.png': 'image/png',
   '.ico': 'image/x-icon',
   '.map': 'application/json',
+  '.woff2': 'font/woff2',
+  '.woff': 'font/woff',
+  '.ttf': 'font/ttf',
 };
 
 function send(res, status, body, headers = {}) {
@@ -46,12 +55,12 @@ function send(res, status, body, headers = {}) {
   res.end(isJson ? JSON.stringify(body) : body);
 }
 
-async function readJson(req) {
+async function readJson(req, max = MAX_BODY) {
   let size = 0;
   const chunks = [];
   for await (const chunk of req) {
     size += chunk.length;
-    if (size > MAX_BODY) throw Object.assign(new Error('Pedido demasiado grande'), { status: 413 });
+    if (size > max) throw Object.assign(new Error('Pedido demasiado grande'), { status: 413 });
     chunks.push(chunk);
   }
   try {
@@ -69,7 +78,7 @@ function isPrivateHost(hostname) {
 }
 
 const api = {
-  'GET /api/health': async () => ({ ok: true, campus: moodle.DEFAULT_MOODLE_URL }),
+  'GET /api/health': async () => ({ ok: true, campus: moodle.DEFAULT_MOODLE_URL, ai: !!process.env.ANTHROPIC_API_KEY }),
 
   'POST /api/campus/login': async (body) => {
     const base = moodle.normalizeBase(body.url);
@@ -100,6 +109,8 @@ const api = {
     Readable.fromWeb(upstream.body).pipe(res);
     return undefined;
   },
+
+  'POST /api/resumen': async (body) => resumir(body),
 
   'POST /api/ics': async (body) => {
     let u;
@@ -161,12 +172,12 @@ export async function handleApi(req, res, route) {
     return send(res, 401, { error: 'Clave de Cuaderno incorrecta', code: 'appkey' });
   }
   try {
-    const body = req.method === 'POST' ? await requestBody(req) : {};
+    const body = req.method === 'POST' ? await requestBody(req, route === '/api/resumen' ? 4_200_000 : MAX_BODY) : {};
     const out = await handler(body, res);
     if (out !== undefined) send(res, 200, out);
   } catch (err) {
     const status = err.status || 500;
-    if (status >= 500) console.error(`[${route}]`, err);
+    if (status >= 500 && status !== 503) console.error(`[${route}]`, err);
     if (!res.headersSent) send(res, status, { error: err.message || 'Error', code: err.code || null });
     else res.destroy(err);
   }
@@ -179,12 +190,12 @@ function sameKey(given, expected) {
 }
 
 // En Vercel el cuerpo ya viene leído en req.body; en el servidor local hay que leerlo.
-async function requestBody(req) {
+async function requestBody(req, max) {
   if (req.body && typeof req.body === 'object' && !Buffer.isBuffer(req.body)) return req.body;
   if (typeof req.body === 'string' || Buffer.isBuffer(req.body)) {
     try { return JSON.parse(String(req.body) || '{}'); } catch { throw Object.assign(new Error('JSON inválido'), { status: 400 }); }
   }
-  return readJson(req);
+  return readJson(req, max);
 }
 
 export function createServer() {

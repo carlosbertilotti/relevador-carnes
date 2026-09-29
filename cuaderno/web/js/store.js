@@ -61,7 +61,12 @@ export function newTextBlock(html = '') {
   return { id: db.uid('b_'), type: 'text', html };
 }
 export function newInkBlock(opts = {}) {
-  return { id: db.uid('b_'), type: 'ink', paper: opts.paper || 'lined', height: opts.height || PAGE_H, strokes: [], pdf: opts.pdf || null };
+  return {
+    id: db.uid('b_'), type: 'ink', paper: opts.paper || 'lined', height: opts.height || PAGE_H, strokes: [],
+    pdf: opts.pdf || null,
+    image: opts.image || null, // { blobId, name }: diapositiva o foto como fondo
+    ...(opts.slideText ? { slideText: opts.slideText } : {}),
+  };
 }
 
 export async function createNote(notebookId, data = {}) {
@@ -107,14 +112,15 @@ export function sortNotes(rows) {
 
 export function noteText(note) {
   const div = document.createElement('div');
-  return note.blocks
+  const slides = note.blocks.filter((b) => b.slideText).map((b) => b.slideText).join('\n');
+  return (note.blocks
     .filter((b) => b.type === 'text')
     .map((b) => {
       // Separar párrafos, títulos e ítems con saltos de línea (textContent los junta).
       div.innerHTML = b.html.replace(/<img[^>]*>/gi, '').replace(/<\/(p|div|h\d|li|pre|blockquote|tr)>|<br\s*\/?>/gi, '$&\n');
       return div.textContent || '';
     })
-    .join('\n')
+    .join('\n') + (slides ? `\n${slides}` : ''))
     .trim();
 }
 export function noteTitle(note, notebook) {

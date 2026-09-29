@@ -126,9 +126,14 @@ async function doSync({ onProgress = () => {} } = {}) {
       nb = await createNotebook({ name: prettyCourseName(course.name), courseId: course.id, shortname: course.shortname });
     }
     nb.campusName = course.name;
+    if (!nb.nameManual) nb.name = prettyCourseName(course.name);
+    nb.code = courseCode(course.name, course.shortname);
     nb.shortname = course.shortname;
     nb.startdate = course.startdate;
     nb.enddate = course.enddate;
+    nb.campusStatus = course.status || 'cursando';
+    nb.status = nb.statusManual || nb.campusStatus;
+    nb.syncError = course.error || null;
     nb.sections = course.sections;
     nb.syncedAt = snap.syncedAt;
     await saveNotebook(nb);
@@ -152,16 +157,50 @@ async function doSync({ onProgress = () => {} } = {}) {
   await db.setSetting('campus', acc);
   emit('change', { type: 'campus' });
 
-  // Descarga en segundo plano del material pendiente.
+  // Descarga del material pendiente: sólo de las materias que estás cursando
+  // (lo de materias pasadas se baja al abrirlo, para no llenar el iPad).
+  const nbStatus = new Map((await db.all('notebooks')).map((n) => [n.id, n.status || 'cursando']));
   if (await db.getSetting('autoDownload', true)) {
-    const pending = (await db.all('files')).filter((f) => !f.downloaded && f.size <= MAX_FILE && isDownloadable(f.name));
+    const pending = (await db.all('files')).filter((f) => !f.downloaded && f.size <= MAX_FILE && isDownloadable(f.name) && nbStatus.get(f.notebookId) !== 'pasada');
     let i = 0;
     for (const f of pending) {
       onProgress(`Descargando material ${++i}/${pending.length}…`);
-      try { await download(f.id); } catch (err) { console.warn('No se pudo bajar', f.name, err); }
+      try {
+        await download(f.id);
+      } catch (err) {
+        await db.put('files', { ...(await db.get('files', f.id)), downloadError: err.message });
+      }
     }
   }
-  return { courses: snap.courses.length, newFiles, events: snap.events.length };
+
+  const stats = await syncStats();
+  stats.at = snap.syncedAt;
+  stats.newFiles = newFiles;
+  stats.events = snap.events.length;
+  stats.courseErrors = snap.courses.filter((c) => c.error).map((c) => `${prettyCourseName(c.name)}: ${c.error}`);
+  await db.setSetting('lastSyncStats', stats);
+  emit('change', { type: 'campus' });
+  return { courses: snap.courses.length, newFiles, events: snap.events.length, stats };
+}
+
+// Resumen de lo que hay en el dispositivo, para la pantalla del campus.
+export async function syncStats() {
+  const notebooks = (await db.all('notebooks')).filter((n) => n.courseId != null && !n.archived);
+  const files = (await db.all('files')).filter((f) => !f.local);
+  const byStatus = (st) => notebooks.filter((n) => (n.status || 'cursando') === st).length;
+  const pastIds = new Set(notebooks.filter((n) => n.status === 'pasada').map((n) => n.id));
+  const current = files.filter((f) => !pastIds.has(f.notebookId));
+  return {
+    courses: notebooks.length,
+    cursando: byStatus('cursando'),
+    pasadas: byStatus('pasada'),
+    proximas: byStatus('proxima'),
+    files: files.length,
+    downloaded: files.filter((f) => f.downloaded).length,
+    pendingCurrent: current.filter((f) => !f.downloaded && isDownloadable(f.name) && f.size <= MAX_FILE).length,
+    tooBig: files.filter((f) => !f.downloaded && f.size > MAX_FILE).map((f) => f.name),
+    failed: files.filter((f) => !f.downloaded && f.downloadError).map((f) => ({ id: f.id, name: f.name, error: f.downloadError })),
+  };
 }
 
 export const isDownloadable = (name) => /\.(pdf|docx?|pptx?|xlsx?|txt|md|png|jpe?g|gif|csv)$/i.test(name);
@@ -174,7 +213,7 @@ export async function download(id) {
   const acc = await account();
   const blob = await api.post('/api/campus/file', { url: acc.url, token: acc.token, fileurl: f.url }, { raw: true });
   await db.put('blobs', { id: `file:${id}`, blob });
-  await db.put('files', { ...f, downloaded: true, downloadedAt: Date.now() });
+  await db.put('files', { ...f, downloaded: true, downloadedAt: Date.now(), downloadError: null });
   emit('change', { type: 'file', id });
   return blob;
 }
@@ -202,9 +241,32 @@ function fileId(courseId, url) {
 
 // "ECO123 - Microeconomía I (2026-2)" -> "Microeconomía I"
 export function prettyCourseName(name) {
-  const cleaned = name
+  const raw = String(name || '').trim();
+  // Di Tella: "26 - MB06_Regional | Dirección de Operaciones" -> "Dirección de Operaciones"
+  const afterPipe = raw.includes('|') ? raw.split('|').slice(1).join('|').trim() : raw;
+  const cleaned = afterPipe
     .replace(/\s*[\[(](?:\d{4}|[12]°?\s*sem|sem|cuat|c\d)[^\])]*[\])]\s*/gi, ' ')
     .replace(/^[A-Z]{2,}[-_ ]?\d{2,}\s*[-–:]\s*/, '')
     .trim();
-  return cleaned || name;
+  return cleaned || raw;
+}
+
+// Corrige los nombres de materias ya creadas con el formato viejo.
+export async function refreshCourseNames() {
+  for (const nb of await db.all('notebooks')) {
+    if (!nb.campusName) continue;
+    const name = nb.nameManual ? nb.name : prettyCourseName(nb.campusName);
+    const code = courseCode(nb.campusName, nb.shortname);
+    if (name !== nb.name || code !== nb.code) await db.put('notebooks', { ...nb, name, code });
+  }
+}
+
+// Código corto para mostrar al lado del nombre: "26 - MB06_Regional | …" -> "MB06"
+export function courseCode(name, shortname = '') {
+  const raw = String(name || '');
+  const left = raw.includes('|') ? raw.split('|')[0] : '';
+  const fromLeft = left.replace(/^\s*\d+\s*[-–]\s*/, '').replace(/_?regional/i, '').replace(/[_\s]+$/, '').trim();
+  if (fromLeft) return fromLeft;
+  const m = /\b([A-Z]{2,}\d{2,})\b/.exec(`${raw} ${shortname}`);
+  return m ? m[1] : '';
 }

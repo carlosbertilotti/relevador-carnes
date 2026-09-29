@@ -225,7 +225,11 @@ export class InkSheet {
   async renderBackground() {
     const ctx = this.bg.getContext('2d');
     this.bgDirty = false;
-    if (this.block.pdf && this.host.renderPdf) {
+    if (this.block.image && this.host.renderImage) {
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, this.bg.width, this.bg.height);
+      await this.host.renderImage(this.block.image, this.bg);
+    } else if (this.block.pdf && this.host.renderPdf) {
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, this.bg.width, this.bg.height);
       await this.host.renderPdf(this.block.pdf, this.bg);
@@ -469,7 +473,7 @@ export class InkSheet {
   }
 
   _maybeGrow() {
-    if (this.block.pdf) return;
+    if (this.block.pdf || this.block.image) return;
     const maxY = Math.max(...this.block.strokes.at(-1).points.map((q) => q[1]));
     if (maxY > this.block.height - GROW_MARGIN) {
       this.block.height += GROW_STEP;

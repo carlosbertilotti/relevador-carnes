@@ -4,10 +4,12 @@
 // texto) y hojas para escribir a mano o anotar sobre los PDFs del campus.
 import * as db from '../db.js';
 import * as store from '../store.js';
-import { isPdf, importLocalFile } from '../campus.js';
+import { isPdf, importLocalFile, download as downloadFile } from '../campus.js';
+import { blocksFromFile, canOpen } from './office.js';
+import { summarizeInBackground, noteNeedsSummary } from '../summary.js';
 import { h, icon, popover, toast, modal, confirmDialog, debounce } from '../ui.js';
 import { InkSheet, tools, serializeStrokes } from './ink.js';
-import { renderPdfPage, pageSizes } from './pdf.js';
+import { renderPdfPage } from './pdf.js';
 import { Recorder, Player } from './audio.js';
 
 const PEN_COLORS = ['#1c1c1e', '#2f6fde', '#d0342c', '#23915a', '#8e44c9', '#e98a15'];
@@ -51,6 +53,10 @@ class Editor {
   }
   recordingClock() { return this.recorder.clock(); }
   renderPdf(ref, canvas) { return renderPdfPage(ref, canvas); }
+  async renderImage(ref, canvas) {
+    const bmp = await imageBitmap(ref.blobId);
+    if (bmp) canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  }
   onSeek(t) { this.player?.seek(t); }
   onActivate(sheet) {
     for (const s of this.sheets.values()) if (s !== sheet) s.clearSelection();
@@ -123,6 +129,15 @@ class Editor {
 
   destroy() {
     this.save.flush();
+    // Si la nota cambió, se re-resume en segundo plano para la pestaña Resumen.
+    if (this.dirty) {
+      const id = this.note.id;
+      const materia = this.notebook?.name || '';
+      setTimeout(async () => {
+        const n = await db.get('notes', id);
+        if (n && noteNeedsSummary(n)) summarizeInBackground(n, materia);
+      }, 1500);
+    }
     if (this.recorder.active) this.recorder.stop().then((r) => r && this._addRecording(r));
     this.player?.destroy();
     for (const s of this.sheets.values()) s.destroy();
@@ -140,6 +155,7 @@ class Editor {
     const copy = { ...n, blocks: n.blocks.map((b) => (b.type === 'ink' ? { ...b, strokes: serializeStrokes(b.strokes) } : b)) };
     await store.saveNote(copy);
     n.updatedAt = copy.updatedAt;
+    this.dirty = true;
   }
 
   persistTools() {
@@ -291,7 +307,7 @@ class Editor {
     }
     const sheet = new InkSheet(b, this);
     this.sheets.set(b.id, sheet);
-    const label = b.pdf ? `${b.pdf.name || 'PDF'} · pág. ${b.pdf.page}` : (PAPERS.find(([k]) => k === b.paper)?.[1] || 'Hoja');
+    const label = b.pdf ? `${b.pdf.name || 'PDF'} · pág. ${b.pdf.page}` : b.image ? (b.image.name || 'Imagen') : (PAPERS.find(([k]) => k === b.paper)?.[1] || 'Hoja');
     const menuBtn = h('button.block-menu', { type: 'button', onclick: (e) => this.blockMenu(e.currentTarget, b) }, label, icon('more'));
     return h('div.block.ink', { dataset: { blockId: b.id } }, menuBtn, sheet.el);
   }
@@ -332,8 +348,8 @@ class Editor {
       this.note.blocks = arr;
     });
     popover(anchor, [
-      ...(b.pdf ? [] : PAPERS.map(([k, label]) => ({ label, icon: 'sheet', active: b.paper === k, onClick: () => { b.paper = k; this.sheets.get(b.id).bgDirty = true; this.sheets.get(b.id).render(); this.save(); } }))),
-      !b.pdf && { label: 'Alargar hoja', icon: 'plus', onClick: () => { b.height += 700; this.sheets.get(b.id).layout(); this.save(); } },
+      ...(b.pdf || b.image ? [] : PAPERS.map(([k, label]) => ({ label, icon: 'sheet', active: b.paper === k, onClick: () => { b.paper = k; this.sheets.get(b.id).bgDirty = true; this.sheets.get(b.id).render(); this.save(); } }))),
+      !b.pdf && !b.image && { label: 'Alargar hoja', icon: 'plus', onClick: () => { b.height += 700; this.sheets.get(b.id).layout(); this.save(); } },
       '-',
       idx > 0 && { label: 'Subir', onClick: () => move(-1) },
       idx < this.note.blocks.length - 1 && { label: 'Bajar', onClick: () => move(1) },
@@ -401,29 +417,25 @@ class Editor {
   }
 
   async insertMaterial() {
-    const files = (await db.all('files')).filter((f) => f.notebookId === this.note.notebookId && f.downloaded && isPdf(f));
+    const files = (await db.all('files')).filter((f) => f.notebookId === this.note.notebookId && canOpen(f));
     const list = h('div.picker', files.length
       ? files.sort((a, b) => b.modified - a.modified).map((f) => h('button.picker-item', {
         type: 'button',
         onclick: async () => { m.close(); await this.insertPdfPages(f.id, f.name); },
-      }, icon('pdf'), h('div', h('div', f.name), h('small', [f.section, f.module].filter(Boolean).join(' · ')))))
-      : h('p.muted', 'No hay PDFs descargados de esta materia. Sincronizá el campus o importá un PDF desde "Foto".'));
+      }, icon(isPdf(f) ? 'pdf' : 'file'), h('div', h('div', f.name), h('small', [f.section, f.module].filter(Boolean).join(' · ')))))
+      : h('p.muted', 'No hay material de esta materia para abrir. Sincronizá el campus o importá un archivo desde "Foto".'));
     const m = modal('Anotar material de la materia', list, { wide: true });
   }
 
   async insertPdfPages(fileId, name) {
-    toast('Preparando el PDF…');
+    toast('Preparando el material…');
     try {
-      const sizes = await pageSizes(fileId);
-      const blocks = sizes.map((s) => store.newInkBlock({
-        height: Math.round((store.PAPER_W * s.height) / s.width),
-        pdf: { fileId, page: s.page, name },
-      }));
+      const f = await db.get('files', fileId);
+      const blocks = await blocksFromFile(f, await downloadFile(fileId));
       this._blocksOp(() => { this.note.blocks = [...this.note.blocks, ...blocks]; });
       this.blocksEl.querySelector(`[data-block-id="${blocks[0].id}"]`)?.scrollIntoView({ behavior: 'smooth' });
       if (tools.tool === 'none') this.setTool(this.lastInkTool || 'pen');
-      const f = await db.get('files', fileId);
-      if (f && !f.seen) await db.put('files', { ...f, seen: true });
+      if (f && !f.seen) await db.put('files', { ...(await db.get('files', fileId)), seen: true });
     } catch (err) {
       toast(err.message, { error: true });
     }
@@ -558,4 +570,12 @@ async function downscale(file, max) {
   c.height = Math.round(bmp.height * k);
   c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
   return c.toDataURL('image/jpeg', 0.85);
+}
+
+const bitmaps = new Map();
+function imageBitmap(blobId) {
+  if (!bitmaps.has(blobId)) {
+    bitmaps.set(blobId, db.get('blobs', blobId).then((row) => (row?.blob ? createImageBitmap(row.blob) : null)).catch(() => null));
+  }
+  return bitmaps.get(blobId);
 }

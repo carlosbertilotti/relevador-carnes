@@ -12,6 +12,9 @@ App para tomar notas de clase en el iPad con el Apple Pencil, sincronizada con e
   las diapositivas del campus.
 - **Calendario semanal** con tus clases, entregas y parciales del campus, y cualquier
   calendario iCal (Google, Outlook, el export del propio campus).
+- **Materias cursando / pasadas / próximas**, como en "Mis cursos" del campus. El material de las pasadas se baja recién cuando lo abrís.
+- **Abrir el material en Cuaderno**: PDFs y PowerPoint quedan como hojas para escribir encima; Word como texto editable. Lo que cambiás se guarda en la nota (el archivo del campus no se toca).
+- **Resumen con IA por materia** (Claude): uno por clase y uno general con hoja de fórmulas en LaTeX. Se actualiza solo cuando cambian tus notas, incluyendo lo escrito a mano.
 - Funciona **sin conexión**: todo vive en el dispositivo (IndexedDB).
 
 ## Lo que tomamos de cada app
@@ -76,6 +79,7 @@ Variables de entorno:
 |---|---|
 | `APP_PASSWORD` | **Recomendado si la publicás.** La app la pide la primera vez que se conecta al servidor. |
 | `MOODLE_ALLOWED_HOSTS` | Campus permitidos, ej. `campusvirtual.utdt.edu` (evita que el servidor sirva de proxy a otros sitios). |
+| `ANTHROPIC_API_KEY` | Activa los resúmenes con IA (pestaña Resumen de cada materia). Opcional `CUADERNO_MODEL` (default `claude-opus-5-5`). |
 | `MOODLE_URL` | Campus por defecto (default `https://campusvirtual.utdt.edu`). |
 | `PORT` | Puerto del servidor local (default 5173). |
 
