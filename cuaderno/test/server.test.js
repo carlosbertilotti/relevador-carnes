@@ -52,6 +52,9 @@ test('sync devuelve materias, material y eventos', async () => {
   const eco = snap.courses.find((c) => c.id === 11);
   const files = eco.sections.flatMap((s) => s.modules.flatMap((m) => m.files));
   assert.deepEqual(files.map((f) => f.name), ['programa.pdf', 'clase1-11.pdf']);
+  const zoom = eco.sections[1].links.find((l) => l.kind === 'zoom');
+  assert.equal(zoom.url, 'https://utdt.zoom.us/rec/share/clase1-abc?pwd=x&startTime=1');
+  assert.equal(zoom.label, 'Clase 1 (Zoom)');
   assert.equal(snap.events[0].kind, 'entrega');
   assert.equal(snap.events[0].description, 'Subir en PDF');
 });

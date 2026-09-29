@@ -81,12 +81,23 @@ async function renderMaterial(body, nb) {
   };
   for (const s of nb.sections || []) for (const m of s.modules) for (const file of m.files) await ensure(s, m, file);
 
+  const notes = await store.notesOf(nb.id);
+  const videoRow = (s, l) => {
+    const note = notes.find((n) => n.video?.url === l.url);
+    return h('li.file-row.video-row', icon('video'),
+      h('div.grow', h('div', l.label), h('small', [l.kind === 'zoom' ? 'Grabación de Zoom' : 'Video', note ? 'con notas' : null].filter(Boolean).join(' · '))),
+      h('div.row',
+        h('button.btn.small.primary', { type: 'button', title: 'Abrir la grabación y tomar notas en Cuaderno', onclick: () => watchClass(nb, s, l) }, icon('compose'), note ? 'Seguir viendo' : 'Ver y tomar notas'),
+        h('button.btn.small.ghost', { type: 'button', title: 'Sólo abrir la grabación', onclick: () => window.open(l.url, '_blank', 'noopener') }, 'Abrir')));
+  };
   const sections = (nb.sections || []).map((s) => {
-    const modules = s.modules.filter((m) => m.files.length || (m.url && m.type !== 'label'));
-    if (!modules.length && !s.summary) return null;
+    const videos = (s.links || []).filter((l) => l.kind === 'zoom' || l.kind === 'video');
+    const modules = s.modules.filter((m) => (m.files.length || (m.url && m.type !== 'label')) && !videos.some((v) => v.url === m.externalUrl));
+    if (!modules.length && !s.summary && !videos.length) return null;
     return h('section.card.material-section',
       h('h2.section-title', s.name || 'General'),
       s.summary ? h('p.muted.summary', s.summary.slice(0, 400)) : null,
+      videos.length ? h('ul.file-list.videos', videos.map((l) => videoRow(s, l))) : null,
       h('ul.file-list', modules.flatMap((m) => (m.files.length
         ? m.files.map((file) => byUrl.get(file.url)).filter(Boolean).map(fileRow)
         : [h('li.file-row.link', { onclick: () => window.open(m.url, '_blank') }, icon(m.type === 'assign' ? 'checklist' : 'campus'), h('div.grow', h('div', m.name), h('small', moduleLabel(m.type))))]))));
@@ -116,6 +127,19 @@ async function renderMaterial(body, nb) {
 
   // Marcar como visto lo que ya se mostró.
   for (const f of files.filter((x) => !x.seen)) await db.put('files', { ...f, seen: true });
+}
+
+// "Ver y tomar notas": abre la grabación (Zoom no deja mostrarla adentro) y
+// una nota de esa clase con el cronómetro, o la que ya existía.
+async function watchClass(nb, s, l) {
+  if (l.kind === 'zoom') window.open(l.url, '_blank', 'noopener'); // antes de cualquier await: si no, Safari lo bloquea
+  const existing = (await store.notesOf(nb.id)).find((n) => n.video?.url === l.url);
+  const note = existing || (await store.createNote(nb.id, {
+    title: l.label && l.label !== s.name ? `${s.name ? `${s.name} — ` : ''}${l.label}` : (s.name || l.label),
+    video: { url: l.url, title: l.label },
+  }));
+  if (!note.video?.open) await db.put('notes', { ...note, video: { ...note.video, url: l.url, title: note.video?.title || l.label, open: true } });
+  go(`/nota/${note.id}`);
 }
 
 function moduleLabel(type) {

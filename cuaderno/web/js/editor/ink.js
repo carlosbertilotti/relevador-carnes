@@ -462,8 +462,9 @@ export class InkSheet {
   _strokeTimeAt(p) {
     let best = null;
     let bestD = 30 ** 2;
+    const rec = this.host.playback?.recId;
     for (const st of this.block.strokes) {
-      if (st.t == null) continue;
+      if (st.t == null || (rec && st.rec !== rec)) continue;
       for (const q of st.points) {
         const d = dist2(q, p);
         if (d < bestD) { bestD = d; best = st; }

@@ -41,7 +41,7 @@ export function createMockMoodle() {
       ] },
       { id: 200 + courseid, name: 'Foro de novedades', modname: 'forum', url: `${base}/mod/forum/view.php?id=2`, contents: [] },
     ] },
-    { id: 2, name: 'Semana 1', summary: '', modules: [
+    { id: 2, name: 'Semana 1', summary: '<p>Grabación: <a href="https://utdt.zoom.us/rec/share/clase1-abc?pwd=x&amp;startTime=1">Clase 1 (Zoom)</a></p>', modules: [
       { id: 300 + courseid, name: 'Diapositivas clase 1', modname: 'resource', url: `${base}/mod/resource/view.php?id=3`, contents: [
         { type: 'file', filename: `clase1-${courseid}.pdf`, fileurl: `${base}/pluginfile.php/2/mod_resource/content/0/clase1-${courseid}.pdf`, filesize: 900, timemodified: now - 3600, mimetype: 'application/pdf' },
       ] },

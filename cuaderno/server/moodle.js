@@ -169,11 +169,42 @@ function pickCourse(c) {
   };
 }
 
+// Links que aparecen en el texto de secciones, etiquetas y recursos URL
+// (ahí suelen estar las grabaciones de Zoom de cada clase).
+const ZOOM_REC = /zoom\.us\/rec\//i;
+export function extractLinks(html, fallbackLabel = '') {
+  const out = [];
+  const re = /<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  let m;
+  while ((m = re.exec(html || ''))) {
+    const url = m[1].replace(/&amp;/g, '&').trim();
+    if (!/^https?:\/\//i.test(url)) continue;
+    out.push({ url, label: stripHtml(m[2]) || fallbackLabel || url });
+  }
+  // Links pegados como texto, sin <a>
+  for (const u of String(html || '').replace(/<a\b[\s\S]*?<\/a>/gi, ' ').match(/https?:\/\/[^\s"'<>]+/gi) || []) {
+    out.push({ url: u.replace(/&amp;/g, '&'), label: fallbackLabel || u });
+  }
+  return out;
+}
+const linkKind = (url) => (ZOOM_REC.test(url) ? 'zoom' : /\.(mp4|m4v|mov|webm)(\?|$)/i.test(url) ? 'video' : 'link');
+
 function pickSection(s) {
+  const links = [];
+  const add = (list) => {
+    for (const l of list) if (!links.some((x) => x.url === l.url)) links.push({ ...l, kind: linkKind(l.url) });
+  };
+  add(extractLinks(s.summary, s.name));
+  for (const m of s.modules || []) {
+    if (m.uservisible === false) continue;
+    add(extractLinks(m.description, m.name));
+    add((m.contents || []).filter((c) => c.type === 'url' && c.fileurl).map((c) => ({ url: c.fileurl, label: m.name })));
+  }
   return {
     id: s.id,
     name: s.name,
     summary: stripHtml(s.summary || ''),
+    links,
     modules: (s.modules || [])
       .filter((m) => m.uservisible !== false)
       .map((m) => ({
@@ -181,6 +212,7 @@ function pickSection(s) {
         name: m.name,
         type: m.modname,
         url: m.url || null,
+        externalUrl: (m.contents || []).find((c) => c.type === 'url')?.fileurl || null,
         description: stripHtml(m.description || ''),
         files: (m.contents || [])
           .filter((f) => f.type === 'file')

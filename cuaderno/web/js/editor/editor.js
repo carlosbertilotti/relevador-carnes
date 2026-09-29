@@ -7,17 +7,18 @@ import * as store from '../store.js';
 import { isPdf, importLocalFile, download as downloadFile } from '../campus.js';
 import { blocksFromFile, canOpen } from './office.js';
 import { summarizeInBackground, noteNeedsSummary } from '../summary.js';
-import { h, icon, popover, toast, modal, confirmDialog, debounce } from '../ui.js';
+import { h, icon, popover, toast, modal, confirmDialog, debounce, prompt } from '../ui.js';
 import { InkSheet, tools, serializeStrokes } from './ink.js';
 import { renderPdfPage, forgetPdf } from './pdf.js';
 import { Recorder, Player } from './audio.js';
+import { VideoSession, fmtClock } from './video.js';
 
 const PEN_COLORS = ['#1c1c1e', '#2f6fde', '#d0342c', '#23915a', '#8e44c9', '#e98a15'];
 const HL_COLORS = ['#ffd60a', '#7ee081', '#ff9fc6', '#7cc8ff', '#ffb35c'];
 const PEN_SIZES = [2.5, 4, 7];
 const PAPERS = [['lined', 'Rayada'], ['grid', 'Cuadriculada'], ['dots', 'Puntos'], ['blank', 'Lisa'], ['cornell', 'Cornell']];
 
-export async function openEditor(root, noteId, { back }) {
+export async function openEditor(root, noteId, { back, watch = false } = {}) {
   const note = await db.get('notes', noteId);
   if (!note) { root.replaceChildren(h('div.empty', 'La nota no existe.')); return () => {}; }
   const notebook = await db.get('notebooks', note.notebookId);
@@ -25,6 +26,7 @@ export async function openEditor(root, noteId, { back }) {
   if (saved) Object.assign(tools, saved, { tool: saved.tool === 'none' ? 'none' : saved.tool });
   const ed = new Editor(root, note, notebook, back);
   await ed.mount();
+  if (watch || note.video?.open) ed.openVideo({ quiet: true });
   return () => ed.destroy();
 }
 
@@ -51,13 +53,16 @@ class Editor {
     this._syncUndo();
     this.save();
   }
-  recordingClock() { return this.recorder.clock(); }
+  recordingClock() { return this.recorder.clock() || this.video?.clock() || null; }
   renderPdf(ref, canvas) { return renderPdfPage(ref, canvas); }
   async renderImage(ref, canvas) {
     const bmp = await imageBitmap(ref.blobId);
     if (bmp) canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
   }
-  onSeek(t) { this.player?.seek(t); }
+  onSeek(t) {
+    if (this.playback?.recId === 'video') this.video?.seek(t);
+    else this.player?.seek(t);
+  }
   onActivate(sheet) {
     for (const s of this.sheets.values()) if (s !== sheet) s.clearSelection();
   }
@@ -85,6 +90,7 @@ class Editor {
       h('div.spacer'),
       this.recTime,
       this.recBtn,
+      h('button.btn.small.watch-btn', { type: 'button', title: 'Ver la grabación de la clase y tomar notas', onclick: () => this.openVideo() }, icon('video'), h('span', 'Ver clase')),
       h('button.icon-btn', { type: 'button', title: 'Grabaciones', onclick: (e) => this.showRecordings(e.currentTarget) }, icon('play')),
       h('button.icon-btn', { type: 'button', title: 'Exportar / imprimir', onclick: () => this.exportPdf() }, icon('share')),
       h('button.icon-btn', { type: 'button', title: 'Más', onclick: (e) => this.moreMenu(e.currentTarget) }, icon('more')));
@@ -93,13 +99,14 @@ class Editor {
     this.blocksEl = h('div.blocks');
     this.playerBar = h('div.player-bar', { hidden: true });
     this.selectionBar = h('div.selection-bar', { hidden: true });
+    this.videoBar = h('div.video-slot', { hidden: true });
     this.scroller = h('div.editor-scroll', this.blocksEl,
       h('div.add-row',
         h('button.btn.ghost', { type: 'button', onclick: () => this.addBlock('text') }, icon('text'), 'Texto'),
         h('button.btn.ghost', { type: 'button', onclick: () => this.addBlock('ink') }, icon('sheet'), 'Hoja'),
         h('button.btn.ghost', { type: 'button', onclick: () => this.insertMaterial() }, icon('pdf'), 'Material'),
         h('button.btn.ghost', { type: 'button', onclick: () => this.insertImage() }, icon('image'), 'Foto')));
-    this.root.replaceChildren(h('div.editor', header, this.toolbar, this.selectionBar, this.scroller, this.playerBar));
+    this.root.replaceChildren(h('div.editor', header, this.videoBar, this.toolbar, this.selectionBar, this.scroller, this.playerBar));
     this.renderToolbar();
     this.renderBlocks();
 
@@ -172,6 +179,7 @@ class Editor {
     }
     if (this.recorder.active) this.recorder.stop().then((r) => r && this._addRecording(r));
     this.player?.destroy();
+    this.video?.destroy();
     for (const s of this.sheets.values()) s.destroy();
     document.removeEventListener('keydown', this._onKey);
     document.removeEventListener('visibilitychange', this._onVis);
@@ -324,6 +332,8 @@ class Editor {
         document.execCommand('insertText', false, text);
       });
       el.addEventListener('click', (e) => {
+        const ts = e.target.closest('.ts');
+        if (ts) { e.preventDefault(); this.jumpTo(Number(ts.dataset.t)); return; }
         const li = e.target.closest('ul.checklist > li');
         if (li && e.offsetX < 26) {
           li.toggleAttribute('data-checked');
@@ -555,6 +565,81 @@ class Editor {
     this.playerBar.replaceChildren(this.player.el);
     this.playerBar.hidden = false;
     this.player.play();
+  }
+
+  // ---------- Ver la clase (grabación de Zoom o video descargado) ----------
+  async openVideo({ quiet = false } = {}) {
+    if (this.video) return this.video;
+    const info = this.note.video || {};
+    if (!info.url && !info.blobId && !quiet) {
+      const url = await prompt('Link de la grabación (Zoom)', { placeholder: 'https://…zoom.us/rec/… — o dejalo vacío y cargá el video', ok: 'Abrir' }).catch(() => null);
+      if (url === null) return null;
+      if (url && /^https?:\/\//i.test(url)) info.url = url;
+    }
+    this.note.video = { ...info, open: true };
+    this.player?.destroy();
+    this.player = null;
+    this.playerBar.hidden = true;
+    this.video = new VideoSession(this.note, {
+      onChange: () => this.save(),
+      onMark: (ms) => this.insertMark(ms),
+      onTime: (ms) => {
+        this.playback = { recId: 'video', time: ms };
+        for (const s of this.sheets.values()) if (s.block.strokes?.some((st) => st.rec === 'video')) s.render();
+      },
+      onSeekMode: (on) => { this.seekMode = on; },
+      onClose: () => {
+        this.video = null;
+        this.note.video = { ...this.note.video, open: false };
+        this.save();
+        this.playback = null;
+        this.seekMode = false;
+        this.videoBar.hidden = true;
+        this.videoBar.replaceChildren();
+        for (const s of this.sheets.values()) s.render();
+      },
+    });
+    this.playback = { recId: 'video', time: this.video.time() };
+    this.videoBar.replaceChildren(this.video.el);
+    this.videoBar.hidden = false;
+    await this.video.attachFile();
+    this.save();
+    return this.video;
+  }
+
+  async jumpTo(ms) {
+    if (!Number.isFinite(ms)) return;
+    const v = this.video || (await this.openVideo({ quiet: true }));
+    v?.seek(ms);
+  }
+
+  // "⏱ 12:34" en el texto: donde está el cursor, o al final de la nota.
+  insertMark(ms) {
+    const chip = `<span class="ts" contenteditable="false" data-t="${Math.round(ms)}">⏱ ${fmtClock(ms)}</span>&nbsp;`;
+    const sel = document.getSelection();
+    const inText = sel?.rangeCount && sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement)?.closest('.text-block');
+    if (inText) {
+      document.execCommand('insertHTML', false, chip);
+      return;
+    }
+    let block = [...this.note.blocks].reverse().find((b) => b.type === 'text');
+    if (!block || this.note.blocks[this.note.blocks.length - 1] !== block) {
+      block = store.newTextBlock();
+      this.note.blocks.push(block);
+      this.blocksEl.append(this.renderBlock(block));
+    }
+    block.html = `${block.html || ''}<p>${chip}</p>`;
+    const el = this.blocksEl.querySelector(`.text-block[data-block-id="${block.id}"]`);
+    if (el) {
+      el.innerHTML = block.html;
+      el.focus();
+      const r = document.createRange();
+      r.selectNodeContents(el.lastElementChild || el);
+      r.collapse(false);
+      sel?.removeAllRanges();
+      sel?.addRange(r);
+    }
+    this.save();
   }
 
   // ---------- Exportar ----------
