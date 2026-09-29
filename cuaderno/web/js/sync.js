@@ -60,8 +60,27 @@ function forUpload(store, value) {
   return data;
 }
 
+// Lo que se guardó antes de que existiera la sincronización no tiene _mod:
+// se le pone su fecha real (así se sube y el más reciente sigue ganando).
+async function stampLegacy() {
+  if (await db.getSetting('syncLegacyStamped', false)) return;
+  for (const store of db.SYNC_STORES) {
+    for (const v of await db.all(store)) {
+      if (v._mod) continue;
+      await db.put(store, { ...v, _mod: v.updatedAt || v.syncedAt || v.addedAt || v.createdAt || 1 }, { remote: true });
+    }
+  }
+  for (const row of await db.all('kv')) {
+    if (!db.SYNC_KV.includes(row.key) || row._mod || row.value == null) continue;
+    const v = row.value;
+    await db.put('kv', { ...row, _mod: (v && (v.lastSync || v.connectedAt)) || 1 }, { remote: true });
+  }
+  await db.setSetting('syncLegacyStamped', true);
+}
+
 // ---------- Subir ----------
 async function push(k) {
+  await stampLegacy();
   const c = await cursor();
   const docs = [];
   for (const store of db.SYNC_STORES) {

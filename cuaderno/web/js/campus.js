@@ -210,8 +210,14 @@ export const isPdf = (f) => /\.pdf$/i.test(f.name) || f.mimetype === 'applicatio
 export async function download(id) {
   const f = await db.get('files', id);
   if (!f) throw new Error('Archivo desconocido');
-  if (f.downloaded) return getBlob(id);
+  if (f.downloaded) {
+    const have = await getBlob(id);
+    if (have) return have;
+  }
   const acc = await account();
+  if (!acc?.token) {
+    throw new Error('Este dispositivo todavía no tiene la conexión del campus. Abrí Cuaderno en el dispositivo donde lo conectaste (se pasa sola al sincronizar) o conectalo acá en "Campus y calendarios".');
+  }
   const blob = await api.post('/api/campus/file', { url: acc.url, token: acc.token, fileurl: f.url }, { raw: true });
   await db.put('blobs', { id: `file:${id}`, blob });
   await db.put('files', { ...f, downloaded: true, downloadedAt: Date.now(), downloadError: null });
