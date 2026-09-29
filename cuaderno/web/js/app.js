@@ -143,6 +143,7 @@ async function renderSyncBadge() {
 async function start() {
   await applyTheme();
   await campus.refreshCourseNames().catch(() => {});
+  await store.mergeDuplicateNotebooks().catch(() => {});
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
   document.getElementById('menu-btn').addEventListener('click', () => document.body.classList.toggle('sidebar-hidden'));
   window.addEventListener('hashchange', route);

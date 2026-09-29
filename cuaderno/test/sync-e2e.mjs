@@ -91,7 +91,33 @@ try {
   if (still) throw new Error('El borrado no se sincronizó');
   step('Borrado sincronizado');
 
-  // 5) Sin la clave correcta no se accede.
+  // 5) La misma materia del campus creada por separado en cada dispositivo
+  //    (como pasaba antes de sincronizar) se junta en una sola, sin perder notas ni material.
+  await mac.run(async () => {
+    const db = await import('/js/db.js');
+    await db.put('notebooks', { id: 'nb_mac_viejo', name: 'Dirección de Operaciones', courseId: 777, schedule: [], sections: [{ name: 'Contenidos de las Clases', modules: [{ name: 'Clase 1', type: 'resource', files: [{ name: 'clase1.pdf', url: 'https://campusvirtual.utdt.edu/pluginfile.php/9/clase1.pdf', size: 10, modified: 1 }] }] }], createdAt: 1000 });
+    await db.put('notes', { id: 'n_mac_op', notebookId: 'nb_mac_viejo', title: 'Nota de la Mac', blocks: [], recordings: [], createdAt: 1, updatedAt: 1, classDate: '2026-09-28' });
+  });
+  await ipad.run(async () => {
+    const db = await import('/js/db.js');
+    await db.put('notebooks', { id: 'nb_ipad_viejo', name: 'Dirección de Operaciones', courseId: 777, schedule: [], sections: [], createdAt: 2000 });
+    await db.put('notes', { id: 'n_ipad_op', notebookId: 'nb_ipad_viejo', title: 'Nota del iPad', blocks: [], recordings: [], createdAt: 2, updatedAt: 2, classDate: '2026-09-28' });
+  });
+  await mac.sync(); await ipad.sync(); await mac.sync(); await ipad.sync();
+  const views = await Promise.all([mac, ipad].map((d) => d.run(async () => {
+    const db = await import('/js/db.js');
+    const nbs = (await db.all('notebooks')).filter((n) => n.courseId === 777);
+    const notes = (await db.all('notes')).filter((n) => nbs.some((nb) => nb.id === n.notebookId)).map((n) => n.title).sort();
+    return { ids: nbs.map((n) => n.id), notes };
+  })));
+  for (const v of views) {
+    if (v.ids.length !== 1 || v.ids[0] !== 'nb_mac_viejo' || v.notes.join() !== 'Nota de la Mac,Nota del iPad') throw new Error(`Materias duplicadas mal unidas: ${JSON.stringify(views)}`);
+  }
+  await ipad.page.goto(`${base}/#/cuaderno/nb_mac_viejo/material`);
+  await ipad.page.locator('.file-row', { hasText: 'clase1.pdf' }).waitFor({ timeout: 10000 });
+  step('Materia duplicada en dos dispositivos: se unió en una, con las notas de ambos y el material visible');
+
+  // 6) Sin la clave correcta no se accede.
   const bad = await device('intruso');
   await bad.run(async () => (await import('/js/db.js')).setSetting('appKey', 'otra'));
   const denied = await bad.run(async () => (await import('/js/sync.js')).syncNow().then(() => false, (e) => /Clave/.test(e.message)));

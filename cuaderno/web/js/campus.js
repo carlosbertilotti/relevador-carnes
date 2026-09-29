@@ -2,7 +2,7 @@
 // servidor de Cuaderno. Cada materia del campus se convierte en un cuaderno y
 // su material (PDFs, presentaciones, etc.) se descarga al dispositivo.
 import * as db from './db.js';
-import { createNotebook, saveNotebook, emit, normalize } from './store.js';
+import { createNotebook, saveNotebook, emit, normalize, mergeDuplicateNotebooks } from './store.js';
 
 export const DEFAULT_URL = 'https://campusvirtual.utdt.edu';
 const AUTO_SYNC_MS = 60 * 60 * 1000;
@@ -108,6 +108,7 @@ async function doSync({ onProgress = () => {} } = {}) {
     throw err;
   }
 
+  await mergeDuplicateNotebooks();
   const notebooks = await db.all('notebooks');
   const byCourse = new Map(notebooks.filter((n) => n.courseId != null).map((n) => [n.courseId, n]));
   let newFiles = 0;
@@ -231,6 +232,8 @@ export async function importLocalFile(file, notebookId) {
   emit('change', { type: 'file', id });
   return id;
 }
+
+export const fileIdFor = (courseId, url) => fileId(courseId, url);
 
 function fileId(courseId, url) {
   const clean = url.replace(/[?&]forcedownload=1/, '');
