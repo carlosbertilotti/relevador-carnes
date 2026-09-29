@@ -278,6 +278,20 @@ body.in-editor #main { overflow: hidden; }
 .player { display: flex; align-items: center; gap: 8px; width: 100%; flex-wrap: wrap; }
 .player .range { flex: 1; min-width: 120px; accent-color: var(--accent); }
 .player-time { font-variant-numeric: tabular-nums; min-width: 44px; }
+
+/* Ver clase: grabación de Zoom con cronómetro o video descargado */
+.watch-btn { flex: none; }
+.video-slot { border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--blue) 8%, var(--panel)); }
+.video-panel { display: flex; flex-direction: column; }
+.class-video { display: block; width: 100%; max-height: 40vh; background: #000; }
+.video-bar { display: flex; align-items: center; gap: 6px; padding: 6px 10px; flex-wrap: wrap; font-size: 14px; }
+.video-title { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40%; }
+.video-bar .btn.active { background: color-mix(in srgb, var(--accent) 28%, var(--card)); }
+.video-time { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 52px; text-align: center; color: var(--muted); }
+.video-time.on { color: var(--blue); }
+.ts { display: inline-block; padding: 0 7px; margin: 0 2px; border-radius: 10px; background: color-mix(in srgb, var(--blue) 14%, transparent); color: var(--blue); font-size: .88em; font-variant-numeric: tabular-nums; cursor: pointer; user-select: none; }
+.video-row .grow small { color: var(--blue); }
+@media (max-width: 820px) { .watch-btn span { display: none; } .video-title { max-width: 100%; flex-basis: 100%; } }
 .check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); }
 
 .editor-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 18px 16px 120px; }

@@ -122,6 +122,7 @@ export async function createNote(notebookId, data = {}) {
     blocks,
     pinned: false,
     recordings: [],
+    ...(data.video ? { video: data.video } : {}),
     createdAt: now,
     updatedAt: now,
   };
