@@ -12,6 +12,17 @@ export async function renderCampus(root) {
   const acc = await campus.account();
   const cals = (await db.getSetting('icsCalendars', [])) || [];
   const status = h('p.muted.sync-status');
+  const st = acc ? await campus.syncStats() : null;
+  const statsBox = st && st.courses ? h('div.sync-stats',
+    h('div.stat', h('strong', st.courses), h('span', 'materias')),
+    h('div.stat', h('strong', st.cursando), h('span', 'cursando')),
+    h('div.stat', h('strong', st.pasadas), h('span', 'pasadas')),
+    h('div.stat', h('strong', `${st.downloaded}/${st.files}`), h('span', 'archivos en el dispositivo')),
+    h('p.muted.small-note', st.pendingCurrent
+      ? `Faltan bajar ${st.pendingCurrent} archivo(s) de materias que estás cursando.`
+      : 'Todo el material de las materias que estás cursando está en el dispositivo. El de materias pasadas se baja cuando lo abrís.'),
+    st.failed.length ? h('details.help', h('summary', `${st.failed.length} archivo(s) no se pudieron bajar`), h('ul', st.failed.map((f) => h('li', `${f.name}: ${f.error}`)))) : null,
+    st.tooBig.length ? h('details.help', h('summary', `${st.tooBig.length} archivo(s) muy pesados (más de 40 MB)`), h('ul', st.tooBig.map((n) => h('li', n)))) : null) : null;
 
   let accountCard;
   if (acc) {
@@ -19,6 +30,7 @@ export async function renderCampus(root) {
       h('h2.section-title', icon('campus'), acc.site?.name || 'Campus Virtual'),
       h('p', `Conectado como `, h('strong', acc.site?.user || '—'), ` · ${acc.url}`),
       acc.error ? h('p.error-text', acc.error) : null,
+      statsBox,
       h('p.muted', `Última sincronización: ${acc.lastSync ? `${new Date(acc.lastSync).toLocaleString('es-AR')} (${store.fmtRelative(acc.lastSync)})` : 'nunca'}`),
       status,
       h('div.row',

@@ -47,7 +47,8 @@ test('sync devuelve materias, material y eventos', async () => {
   const res = await post('/api/campus/sync', { url: moodleUrl, token: TOKEN });
   assert.equal(res.status, 200);
   const snap = await res.json();
-  assert.equal(snap.courses.length, 2);
+  assert.equal(snap.courses.length, 3);
+  assert.deepEqual(Object.fromEntries(snap.courses.map((c) => [c.id, c.status])), { 11: 'cursando', 12: 'cursando', 13: 'pasada' });
   const eco = snap.courses.find((c) => c.id === 11);
   const files = eco.sections.flatMap((s) => s.modules.flatMap((m) => m.files));
   assert.deepEqual(files.map((f) => f.name), ['programa.pdf', 'clase1-11.pdf']);

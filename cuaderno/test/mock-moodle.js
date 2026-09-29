@@ -31,7 +31,9 @@ export function createMockMoodle() {
   const courses = [
     { id: 11, fullname: 'ECO101 - Microeconomía I (2026-2)', shortname: 'ECO101', summary: '<p>Curso introductorio</p>', startdate: now - 60 * 86400, enddate: now + 60 * 86400 },
     { id: 12, fullname: 'Estadística', shortname: 'MAT210', summary: '', startdate: now - 60 * 86400, enddate: 0 },
+    { id: 13, fullname: 'HIS100 - Historia Económica (2026-1)', shortname: 'HIS100', summary: '', startdate: now - 240 * 86400, enddate: now - 90 * 86400 },
   ];
+  const timeline = { inprogress: [11, 12], past: [13], future: [] };
   const contents = (courseid) => [
     { id: 1, name: 'General', summary: '<p>Programa y bibliografía</p>', modules: [
       { id: 100 + courseid, name: 'Programa', modname: 'resource', url: `${base}/mod/resource/view.php?id=1`, contents: [
@@ -50,6 +52,10 @@ export function createMockMoodle() {
     core_webservice_get_site_info: () => ({ sitename: 'Campus Virtual Di Tella (prueba)', fullname: 'Alumna de Prueba', userid: 7 }),
     core_enrol_get_users_courses: () => courses,
     core_course_get_contents: (p) => contents(Number(p.get('courseid'))),
+    core_course_get_enrolled_courses_by_timeline_classification: (p) => ({
+      courses: (timeline[p.get('classification')] || []).map((id) => ({ id })),
+      nextoffset: 0,
+    }),
     core_calendar_get_calendar_events: () => ({ events: [
       { id: 1, name: 'Entrega TP 1', description: '<p>Subir en PDF</p>', timestart: now + 3 * 86400, timeduration: 0, courseid: 11, eventtype: 'due', modulename: 'assign' },
     ] }),

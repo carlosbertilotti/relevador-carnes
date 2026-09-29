@@ -2,21 +2,22 @@
 import * as db from '../db.js';
 import * as store from '../store.js';
 import * as campus from '../campus.js';
-import { pageSizes } from '../editor/pdf.js';
+import { openMaterial, blocksFromFile, canOpen } from '../editor/office.js';
 import { h, fill, icon, popover, prompt, confirmDialog, toast, modal } from '../ui.js';
 import { go } from '../router.js';
 import { noteCard } from './today.js';
+import { updateNotebookSummary, renderMarkdown, noteNeedsSummary, aiAvailable } from '../summary.js';
 
 export async function renderNotebook(root, { id, tab = 'notas' }) {
   const nb = await db.get('notebooks', id);
   if (!nb) { root.replaceChildren(h('div.empty', 'Esta materia no existe.')); return; }
-  const tabs = [['notas', 'Notas'], ['material', 'Material'], ['horario', 'Horario']];
+  const tabs = [['notas', 'Notas'], ['resumen', 'Resumen'], ['material', 'Material'], ['horario', 'Horario']];
   const body = h('div.tab-body');
 
   root.replaceChildren(h('div.page.notebook', { style: { '--c': nb.color } },
     h('header.page-head',
       h('div',
-        h('p.eyebrow', nb.courseId ? `Campus · ${nb.shortname || 'materia'}` : 'Materia'),
+        h('p.eyebrow', [nb.courseId ? `Campus · ${nb.code || nb.shortname || 'materia'}` : 'Materia', { pasada: 'materia pasada', proxima: 'próxima' }[nb.status]].filter(Boolean).join(' · ')),
         h('h1.nb-name', nb.name)),
       h('div.head-actions',
         h('button.btn.primary', { type: 'button', onclick: async () => { const n = await store.noteForClass(nb.id, new Date()); go(`/nota/${n.id}`); } }, icon('compose'), 'Nota de hoy'),
@@ -25,6 +26,7 @@ export async function renderNotebook(root, { id, tab = 'notas' }) {
     body));
 
   if (tab === 'material') await renderMaterial(body, nb);
+  else if (tab === 'resumen') await renderSummary(body, nb);
   else if (tab === 'horario') renderSchedule(body, nb);
   else await renderNotes(body, nb);
 }
@@ -63,8 +65,10 @@ async function renderMaterial(body, nb) {
     icon(campus.isPdf(f) ? 'pdf' : 'file'),
     h('div.grow', h('div', f.name), h('small', [store.fmtSize(f.size), f.modified ? `actualizado ${store.fmtDate(f.modified)}` : null, f.downloaded ? 'en el dispositivo' : 'sin descargar'].filter(Boolean).join(' · '))),
     h('div.row',
-      campus.isPdf(f) ? h('button.btn.small.primary', { type: 'button', onclick: (e) => annotate(e.currentTarget, nb, f) }, icon('compose'), 'Anotar') : null,
-      h('button.btn.small', { type: 'button', onclick: () => openFile(f) }, f.downloaded ? 'Abrir' : icon('download'), f.downloaded ? null : 'Bajar')));
+      canOpen(f) ? h('button.btn.small.primary', { type: 'button', title: 'Abrir en Cuaderno para editar y anotar', onclick: (e) => openInCuaderno(e.currentTarget, f) }, icon('compose'), 'Abrir') : null,
+      canOpen(f) ? h('button.btn.small.ghost', { type: 'button', title: 'Más opciones', onclick: (e) => annotate(e.currentTarget, nb, f) }, icon('more')) : null,
+      h('button.btn.small', { type: 'button', title: 'Abrir el archivo original del campus', onclick: () => openFile(f) }, f.downloaded ? 'Original' : icon('download'), f.downloaded ? null : 'Bajar')),
+    f.downloadError && !f.downloaded ? h('small.error-text.file-err', `No se pudo bajar: ${f.downloadError}`) : null);
 
   const sections = (nb.sections || []).map((s) => {
     const modules = s.modules.filter((m) => m.files.length || (m.url && m.type !== 'label'));
@@ -114,12 +118,24 @@ async function openFile(f) {
 }
 
 // Anotar un PDF: en la nota de hoy, en una nota nueva o en una existente.
+async function openInCuaderno(btn, f) {
+  btn.disabled = true;
+  const label = btn.lastChild;
+  try {
+    const note = await openMaterial(f.id, (msg) => { label.textContent = msg; });
+    go(`/nota/${note.id}`);
+  } catch (err) {
+    toast(err.message, { error: true, ms: 6000 });
+    btn.disabled = false;
+    label.textContent = 'Abrir';
+  }
+}
+
 function annotate(anchor, nb, f) {
   const addTo = async (note) => {
     try {
-      await campus.download(f.id);
-      const sizes = await pageSizes(f.id);
-      note.blocks = [...note.blocks, ...sizes.map((s) => store.newInkBlock({ height: Math.round((store.PAPER_W * s.height) / s.width), pdf: { fileId: f.id, page: s.page, name: f.name } }))];
+      toast('Preparando el material…');
+      note.blocks = [...note.blocks, ...(await blocksFromFile(f, await campus.download(f.id)))];
       await store.saveNote(note);
       go(`/nota/${note.id}`);
     } catch (err) {
@@ -128,7 +144,7 @@ function annotate(anchor, nb, f) {
   };
   popover(anchor, [
     { label: 'Agregar a la nota de hoy', icon: 'today', onClick: async () => addTo(await store.noteForClass(nb.id, new Date())) },
-    { label: 'Nota nueva con este PDF', icon: 'compose', onClick: async () => addTo(await store.createNote(nb.id, { title: f.name.replace(/\.pdf$/i, ''), blocks: [] })) },
+    { label: 'Nota nueva con este archivo', icon: 'compose', onClick: async () => addTo(await store.createNote(nb.id, { title: f.name.replace(/\.[^.]+$/, ''), blocks: [] })) },
     { label: 'Elegir otra nota…', icon: 'book', onClick: async () => {
       const notes = await store.notesOf(nb.id);
       if (!notes.length) { toast('No hay otras notas'); return; }
@@ -160,7 +176,16 @@ function renderSchedule(body, nb) {
 
 function menu(anchor, nb) {
   popover(anchor, [
-    { label: 'Renombrar', icon: 'compose', onClick: async () => { const v = await prompt('Nombre de la materia', { value: nb.name }); if (v) { nb.name = v; await store.saveNotebook(nb); go(`/cuaderno/${nb.id}`); } } },
+    { label: 'Renombrar', icon: 'compose', onClick: async () => { const v = await prompt('Nombre de la materia', { value: nb.name }); if (v) { nb.name = v; nb.nameManual = true; await store.saveNotebook(nb); go(`/cuaderno/${nb.id}`); } } },
+    ...[['cursando', 'Mover a Cursando'], ['pasada', 'Mover a Materias pasadas']]
+      .filter(([st]) => (nb.status || 'cursando') !== st)
+      .map(([st, label]) => ({ label, icon: 'book', onClick: async () => {
+        nb.status = st;
+        nb.statusManual = nb.campusStatus && nb.campusStatus === st ? null : st;
+        await store.saveNotebook(nb);
+        toast(st === 'pasada' ? 'Movida a Materias pasadas' : 'Movida a Cursando');
+        go(`/cuaderno/${nb.id}`);
+      } })),
     { label: 'Cambiar color', icon: 'sheet', onClick: () => {
       const m = modal('Color', h('div.swatches.big', store.COLORS.map((c) => h('button.swatch', { type: 'button', style: { background: c }, onclick: async () => { nb.color = c; await store.saveNotebook(nb); m.close(); go(`/cuaderno/${nb.id}`); } }))));
     } },
@@ -175,4 +200,74 @@ function menu(anchor, nb) {
       go('/hoy');
     } },
   ]);
+}
+
+// ---------- Resumen con IA ----------
+async function renderSummary(body, nb) {
+  const status = h('p.muted.summary-status');
+  const main = h('div.summary-doc');
+  const perClass = h('div.summary-classes');
+  let running = false;
+
+  const draw = async () => {
+    const fresh = await db.get('notebooks', nb.id);
+    const notes = (await store.notesOf(nb.id)).sort((a, b) => (a.classDate || '').localeCompare(b.classDate || ''));
+    if (fresh.summary?.md) {
+      main.innerHTML = await renderMarkdown(fresh.summary.md);
+    } else {
+      main.replaceChildren(h('p.muted', notes.length ? 'Todavía no hay resumen. Se arma solo con tus notas.' : 'Cuando tomes notas en esta materia (texto, a mano o sobre el material), acá aparece el resumen.'));
+    }
+    const withSummary = notes.filter((n) => n.summary?.md);
+    fill(perClass, withSummary.length ? h('h2.section-title', 'Resumen de cada clase') : null,
+      await Promise.all(withSummary.reverse().map(async (n) => {
+        const d = h('details.card.class-summary', h('summary', h('strong', n.title || store.noteTitle(n)), h('small.muted', ` · ${store.fmtDate(n.classDate)}`), noteNeedsSummary(n) ? h('span.badge', 'desactualizado') : null));
+        const content = h('div.summary-doc');
+        content.innerHTML = await renderMarkdown(n.summary.md);
+        d.append(content, h('button.btn.small', { type: 'button', onclick: () => go(`/nota/${n.id}`) }, 'Abrir la nota'));
+        return d;
+      })));
+    status.textContent = fresh.summary?.at
+      ? `Actualizado ${store.fmtRelative(fresh.summary.at)} · basado en ${fresh.summary.count || withSummary.length} clase(s)`
+      : '';
+    return { notes, fresh };
+  };
+
+  const run = async (force = false) => {
+    if (running) return;
+    running = true;
+    updateBtn.disabled = true;
+    try {
+      const r = await updateNotebookSummary(nb.id, { force, onProgress: (m) => { status.textContent = m; } });
+      if (r.failures?.length) toast(`Algunas clases no se pudieron resumir:\n${r.failures.join('\n')}`, { error: true, ms: 8000 });
+    } catch (err) {
+      status.textContent = '';
+      fill(errorBox, h('p.error-text', err.message), err.status === 503
+        ? h('p.muted', 'Para activarlos, en Vercel → proyecto "cuaderno" → Settings → Environment Variables agregá ANTHROPIC_API_KEY con tu clave de la API de Claude y volvé a publicar.')
+        : null);
+    }
+    running = false;
+    updateBtn.disabled = false;
+    await draw();
+  };
+
+  const errorBox = h('div');
+  const updateBtn = h('button.btn.small.primary', { type: 'button', onclick: () => run(false) }, icon('sync'), 'Actualizar');
+  fill(body,
+    h('div.row.end', status, h('div.spacer'), updateBtn,
+      h('button.btn.small', { type: 'button', title: 'Rehacer todos los resúmenes desde cero', onclick: async () => { if (await confirmDialog('Rehacer resumen', 'Se vuelven a resumir todas las clases de la materia. Puede tardar unos minutos.', { ok: 'Rehacer' })) run(true); } }, 'Rehacer todo')),
+    errorBox,
+    h('section.card.summary-card', main),
+    perClass);
+
+  const { notes, fresh } = await draw();
+  // Se actualiza solo al entrar si hay notas nuevas o modificadas.
+  const basis = notes.filter((n) => n.summary?.md).map((n) => `${n.id}:${n.summary.madeAt}`).join('|');
+  if (!(await aiAvailable())) {
+    fill(errorBox, h('div.card.muted-card',
+      h('p', h('strong', 'Los resúmenes con IA todavía no están activados.')),
+      h('p.muted', 'En Vercel → proyecto "cuaderno" → Settings → Environment Variables, agregá ANTHROPIC_API_KEY con tu clave de la API de Claude (console.anthropic.com) y volvé a publicar.')));
+    updateBtn.disabled = true;
+    return;
+  }
+  if (notes.some(noteNeedsSummary) || (basis && fresh.summary?.basis !== basis)) run(false);
 }

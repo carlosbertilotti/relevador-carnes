@@ -44,14 +44,18 @@ try {
   let files = await idb('files');
   for (let i = 0; i < 20 && files.filter((f) => f.downloaded).length < 4; i++) { await page.waitForTimeout(250); files = await idb('files'); }
   if (files.filter((f) => f.downloaded).length !== 4) throw new Error(`Se esperaban 4 archivos bajados: ${JSON.stringify(files)}`);
+  const past = nbs.find((n) => n.courseId === 13);
+  if (past?.status !== 'pasada' || past.name !== 'Historia Económica') throw new Error(`Materia pasada mal clasificada: ${JSON.stringify(past)}`);
+  if (files.some((f) => f.courseId === 13 && f.downloaded)) throw new Error('No debería bajar solo el material de materias pasadas');
+  await page.locator('.nb-group-title', { hasText: 'Materias pasadas' }).waitFor();
+  step('Materias pasadas separadas y sin descarga automática');
   step(`Campus sincronizado: ${nbs.length} materias, ${files.length} archivos descargados`);
 
   // Material → anotar PDF en nota nueva.
   await page.goto(`${base}/#/cuaderno/${eco.id}/material`);
   await page.getByText('clase1-11.pdf').waitFor();
   await shot('3-material');
-  await page.locator('.file-row', { hasText: 'clase1-11.pdf' }).getByRole('button', { name: 'Anotar' }).click();
-  await page.getByText('Nota nueva con este PDF').click();
+  await page.locator('.file-row', { hasText: 'clase1-11.pdf' }).getByRole('button', { name: 'Abrir', exact: true }).click();
   await page.locator('.ink-block').first().waitFor();
   await page.waitForTimeout(800);
   step('PDF abierto como hoja para anotar');

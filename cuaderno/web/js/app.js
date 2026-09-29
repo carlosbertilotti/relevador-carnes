@@ -14,6 +14,8 @@ const sidebar = document.getElementById('sidebar');
 const main = document.getElementById('main');
 let cleanup = null;
 let searchInput;
+const NB_GROUPS = [['cursando', 'Cursando'], ['proxima', 'Próximas'], ['pasada', 'Materias pasadas']];
+const openGroups = new Set();
 
 async function renderSidebar() {
   const { name, params } = current();
@@ -42,10 +44,21 @@ async function renderSidebar() {
       const v = await prompt('Nueva materia', { placeholder: 'Ej. Macroeconomía II', ok: 'Crear' });
       if (v) { const nb = await store.createNotebook({ name: v }); go(`/cuaderno/${nb.id}/horario`); }
     } }, icon('plus'))),
-    h('nav.nav.notebooks', notebooks.length
-      ? notebooks.map((nb) => h(`a.nav-item.nb${activeNb === nb.id ? '.active' : ''}`, { href: `#/cuaderno/${nb.id}`, style: { '--c': nb.color } },
-        h('span.nb-dot'), h('span', nb.name), unseen.get(nb.id) ? h('span.count', unseen.get(nb.id)) : null))
-      : h('p.muted.small-pad', 'Conectá el campus o creá una materia.')),
+    notebooks.length
+      ? h('div.nb-groups', NB_GROUPS.map(([status, label]) => {
+        const list = notebooks.filter((nb) => (nb.status || 'cursando') === status);
+        if (!list.length) return null;
+        const open = status !== 'pasada' || openGroups.has(status) || list.some((nb) => nb.id === activeNb);
+        return h('div.nb-group',
+          status === 'cursando' && list.length === notebooks.length ? null : h('button.nb-group-title', {
+            type: 'button',
+            'aria-expanded': String(open),
+            onclick: () => { if (openGroups.has(status)) openGroups.delete(status); else openGroups.add(status); renderSidebar(); },
+          }, h('span', `${open ? '▾' : '▸'} ${label}`), h('small', list.length)),
+          open ? h('nav.nav.notebooks', list.map((nb) => h(`a.nav-item.nb${activeNb === nb.id ? '.active' : ''}${status === 'pasada' ? '.past' : ''}`, { href: `#/cuaderno/${nb.id}`, style: { '--c': nb.color } },
+            h('span.nb-dot'), h('span.nb-label', nb.name, nb.code ? h('small.nb-code', nb.code) : null), unseen.get(nb.id) ? h('span.count', unseen.get(nb.id)) : null))) : null);
+      }))
+      : h('p.muted.small-pad', 'Conectá el campus o creá una materia.'),
     h('div.grow'),
     h('nav.nav',
       link('/campus', 'campus', 'Campus y calendarios', name === 'campus', acc?.error ? h('span.count.warn', '!') : campus.syncing() ? h('span.spinner') : null),
@@ -115,6 +128,7 @@ store.bus.addEventListener('change', (e) => {
 
 async function start() {
   await applyTheme();
+  await campus.refreshCourseNames().catch(() => {});
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
   document.getElementById('menu-btn').addEventListener('click', () => document.body.classList.toggle('sidebar-hidden'));
   window.addEventListener('hashchange', route);

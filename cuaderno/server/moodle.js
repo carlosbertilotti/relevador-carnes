@@ -79,23 +79,24 @@ export async function snapshot(base, token, { daysAhead = 60, daysBack = 7 } = {
   const courses = await call(base, token, 'core_enrol_get_users_courses', { userid: site.userid });
   const now = Math.floor(Date.now() / 1000);
 
-  const visible = courses.filter((c) => !c.hidden && (!c.enddate || c.enddate > now - 30 * 86400));
-  const detailed = await Promise.all(
-    visible.map(async (c) => {
-      let sections = [];
-      try {
-        sections = await call(base, token, 'core_course_get_contents', { courseid: c.id });
-      } catch (err) {
-        return { ...pickCourse(c), sections: [], error: err.message };
-      }
-      return { ...pickCourse(c), sections: sections.map(pickSection) };
-    }),
-  );
+  const visible = courses.filter((c) => !c.hidden);
+  const status = await classifyCourses(base, token, visible, now);
+
+  // Contenido de a pocas materias por vez para no saturar el campus.
+  const detailed = await mapLimit(visible, 4, async (c) => {
+    const base_ = { ...pickCourse(c), status: status.get(c.id) || 'cursando' };
+    try {
+      const sections = await call(base, token, 'core_course_get_contents', { courseid: c.id });
+      return { ...base_, sections: sections.map(pickSection) };
+    } catch (err) {
+      return { ...base_, sections: [], error: err.message };
+    }
+  });
 
   let events = [];
   try {
     const ev = await call(base, token, 'core_calendar_get_calendar_events', {
-      events: { courseids: visible.map((c) => c.id) },
+      events: { courseids: visible.filter((c) => status.get(c.id) !== 'pasada').map((c) => c.id) },
       options: { userevents: 1, siteevents: 1, timestart: now - daysBack * 86400, timeend: now + daysAhead * 86400 },
     });
     events = (ev.events || []).map((e) => ({
@@ -119,6 +120,42 @@ export async function snapshot(base, token, { daysAhead = 60, daysBack = 7 } = {
     events,
     syncedAt: Date.now(),
   };
+}
+
+// "cursando" / "pasada" / "proxima", igual que "Mis cursos" del campus
+// (core_course_get_enrolled_courses_by_timeline_classification). Si el campus
+// no permite esa función, se decide por las fechas de la materia.
+export async function classifyCourses(base, token, courses, now = Math.floor(Date.now() / 1000)) {
+  const out = new Map();
+  const kinds = { inprogress: 'cursando', past: 'pasada', future: 'proxima' };
+  try {
+    for (const [classification, label] of Object.entries(kinds)) {
+      const r = await call(base, token, 'core_course_get_enrolled_courses_by_timeline_classification', { classification, limit: 0 });
+      for (const c of r.courses || []) out.set(c.id, label);
+    }
+  } catch {
+    out.clear();
+  }
+  for (const c of courses) {
+    if (out.has(c.id)) continue;
+    if (c.enddate && c.enddate < now) out.set(c.id, 'pasada');
+    else if (c.startdate && c.startdate > now) out.set(c.id, 'proxima');
+    else out.set(c.id, 'cursando');
+  }
+  return out;
+}
+
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length);
+  let i = 0;
+  const worker = async () => {
+    while (i < items.length) {
+      const idx = i++;
+      out[idx] = await fn(items[idx], idx);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
 }
 
 function pickCourse(c) {
