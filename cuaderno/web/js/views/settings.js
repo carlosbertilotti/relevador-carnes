@@ -193,10 +193,18 @@ export async function renderSettings(root) {
     autoSync: await db.getSetting('autoSync', true),
     autoDownload: await db.getSetting('autoDownload', true),
     appKey: await db.getSetting('appKey', ''),
+    syncEnabled: await db.getSetting('syncEnabled', true),
   };
   const set = async (k, v) => { s[k] = v; await db.setSetting(k, v); if (k === 'theme' || k === 'invertInk') applyTheme(); };
   const select = (k, options) => h('select.input', { onchange: (e) => set(k, e.target.value) }, options.map(([v, l]) => h('option', { value: v, selected: s[k] === v }, l)));
   const toggle = (k, label, hint) => h('label.toggle', h('input', { type: 'checkbox', checked: !!s[k], onchange: (e) => set(k, e.target.checked) }), h('div', h('div', label), hint ? h('small', hint) : null));
+
+  const syncStatus = h('p.muted.small-note');
+  const paintSync = async () => {
+    const { state } = await import('../sync.js');
+    syncStatus.textContent = state.error ? `Último intento: ${state.error}` : state.lastOk ? `Última sincronización: ${store.fmtRelative(state.lastOk)}` : '';
+  };
+  paintSync();
 
   let usage = '';
   try {
@@ -218,10 +226,28 @@ export async function renderSettings(root) {
       h('h2.section-title', 'Campus'),
       toggle('autoSync', 'Sincronizar solo al abrir la app', 'Como máximo una vez por hora.'),
       toggle('autoDownload', 'Descargar el material automáticamente', 'Así lo tenés sin conexión en clase.'),
-      h('label.field', h('span', 'Clave del servidor de Cuaderno (opcional)'), h('input.input', { type: 'password', value: s.appKey, placeholder: 'Sólo si configuraste APP_PASSWORD en el servidor', onchange: (e) => set('appKey', e.target.value) }))),
+      h('label.field', h('span', 'Clave de Cuaderno'), h('input.input', { type: 'password', value: s.appKey, placeholder: 'La que te pidió al conectar el campus', onchange: (e) => set('appKey', e.target.value.trim()) }))),
+    h('section.card',
+      h('h2.section-title', 'Sincronizar entre dispositivos'),
+      h('p.muted', 'Tus materias, notas, hojas a mano, grabaciones y la conexión del campus se comparten entre la Mac, el iPad y el celular. Se usa la clave de Cuaderno de arriba (la misma en todos los dispositivos).'),
+      toggle('syncEnabled', 'Sincronizar automáticamente', 'Al abrir la app, al volver a ella y unos segundos después de cada cambio.'),
+      syncStatus,
+      h('button.btn', { type: 'button', onclick: async (e) => {
+        const b = e.currentTarget;
+        b.disabled = true;
+        try {
+          const { syncNow } = await import('../sync.js');
+          const r = await syncNow();
+          toast(r ? `Sincronizado: ${r.pushed} cambio(s) subidos, ${r.pulled} recibidos` : 'La sincronización está desactivada');
+        } catch (err) {
+          toast(err.message, { error: true });
+        }
+        b.disabled = false;
+        paintSync();
+      } }, icon('sync'), 'Sincronizar ahora')),
     h('section.card',
       h('h2.section-title', 'Tus datos'),
-      h('p.muted', `Todo se guarda en este dispositivo. ${usage}`),
+      h('p.muted', `Se guarda en este dispositivo y se sincroniza con tus otros dispositivos. ${usage}`),
       h('div.row.wrap',
         h('button.btn', { type: 'button', onclick: async () => {
           toast('Preparando la copia…');

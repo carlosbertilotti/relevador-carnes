@@ -62,7 +62,9 @@ async function renderSidebar() {
     h('div.grow'),
     h('nav.nav',
       link('/campus', 'campus', 'Campus y calendarios', name === 'campus', acc?.error ? h('span.count.warn', '!') : campus.syncing() ? h('span.spinner') : null),
-      link('/ajustes', 'settings', 'Ajustes', name === 'ajustes')));
+      link('/ajustes', 'settings', 'Ajustes', name === 'ajustes')),
+    h('button#sync-badge.sync-badge', { type: 'button', title: 'Sincronizar ahora', onclick: () => import('./sync.js').then((s) => s.syncNow()).catch((err) => toast(err.message, { error: true })) }));
+  renderSyncBadge();
 }
 
 async function renderSearch(root, q) {
@@ -123,8 +125,20 @@ store.bus.addEventListener('change', (e) => {
     await renderSidebar();
     const { name } = current();
     if (e.detail?.type === 'campus' && (name === 'hoy' || name === 'cuaderno')) route();
+    // Llegaron cambios de otro dispositivo: refrescar la vista (el editor se actualiza solo).
+    if (e.detail?.type === 'sync' && ['hoy', 'calendario', 'cuaderno', 'buscar'].includes(name)) route();
   }, 150);
 });
+
+// Indicador de sincronización en la barra lateral.
+store.bus.addEventListener('sync', () => { renderSyncBadge(); });
+async function renderSyncBadge() {
+  const el = document.getElementById('sync-badge');
+  if (!el) return;
+  const { state } = await import('./sync.js');
+  el.className = `sync-badge${state.error ? ' err' : state.running ? ' busy' : ''}`;
+  el.textContent = state.error ? `Sin sincronizar: ${state.error}` : state.running ? 'Sincronizando…' : state.lastOk ? `Sincronizado ${store.fmtRelative(state.lastOk)}` : '';
+}
 
 async function start() {
   await applyTheme();
@@ -141,7 +155,15 @@ async function start() {
   const cals = (await db.getSetting('icsCalendars', [])) || [];
   if (cals.some((c) => c.url && (!c.syncedAt || Date.now() - c.syncedAt > 6 * 3600000))) store.refreshIcs(campus.api).catch(() => {});
   window.addEventListener('online', () => campus.maybeAutoSync());
-  if (new URLSearchParams(location.search).has('demo')) { const { seedDemo } = await import('./demo.js'); await seedDemo(); toast('Datos de ejemplo cargados'); route(); }
+  const demo = new URLSearchParams(location.search).has('demo');
+  if (demo) { const { seedDemo } = await import('./demo.js'); await seedDemo(); toast('Datos de ejemplo cargados'); route(); }
+  // Sincronización entre dispositivos (no con datos de ejemplo ni en pruebas automáticas).
+  if (!demo && !navigator.webdriver) {
+    const sync = await import('./sync.js');
+    sync.start(store.bus);
+    // En un dispositivo nuevo la cuenta del campus llega por la nube: sincronizar el campus después.
+    store.bus.addEventListener('change', (e) => { if (e.detail?.type === 'sync') campus.maybeAutoSync(); });
+  }
 }
 
 start();
