@@ -19,7 +19,7 @@ const LOCAL_FILE_FIELDS = ['downloaded', 'downloadedAt', 'downloadError'];
 export const state = { running: false, lastOk: null, error: null };
 const setState = (patch) => { Object.assign(state, patch); emit('sync', { ...state }); };
 
-async function rpc(fn, args) {
+export async function rpc(fn, args) {
   let res;
   const base = (await db.getSetting('syncUrlOverride', null)) || SUPABASE_URL; // sólo para pruebas
   try {

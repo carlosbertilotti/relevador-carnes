@@ -7,7 +7,15 @@ export function createMockSupabase({ key = 'clave-test' } = {}) {
   const docs = new Map(); // `${store}|${id}` -> row
   const blobs = new Map(); // `${id}|${part}` -> { total, mime, data }
   let seq = 0;
+  let live = null;
   const fns = {
+    cuaderno_live_set({ st }) {
+      live = { ...st, t0: Date.now() };
+      return { now: Date.now() };
+    },
+    cuaderno_live_get() {
+      return { now: Date.now(), state: live };
+    },
     cuaderno_push({ docs: list }) {
       for (const d of list) {
         const k = `${d.store}|${d.id}`;

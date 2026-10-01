@@ -85,6 +85,31 @@ function highlight(text, q) {
   return [text.slice(0, i), h('mark', text.slice(i, i + q.length)), text.slice(i + q.length)];
 }
 
+// Clase en vivo: si otro dispositivo (la compu) arranca la grabación de una
+// clase, este (el iPad) abre la nota de esa clase con el cronómetro sincronizado.
+let liveWatch = null;
+store.bus.addEventListener('live', async (e) => {
+  const st = e.detail;
+  if (!st.playing || !st.isNew || !st.noteId) return;
+  const { name, params } = current();
+  if (name === 'nota' && params[0] === st.noteId) return; // ya está abierta: el editor la sigue solo
+  let note = await db.get('notes', st.noteId);
+  for (let i = 0; !note && i < 3; i++) {
+    await import('./sync.js').then((s) => s.syncNow()).catch(() => {});
+    note = await db.get('notes', st.noteId);
+    if (!note) await new Promise((r) => setTimeout(r, 2000));
+  }
+  if (!note && st.notebookId && (await db.get('notebooks', st.notebookId))) {
+    // Todavía no llegó la nota: se crea con el mismo id (la de la compu la completa al sincronizar).
+    await db.put('notes', { id: st.noteId, notebookId: st.notebookId, title: st.title || '', classDate: store.ymd(), blocks: [store.newTextBlock(), store.newInkBlock({ paper: 'lined' })], pinned: false, recordings: [], video: { url: st.url || null, title: st.title || '' }, createdAt: Date.now(), updatedAt: Date.now(), _mod: 1 }, { remote: true });
+    note = true;
+  }
+  if (!note) return;
+  liveWatch = st.noteId;
+  toast(`Clase en curso en otro dispositivo${st.title ? `: ${st.title}` : ''}`);
+  go(`/nota/${st.noteId}`);
+});
+
 async function route() {
   const { name, params } = current();
   if (cleanup) { const c = cleanup; cleanup = null; await c(); }
@@ -98,7 +123,9 @@ async function route() {
       case 'nota': {
         const note = await db.get('notes', params[0]);
         sidebar.dataset.noteNotebook = note?.notebookId || '';
-        cleanup = await openEditor(main, params[0], { back: () => (history.length > 1 ? history.back() : go(note ? `/cuaderno/${note.notebookId}` : '/hoy')) });
+        const watch = liveWatch === params[0];
+        liveWatch = null;
+        cleanup = await openEditor(main, params[0], { watch, back: () => (history.length > 1 ? history.back() : go(note ? `/cuaderno/${note.notebookId}` : '/hoy')) });
         break;
       }
       case 'campus': await renderCampus(main); break;
@@ -162,6 +189,7 @@ async function start() {
   if (!demo && !navigator.webdriver) {
     const sync = await import('./sync.js');
     sync.start(store.bus);
+    (await import('./live.js')).start();
     // En un dispositivo nuevo la cuenta del campus llega por la nube: sincronizar el campus después.
     store.bus.addEventListener('change', (e) => { if (e.detail?.type === 'sync') campus.maybeAutoSync(); });
   }
