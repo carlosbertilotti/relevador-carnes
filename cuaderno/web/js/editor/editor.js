@@ -102,7 +102,7 @@ class Editor {
       this.recTime,
       this.recBtn,
       h('button.btn.small.watch-btn', { type: 'button', title: 'Ver la grabación de la clase y tomar notas', onclick: () => this.openVideo() }, icon('video'), h('span', 'Ver clase')),
-      h('button.icon-btn', { type: 'button', title: 'Grabaciones', onclick: (e) => this.showRecordings(e.currentTarget) }, icon('play')),
+      h('button.icon-btn', { type: 'button', title: 'Grabaciones de audio', onclick: (e) => this.showRecordings(e.currentTarget) }, icon('list')),
       h('button.icon-btn', { type: 'button', title: 'Exportar / imprimir', onclick: () => this.exportPdf() }, icon('share')),
       h('button.icon-btn', { type: 'button', title: 'Más', onclick: (e) => this.moreMenu(e.currentTarget) }, icon('more')));
 
