@@ -49,11 +49,20 @@ class Editor {
 
   // ---- host API para InkSheet ----
   onChange(block, before) {
+    this._hideSidebarOnWrite();
     this.undoStack.push({ kind: 'strokes', blockId: block.id, before, after: block.strokes });
     this.redoStack = [];
     this._syncUndo();
     this.save();
   }
+  // Al empezar a escribir se esconde la barra de materias para tener más hoja
+  // (una vez por nota: si la volvés a mostrar, queda visible).
+  _hideSidebarOnWrite() {
+    if (this._autoHid) return;
+    this._autoHid = true;
+    document.body.classList.add('sidebar-hidden');
+  }
+
   recordingClock() { return this.recorder.clock() || this.video?.clock() || null; }
   renderPdf(ref, canvas) { return renderPdfPage(ref, canvas); }
   async renderImage(ref, canvas) {
@@ -83,6 +92,7 @@ class Editor {
     this.recBtn = h('button.icon-btn.rec', { type: 'button', title: 'Grabar la clase', onclick: () => this.toggleRecording() }, icon('mic'));
     this.recTime = h('span.rec-time');
     const header = h('header.editor-head',
+      h('button.icon-btn', { type: 'button', title: 'Mostrar / esconder las materias', 'aria-label': 'Mostrar u ocultar materias', onclick: () => { this._autoHid = true; document.body.classList.toggle('sidebar-hidden'); } }, icon('sidebar')),
       h('button.icon-btn', { type: 'button', 'aria-label': 'Volver', onclick: () => this.back() }, icon('back')),
       h('div.editor-titles',
         h('div.crumb', { style: { color: this.notebook?.color } }, this.notebook?.name || ''),
@@ -334,7 +344,7 @@ class Editor {
         dataset: { blockId: b.id, placeholder: this.note.blocks[0] === b ? 'Empezá a escribir… (con el lápiz también: Scribble lo pasa a texto)' : 'Texto' },
         html: b.html,
       });
-      el.addEventListener('input', () => { b.html = el.innerHTML; this.save(); });
+      el.addEventListener('input', () => { b.html = el.innerHTML; this.save(); this._hideSidebarOnWrite(); });
       el.addEventListener('paste', (e) => {
         const text = e.clipboardData?.getData('text/plain');
         if (text == null) return;

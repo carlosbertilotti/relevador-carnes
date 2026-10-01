@@ -169,7 +169,9 @@ export class VideoSession {
     this.followEl = h('span.video-follow', { hidden: !this.following, title: 'El minuto lo maneja el otro dispositivo (la compu con la grabación)' }, '⇄ en vivo');
     this.playBtn = h('button.icon-btn', { type: 'button', title: 'Reproducir / pausar', onclick: () => (this.running() ? this.pause() : this.play()) }, icon('play'));
     const fileIn = h('input', { type: 'file', accept: 'video/*', hidden: true, onchange: (e) => { const f = e.target.files[0]; if (f) this.loadFile(f); } });
-    this.el.replaceChildren(
+    // Aviso: el ▶ va en Cuaderno de la compu (Cuaderno no puede leer el play de Zoom).
+    this.hintEl = h('div.video-hint', { hidden: true });
+    this.el.replaceChildren(...[
       this.videoEl,
       h('div.video-bar',
         h('strong.video-title', icon('video'), this.info.title || 'Grabación de la clase'),
@@ -187,7 +189,9 @@ export class VideoSession {
         h(`button.btn.small${this.seekMode ? '.active' : ''}`, { type: 'button', title: 'Tocá un trazo para volver a ese minuto', onclick: () => { this.seekMode = !this.seekMode; this.onSeekMode?.(this.seekMode); this.render(); } }, this.seekMode ? 'Tocá un trazo…' : 'Ir a un trazo'),
         h('button.btn.small.primary', { type: 'button', title: 'Marcar este minuto en la nota', onmousedown: (e) => e.preventDefault(), onclick: () => this.onMark?.(Math.round(this.time())) }, '⏱ Marcar'),
         hasFileHere ? null : h('label.btn.small.ghost', { title: 'Si descargaste la grabación, se reproduce dentro de Cuaderno' }, 'Cargar video', fileIn),
-        h('button.icon-btn', { type: 'button', title: 'Cerrar', onclick: () => this.close() }, icon('close'))));
+        h('button.icon-btn', { type: 'button', title: 'Cerrar', onclick: () => this.close() }, icon('close'))),
+      this.hintEl,
+    ].filter(Boolean));
     this.paint();
   }
 
@@ -196,6 +200,15 @@ export class VideoSession {
     this.timeEl.textContent = fmtClock(this.time());
     this.timeEl.classList.toggle('on', this.running());
     if (this.playBtn && !this.videoEl) this.playBtn.replaceChildren(icon(this.running() ? 'pause' : 'play'));
+    if (this.hintEl) {
+      const idle = !this.running() && !this.following && this.time() === 0;
+      this.hintEl.hidden = !idle;
+      if (idle) {
+        this.hintEl.textContent = this.videoEl
+          ? 'Dale play al video: si tenés Cuaderno abierto en el iPad, te sigue solo.'
+          : 'Cuando arranque el video en Zoom, tocá ▶ acá. Si tenés Cuaderno abierto en el iPad, el iPad te sigue solo (si el ▶ lo tocás en la compu).';
+      }
+    }
     if (!this.videoEl && this.running()) this.onTime?.(this.time());
   }
 
