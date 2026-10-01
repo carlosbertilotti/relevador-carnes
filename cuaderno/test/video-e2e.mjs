@@ -35,6 +35,8 @@ try {
   if (!popup.url().startsWith(ZOOM)) throw new Error(`Abrió ${popup.url()}`);
   await popup.close();
   await page.locator('.video-panel').waitFor({ timeout: 8000 });
+  if (/null/.test(await page.locator('.video-panel').innerText())) throw new Error('El panel muestra "null"');
+  if (!(await page.locator('.video-hint:not([hidden])').count())) throw new Error('Falta el aviso de tocar ▶');
   step('Abre Zoom y la nota de la clase con el cronómetro');
 
   // Cronómetro: ajustar a 12:00 y marcar
@@ -66,7 +68,11 @@ try {
     const st = n.blocks.flatMap((b) => b.strokes || []).at(-1);
     return { title: n.title, rec: st?.rec, t: st?.t, html: n.blocks.map((b) => b.html || '').join(''), open: n.video.open, id: n.id };
   });
-  if (saved.rec !== 'video' || !(saved.t > 720000)) throw new Error(`Trazo sin minuto: ${JSON.stringify(saved)}`);
+  if (!(await page.evaluate(() => document.body.classList.contains('sidebar-hidden')))) throw new Error('La barra de materias no se escondió al escribir');
+  await page.locator('.editor-head button[title="Mostrar / esconder las materias"]').click();
+  if (await page.evaluate(() => document.body.classList.contains('sidebar-hidden'))) throw new Error('El botón no volvió a mostrar las materias');
+  step('Al escribir se esconde la barra de materias y el botón la vuelve a mostrar');
+    if (saved.rec !== 'video' || !(saved.t > 720000)) throw new Error(`Trazo sin minuto: ${JSON.stringify(saved)}`);
   if (!saved.html.includes('data-t="72')) throw new Error(`Marca no guardada: ${saved.html}`);
   step(`Trazo guardado en el minuto ${Math.round(saved.t / 1000)} s; nota "${saved.title}"`);
 
