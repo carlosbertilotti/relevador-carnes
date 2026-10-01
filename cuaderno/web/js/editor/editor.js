@@ -12,6 +12,7 @@ import { InkSheet, tools, serializeStrokes } from './ink.js';
 import { renderPdfPage, forgetPdf } from './pdf.js';
 import { Recorder, Player } from './audio.js';
 import { VideoSession, fmtClock } from './video.js';
+import * as live from '../live.js';
 
 const PEN_COLORS = ['#1c1c1e', '#2f6fde', '#d0342c', '#23915a', '#8e44c9', '#e98a15'];
 const HL_COLORS = ['#ffd60a', '#7ee081', '#ff9fc6', '#7cc8ff', '#ffb35c'];
@@ -163,6 +164,14 @@ class Editor {
       toast('Nota actualizada desde otro dispositivo');
     };
     store.bus.addEventListener('change', this._onRemote);
+    // Clase en vivo: la compu maneja el minuto y esta nota lo sigue.
+    this._onLive = async (e) => {
+      const st = e.detail;
+      if (!this._isMine(st)) return;
+      if (!this.video) { if (!st.playing) return; await this.openVideo({ quiet: true }); }
+      this._followLive(st);
+    };
+    store.bus.addEventListener('live', this._onLive);
     if (!this.note.blocks.length) this.addBlock('text');
   }
 
@@ -185,6 +194,7 @@ class Editor {
     document.removeEventListener('visibilitychange', this._onVis);
     document.removeEventListener('pointerdown', this._onPen, true);
     store.bus.removeEventListener('change', this._onRemote);
+    store.bus.removeEventListener('live', this._onLive);
   }
 
   _inText(el) {
@@ -568,20 +578,36 @@ class Editor {
   }
 
   // ---------- Ver la clase (grabación de Zoom o video descargado) ----------
-  async openVideo({ quiet = false } = {}) {
-    if (this.video) return this.video;
+  openVideo(opts) {
+    if (this.video) return Promise.resolve(this.video);
+    this._opening ||= this._openVideo(opts).finally(() => { this._opening = null; });
+    return this._opening;
+  }
+
+  async _openVideo({ quiet = false } = {}) {
     const info = this.note.video || {};
     if (!info.url && !info.blobId && !quiet) {
       const url = await prompt('Link de la grabación (Zoom)', { placeholder: 'https://…zoom.us/rec/… — o dejalo vacío y cargá el video', ok: 'Abrir' }).catch(() => null);
       if (url === null) return null;
       if (url && /^https?:\/\//i.test(url)) info.url = url;
     }
+    const typed = info.url && info.url !== this.note.video?.url;
     this.note.video = { ...info, open: true };
+    if (typed) this.save(); // link nuevo: se guarda en la nota (el resto del panel no toca la nota)
     this.player?.destroy();
     this.player = null;
     this.playerBar.hidden = true;
+    const pos = await db.getSetting(`videoPos:${this.note.id}`, null);
     this.video = new VideoSession(this.note, {
+      pos,
       onChange: () => this.save(),
+      onAnnounce: (st) => live.announce({
+        ...st,
+        noteId: this.note.id,
+        notebookId: this.note.notebookId,
+        title: this.note.title || this.notebook?.name || '',
+        url: this.note.video?.url || null,
+      }),
       onMark: (ms) => this.insertMark(ms),
       onTime: (ms) => {
         this.playback = { recId: 'video', time: ms };
@@ -591,7 +617,6 @@ class Editor {
       onClose: () => {
         this.video = null;
         this.note.video = { ...this.note.video, open: false };
-        this.save();
         this.playback = null;
         this.seekMode = false;
         this.videoBar.hidden = true;
@@ -603,8 +628,18 @@ class Editor {
     this.videoBar.replaceChildren(this.video.el);
     this.videoBar.hidden = false;
     await this.video.attachFile();
-    this.save();
+    // Si la clase ya está corriendo en otro dispositivo, arrancar en ese minuto.
+    const st = live.current();
+    if (st && this._isMine(st)) this._followLive(st);
     return this.video;
+  }
+
+  _isMine(st) {
+    return st.noteId === this.note.id || (st.url && st.url === this.note.video?.url);
+  }
+
+  _followLive(st) {
+    this.video?.applyRemote(st, { base: live.liveBase(st), time: live.liveTime(st) });
   }
 
   async jumpTo(ms) {

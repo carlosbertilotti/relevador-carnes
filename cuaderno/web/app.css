@@ -289,6 +289,7 @@ body.in-editor #main { overflow: hidden; }
 .video-bar .btn.active { background: color-mix(in srgb, var(--accent) 28%, var(--card)); }
 .video-time { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 52px; text-align: center; color: var(--muted); }
 .video-time.on { color: var(--blue); }
+.video-follow { font-size: 12px; font-weight: 600; color: #fff; background: var(--blue); border-radius: 8px; padding: 2px 7px; }
 .ts { display: inline-block; padding: 0 7px; margin: 0 2px; border-radius: 10px; background: color-mix(in srgb, var(--blue) 14%, transparent); color: var(--blue); font-size: .88em; font-variant-numeric: tabular-nums; cursor: pointer; user-select: none; }
 .video-row .grow small { color: var(--blue); }
 @media (max-width: 820px) { .watch-btn span { display: none; } .video-title { max-width: 100%; flex-basis: 100%; } }

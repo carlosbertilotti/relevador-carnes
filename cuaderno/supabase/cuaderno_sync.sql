@@ -120,3 +120,34 @@ grant execute on function public.cuaderno_push(text, jsonb), public.cuaderno_pul
 
 -- La clave se carga aparte (sólo su hash):
 -- insert into cuaderno_private.config (id, key_hash) values (1, encode(extensions.digest('CLAVE', 'sha256'), 'hex'));
+
+-- ---------- Clase en vivo ----------
+-- Un dispositivo (la compu, mirando la grabación) avisa en qué minuto va y si
+-- está en pausa; los otros (el iPad, tomando notas) lo siguen solos.
+-- La hora la pone el servidor, así no importa si los relojes de los equipos difieren.
+create table cuaderno_private.live (
+  id int primary key default 1 check (id = 1),
+  state jsonb,
+  updated_at timestamptz not null default now()
+);
+
+create function public.cuaderno_live_set(k text, st jsonb) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare now_ms bigint := floor(extract(epoch from clock_timestamp()) * 1000);
+begin
+  perform cuaderno_private.check_key(k);
+  insert into cuaderno_private.live (id, state, updated_at) values (1, st || jsonb_build_object('t0', now_ms), now())
+  on conflict (id) do update set state = excluded.state, updated_at = excluded.updated_at;
+  return jsonb_build_object('now', now_ms);
+end $$;
+
+create function public.cuaderno_live_get(k text) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+begin
+  perform cuaderno_private.check_key(k);
+  return jsonb_build_object('now', floor(extract(epoch from clock_timestamp()) * 1000),
+    'state', (select l.state from cuaderno_private.live l where l.id = 1));
+end $$;
+
+revoke all on function public.cuaderno_live_set(text, jsonb), public.cuaderno_live_get(text) from public;
+grant execute on function public.cuaderno_live_set(text, jsonb), public.cuaderno_live_get(text) to anon, authenticated;

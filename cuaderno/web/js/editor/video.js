@@ -23,16 +23,18 @@ export function parseClock(str) {
 
 export class VideoSession {
   // note.video: { url?, title?, blobId?, pos? }
-  constructor(note, { onChange, onMark, onTime, onClose, onSeekMode }) {
+  constructor(note, { onChange, onMark, onTime, onClose, onSeekMode, onAnnounce, pos }) {
     this.note = note;
     this.onChange = onChange;
     this.onMark = onMark;
     this.onTime = onTime;
     this.onClose = onClose;
     this.onSeekMode = onSeekMode;
+    this.onAnnounce = onAnnounce;
+    this.applying = 0; // mientras se aplica un cambio de otro dispositivo, no se reenvía
     this.seekMode = false;
     this.clockBase = null; // Date.now() - pos cuando el cronómetro corre
-    this.pos = note.video?.pos || 0;
+    this.pos = pos ?? note.video?.pos ?? 0;
     this.el = h('div.video-panel');
     this.render();
     this.tick = setInterval(() => this.paint(), 500);
@@ -60,16 +62,48 @@ export class VideoSession {
     if (this.videoEl) { this.videoEl.play().catch(() => {}); return; }
     if (this.clockBase == null) this.clockBase = Date.now() - this.pos;
     this.paint();
+    this.announce();
   }
 
-  pause() {
+  pause({ announce = true } = {}) {
     if (this.videoEl) { this.videoEl.pause(); return; }
     if (this.clockBase != null) { this.pos = Date.now() - this.clockBase; this.clockBase = null; }
     this.save();
     this.paint();
+    if (announce) this.announce();
   }
 
-  seek(ms) {
+  // Avisa a los otros dispositivos en qué minuto va la clase.
+  announce() {
+    if (Date.now() < this.applying) return;
+    if (this.running()) this.session ||= `s${Date.now().toString(36)}`;
+    this.onAnnounce?.({ playing: this.running(), pos: Math.round(this.time()), session: this.session || null });
+  }
+
+  // Sigue lo que hace otro dispositivo (la compu con la grabación).
+  applyRemote(st, { base, time }) {
+    this.applying = Date.now() + 1500;
+    this.session = st.session || this.session;
+    if (this.videoEl) {
+      this.videoEl.muted = true; // el audio sale de la compu
+      if (Math.abs(this.videoEl.currentTime * 1000 - time) > 1500) this.videoEl.currentTime = time / 1000;
+      if (st.playing && this.videoEl.paused) this.videoEl.play().catch(() => {});
+      if (!st.playing && !this.videoEl.paused) this.videoEl.pause();
+    } else if (st.playing) {
+      this.clockBase = base;
+    } else {
+      this.clockBase = null;
+      this.pos = time;
+    }
+    this.following = true;
+    this.followEl && (this.followEl.hidden = false);
+    this.paint();
+    this.onTime?.(this.time());
+  }
+
+  // Volver a un minuto desde una marca o un trazo: sólo en este dispositivo.
+  // Los botones de la barra (±10 s, Ajustar) sí mueven la clase en todos.
+  seek(ms, { announce = false } = {}) {
     ms = Math.max(0, ms);
     if (this.videoEl) {
       this.videoEl.currentTime = ms / 1000;
@@ -77,15 +111,17 @@ export class VideoSession {
     } else {
       this.pos = ms;
       if (this.clockBase != null) this.clockBase = Date.now() - ms;
-      toast(`Minuto ${fmtClock(ms)}: llevá la grabación de Zoom a ese momento`);
+      if (!announce) toast(`Minuto ${fmtClock(ms)}: llevá la grabación de Zoom a ese momento`);
     }
     this.paint();
     this.onTime?.(this.time());
+    if (announce) this.announce();
   }
 
+  // El minuto se guarda sólo en este dispositivo: guardar la nota entera
+  // pisaría lo que se está escribiendo en el otro (gana la última versión).
   save() {
-    this.info.pos = Math.round(this.time());
-    this.onChange?.();
+    db.setSetting(`videoPos:${this.note.id}`, Math.round(this.time()));
   }
 
   openZoom() {
@@ -100,6 +136,7 @@ export class VideoSession {
     this.info.blobId = blobId;
     this.info.fileName = file.name;
     this.save();
+    this.onChange?.();
     await this.attachFile();
     toast('Video cargado. Queda guardado sólo en este dispositivo (los videos son muy pesados para sincronizar).');
   }
@@ -122,11 +159,14 @@ export class VideoSession {
     } else if (hasFileHere) {
       this.videoEl = h('video.class-video', { src: this.url, controls: true, playsInline: true, preload: 'metadata', dataset: { src: this.url } });
       this.videoEl.addEventListener('timeupdate', () => { this.paint(); this.onTime?.(this.time()); });
-      this.videoEl.addEventListener('pause', () => this.save());
+      this.videoEl.addEventListener('pause', () => { this.save(); this.announce(); });
+      this.videoEl.addEventListener('play', () => this.announce());
+      this.videoEl.addEventListener('seeked', () => this.announce());
     } else {
       this.videoEl = null;
     }
     this.timeEl = h('span.video-time');
+    this.followEl = h('span.video-follow', { hidden: !this.following, title: 'El minuto lo maneja el otro dispositivo (la compu con la grabación)' }, '⇄ en vivo');
     this.playBtn = h('button.icon-btn', { type: 'button', title: 'Reproducir / pausar', onclick: () => (this.running() ? this.pause() : this.play()) }, icon('play'));
     const fileIn = h('input', { type: 'file', accept: 'video/*', hidden: true, onchange: (e) => { const f = e.target.files[0]; if (f) this.loadFile(f); } });
     this.el.replaceChildren(
@@ -135,13 +175,14 @@ export class VideoSession {
         h('strong.video-title', icon('video'), this.info.title || 'Grabación de la clase'),
         this.info.url ? h('button.btn.small', { type: 'button', onclick: () => this.openZoom() }, 'Abrir en Zoom') : null,
         hasFileHere ? null : this.playBtn,
-        h('button.btn.small', { type: 'button', title: 'Atrás 10 segundos', onclick: () => this.seek(this.time() - 10000) }, '−10 s'),
+        h('button.btn.small', { type: 'button', title: 'Atrás 10 segundos', onclick: () => this.seek(this.time() - 10000, { announce: true }) }, '−10 s'),
         this.timeEl,
-        h('button.btn.small', { type: 'button', title: 'Adelante 10 segundos', onclick: () => this.seek(this.time() + 10000) }, '+10 s'),
+        this.followEl,
+        h('button.btn.small', { type: 'button', title: 'Adelante 10 segundos', onclick: () => this.seek(this.time() + 10000, { announce: true }) }, '+10 s'),
         hasFileHere ? null : h('button.btn.small', { type: 'button', title: 'Poner el cronómetro en el minuto que muestra Zoom', onclick: async () => {
           const v = await prompt('¿En qué minuto está la grabación?', { value: fmtClock(this.time()), placeholder: 'mm:ss', ok: 'Ajustar' });
           const ms = v && parseClock(v);
-          if (ms != null) this.seek(ms);
+          if (ms != null) this.seek(ms, { announce: true });
         } }, 'Ajustar'),
         h(`button.btn.small${this.seekMode ? '.active' : ''}`, { type: 'button', title: 'Tocá un trazo para volver a ese minuto', onclick: () => { this.seekMode = !this.seekMode; this.onSeekMode?.(this.seekMode); this.render(); } }, this.seekMode ? 'Tocá un trazo…' : 'Ir a un trazo'),
         h('button.btn.small.primary', { type: 'button', title: 'Marcar este minuto en la nota', onmousedown: (e) => e.preventDefault(), onclick: () => this.onMark?.(Math.round(this.time())) }, '⏱ Marcar'),
