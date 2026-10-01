@@ -167,7 +167,7 @@ export class VideoSession {
     }
     this.timeEl = h('span.video-time');
     this.followEl = h('span.video-follow', { hidden: !this.following, title: 'El minuto lo maneja el otro dispositivo (la compu con la grabación)' }, '⇄ en vivo');
-    this.playBtn = h('button.icon-btn', { type: 'button', title: 'Reproducir / pausar', onclick: () => (this.running() ? this.pause() : this.play()) }, icon('play'));
+    this.playBtn = h('button.btn.small.primary.video-play', { type: 'button', title: 'Reproducir / pausar', onclick: () => (this.running() ? this.pause() : this.play()) }, icon('play'), h('span', 'Empezar'));
     const fileIn = h('input', { type: 'file', accept: 'video/*', hidden: true, onchange: (e) => { const f = e.target.files[0]; if (f) this.loadFile(f); } });
     // Aviso: el ▶ va en Cuaderno de la compu (Cuaderno no puede leer el play de Zoom).
     this.hintEl = h('div.video-hint', { hidden: true });
@@ -199,14 +199,14 @@ export class VideoSession {
     if (!this.timeEl) return;
     this.timeEl.textContent = fmtClock(this.time());
     this.timeEl.classList.toggle('on', this.running());
-    if (this.playBtn && !this.videoEl) this.playBtn.replaceChildren(icon(this.running() ? 'pause' : 'play'));
+    if (this.playBtn && !this.videoEl) this.playBtn.replaceChildren(icon(this.running() ? 'pause' : 'play'), h('span', this.running() ? 'Pausa' : this.time() > 0 ? 'Seguir' : 'Empezar'));
     if (this.hintEl) {
       const idle = !this.running() && !this.following && this.time() === 0;
       this.hintEl.hidden = !idle;
       if (idle) {
         this.hintEl.textContent = this.videoEl
           ? 'Dale play al video: si tenés Cuaderno abierto en el iPad, te sigue solo.'
-          : 'Cuando arranque el video en Zoom, tocá ▶ acá. Si tenés Cuaderno abierto en el iPad, el iPad te sigue solo (si el ▶ lo tocás en la compu).';
+          : 'Cuando arranque el video en Zoom, tocá "▶ Empezar" acá (en la compu). El iPad, con Cuaderno abierto, te sigue solo.';
       }
     }
     if (!this.videoEl && this.running()) this.onTime?.(this.time());

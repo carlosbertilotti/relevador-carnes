@@ -27,7 +27,7 @@ export const tools = {
 export function strokePath(stroke, last = true) {
   const pts = getStroke(stroke.points, {
     size: stroke.size,
-    thinning: stroke.pressure === false ? 0.45 : 0.6,
+    thinning: stroke.pressure === false ? 0.45 : 0.35,
     smoothing: 0.55,
     streamline: 0.45,
     simulatePressure: stroke.pressure === false,
@@ -283,7 +283,15 @@ export class InkSheet {
   toLocal(e) {
     const r = this.sheet.getBoundingClientRect();
     const k = PAPER_W / r.width;
-    const pressure = e.pointerType === 'pen' ? Math.max(0.05, e.pressure || 0.5) : 0.5;
+    // En iPad, varios eventos intermedios del Apple Pencil llegan con presión 0:
+    // se usa la última presión válida y se suaviza, si no el trazo sale "a puntos".
+    let pressure = 0.5;
+    if (e.pointerType === 'pen') {
+      const raw = e.pressure > 0 ? e.pressure : (this._lastPressure ?? 0.5);
+      pressure = this._lastPressure == null ? raw : this._lastPressure * 0.6 + raw * 0.4;
+      this._lastPressure = Math.max(0.15, pressure);
+      pressure = this._lastPressure;
+    }
     return [+((e.clientX - r.left) * k).toFixed(1), +((e.clientY - r.top) * k).toFixed(1), +pressure.toFixed(3)];
   }
 
@@ -311,6 +319,7 @@ export class InkSheet {
   }
 
   _down(e) {
+    this._lastPressure = null;
     if (this.host.seekMode && this.host.playback) {
       const t = this._strokeTimeAt(this.toLocal(e));
       if (t != null) { this.host.onSeek(t); e.preventDefault(); }
