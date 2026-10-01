@@ -24,8 +24,22 @@ export const tools = {
   penOnly: false,
 };
 
+// Trazos guardados desde el iPad antes del arreglo traen puntos repetidos (el
+// lápiz reenviaba los anteriores): se descartan al dibujar para que no salgan punteados.
+function cleanPoints(points) {
+  const seen = new Set();
+  const out = [];
+  for (const p of points) {
+    const k = `${p[0]},${p[1]}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(p);
+  }
+  return out.length ? out : points.slice(0, 1);
+}
+
 export function strokePath(stroke, last = true) {
-  const pts = getStroke(stroke.points, {
+  const pts = getStroke(cleanPoints(stroke.points), {
     size: stroke.size,
     thinning: stroke.pressure === false ? 0.45 : 0.35,
     smoothing: 0.55,
@@ -320,6 +334,7 @@ export class InkSheet {
 
   _down(e) {
     this._lastPressure = null;
+    this._lastT = e.timeStamp;
     if (this.host.seekMode && this.host.playback) {
       const t = this._strokeTimeAt(this.toLocal(e));
       if (t != null) { this.host.onSeek(t); e.preventDefault(); }
@@ -367,8 +382,19 @@ export class InkSheet {
   _move(e) {
     if (e.pointerId !== this.pointerId) return;
     e.preventDefault();
-    const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-    const pts = (events.length ? events : [e]).map((ev) => this.toLocal(ev));
+    // En iPad, los eventos "coalesced" del Apple Pencil repiten puntos que ya
+    // llegaron en el movimiento anterior: si no se descartan, el trazo va y vuelve
+    // sobre sí mismo y se ve "a puntos". Sólo se toman los más nuevos que el último.
+    let events = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+    if (!events.length) events = [e];
+    const lastT = this._lastT ?? -Infinity;
+    events = events.filter((ev) => ev.timeStamp > lastT);
+    if (!events.length) {
+      if (e.timeStamp <= lastT) return; // todo repetido
+      events = [e];
+    }
+    this._lastT = Math.max(lastT, ...events.map((ev) => ev.timeStamp));
+    const pts = events.map((ev) => this.toLocal(ev));
     const p = pts[pts.length - 1];
     if (this.dragging) {
       const dx = p[0] - this.dragging.from[0];
