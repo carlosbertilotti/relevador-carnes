@@ -250,6 +250,33 @@ export class InkSheet {
     } else {
       drawPaper(ctx, this.block.paper, this.block.height, this.scale);
     }
+    // Fotos pegadas en la hoja: van en el fondo, así se escribe encima.
+    for (const ph of this.block.photos || []) await this.host.drawPhoto?.(ph, ctx, this.scale);
+  }
+
+  photoAt(p) {
+    const list = this.block.photos || [];
+    for (let i = list.length - 1; i >= 0; i--) {
+      const ph = list[i];
+      if (p[0] >= ph.x - 12 && p[0] <= ph.x + ph.w + 12 && p[1] >= ph.y - 12 && p[1] <= ph.y + ph.h + 12) return ph;
+    }
+    return null;
+  }
+
+  selectPhoto(ph) {
+    this.photoSel = ph;
+    this.host.onPhotoSelect?.(this, ph);
+    this.renderLive();
+  }
+
+  deletePhoto() {
+    if (!this.photoSel) return;
+    const before = this.block.photos;
+    this.block.photos = before.filter((x) => x !== this.photoSel);
+    this.selectPhoto(null);
+    this.bgDirty = true;
+    this.render();
+    this.host.onPhotosChange?.(this.block, before);
   }
 
   render() {
@@ -280,6 +307,19 @@ export class InkSheet {
       ctx.beginPath();
       this.lassoPath.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
       ctx.stroke();
+      ctx.restore();
+    }
+    if (this.photoSel) {
+      const ph = this.photoSel;
+      ctx.save();
+      ctx.scale(this.scale, this.scale);
+      ctx.strokeStyle = '#0a84ff';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(ph.x, ph.y, ph.w, ph.h);
+      ctx.fillStyle = '#0a84ff';
+      ctx.beginPath();
+      ctx.arc(ph.x + ph.w, ph.y + ph.h, 14, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
     }
     if (this.selection) {
@@ -357,6 +397,15 @@ export class InkSheet {
         }
         this.clearSelection();
       }
+      // Fotos: con el lazo se mueven (arrastrando) y se agrandan/achican desde la esquina.
+      const ph = this.photoAt(p);
+      if (ph) {
+        const corner = (p[0] - (ph.x + ph.w)) ** 2 + (p[1] - (ph.y + ph.h)) ** 2 < 40 ** 2;
+        this.photoDrag = { ph, from: p, orig: { ...ph }, resize: corner, before: (this.block.photos || []).map((x) => x) };
+        this.selectPhoto(ph);
+        return;
+      }
+      if (this.photoSel) this.selectPhoto(null);
       this.lassoPath = [p];
       return;
     }
@@ -396,6 +445,21 @@ export class InkSheet {
     this._lastT = Math.max(lastT, ...events.map((ev) => ev.timeStamp));
     const pts = events.map((ev) => this.toLocal(ev));
     const p = pts[pts.length - 1];
+    if (this.photoDrag) {
+      const { ph, from, orig, resize } = this.photoDrag;
+      const dx = p[0] - from[0];
+      const dy = p[1] - from[1];
+      if (resize) {
+        ph.w = Math.max(80, Math.min(PAPER_W * 1.2, orig.w + dx));
+        ph.h = (ph.w * orig.h) / orig.w;
+      } else {
+        ph.x = Math.max(-ph.w / 2, Math.min(PAPER_W - ph.w / 2, orig.x + dx));
+        ph.y = Math.max(0, orig.y + dy);
+      }
+      this.bgDirty = true;
+      this.render();
+      return;
+    }
     if (this.dragging) {
       const dx = p[0] - this.dragging.from[0];
       const dy = p[1] - this.dragging.from[1];
@@ -421,6 +485,21 @@ export class InkSheet {
     if (e.pointerId !== this.pointerId) return;
     this.pointerId = null;
     clearTimeout(this.holdTimer);
+    if (this.photoDrag) {
+      const { ph, orig, before } = this.photoDrag;
+      this.photoDrag = null;
+      if (ph.x === orig.x && ph.y === orig.y && ph.w === orig.w) return;
+      // Como con los trazos: la foto movida es un objeto nuevo (así el deshacer funciona).
+      const moved = { ...ph };
+      Object.assign(ph, orig);
+      this.block.photos = before.map((x) => (x === ph ? moved : x));
+      this.photoSel = moved;
+      this.fitHeight(moved.y + moved.h);
+      this.bgDirty = true;
+      this.render();
+      this.host.onPhotosChange?.(this.block, before);
+      return;
+    }
     if (this.dragging) {
       // Mover = reemplazar los trazos por copias nuevas (así el deshacer funciona).
       const before = this.dragging.before;
@@ -508,6 +587,15 @@ export class InkSheet {
     return best ? best.t : null;
   }
 
+  // Agranda la hoja si algo (una foto) queda cerca del final.
+  fitHeight(bottom) {
+    if (this.block.pdf || this.block.image) return;
+    if (bottom > this.block.height - GROW_MARGIN) {
+      this.block.height = Math.ceil((bottom + GROW_MARGIN) / GROW_STEP) * GROW_STEP;
+      this.layout();
+    }
+  }
+
   _maybeGrow() {
     if (this.block.pdf || this.block.image) return;
     const maxY = Math.max(...this.block.strokes.at(-1).points.map((q) => q[1]));
@@ -523,6 +611,7 @@ export class InkSheet {
   }
 
   clearSelection() {
+    if (this.photoSel) this.selectPhoto(null);
     if (!this.selection) return;
     this.selection = null;
     this.host.onSelection?.(this, null);
