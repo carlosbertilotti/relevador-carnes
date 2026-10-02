@@ -177,6 +177,7 @@ async function referencedBlobs() {
     for (const rec of n.recordings || []) ids.add(rec.blobId);
     for (const b of n.blocks || []) {
       if (b.image?.blobId) ids.add(b.image.blobId);
+      for (const ph of b.photos || []) ids.add(ph.blobId);
       // PDFs del campus que se usan en una nota: se sincronizan para que la nota
       // se vea completa en cualquier dispositivo, aunque ahí no esté conectado el campus.
       if (b.pdf?.fileId) ids.add(`file:${b.pdf.fileId}`);

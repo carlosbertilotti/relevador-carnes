@@ -69,6 +69,21 @@ class Editor {
     const bmp = await imageBitmap(ref.blobId);
     if (bmp) canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
   }
+  async drawPhoto(ph, ctx, scale) {
+    const bmp = await imageBitmap(ph.blobId);
+    if (bmp) ctx.drawImage(bmp, ph.x * scale, ph.y * scale, ph.w * scale, ph.h * scale);
+  }
+  onPhotosChange(block, before) {
+    this.undoStack.push({ kind: 'photos', blockId: block.id, before, after: block.photos });
+    this.redoStack = [];
+    this._syncUndo();
+    this.save();
+  }
+  onPhotoSelect(sheet, ph) {
+    this.activePhoto = ph ? sheet : null;
+    if (ph) this.activeSelection = null;
+    this._renderSelectionBar();
+  }
   onSeek(t) {
     if (this.playback?.recId === 'video') this.video?.seek(t);
     else this.player?.seek(t);
@@ -142,6 +157,15 @@ class Editor {
       }
     };
     document.addEventListener('pointerdown', this._onPen, true);
+    // Pegar una foto (⌘V o "Pegar" en el iPad): va a la hoja, no al texto.
+    this._onPaste = (e) => {
+      const file = [...(e.clipboardData?.files || [])].find((f) => f.type.startsWith('image/'));
+      if (!file) return;
+      e.preventDefault();
+      e.stopPropagation();
+      this.addPhoto(file);
+    };
+    document.addEventListener('paste', this._onPaste, true);
     // Cambios que llegan de otro dispositivo mientras la nota está abierta.
     this._onRemote = async (e) => {
       const d = e.detail || {};
@@ -152,7 +176,7 @@ class Editor {
         bitmaps.delete(blobId);
         if (fileId) forgetPdf(fileId);
         for (const s of this.sheets.values()) {
-          if (s.block.image?.blobId === blobId || (fileId && s.block.pdf?.fileId === fileId)) { s.bgDirty = true; s.render(); }
+          if (s.block.image?.blobId === blobId || (fileId && s.block.pdf?.fileId === fileId) || s.block.photos?.some((p) => p.blobId === blobId)) { s.bgDirty = true; s.render(); }
         }
         return;
       }
@@ -183,6 +207,7 @@ class Editor {
     };
     store.bus.addEventListener('live', this._onLive);
     if (!this.note.blocks.length) this.addBlock('text');
+    await this._moveTextImagesToSheets();
   }
 
   destroy() {
@@ -203,6 +228,7 @@ class Editor {
     document.removeEventListener('keydown', this._onKey);
     document.removeEventListener('visibilitychange', this._onVis);
     document.removeEventListener('pointerdown', this._onPen, true);
+    document.removeEventListener('paste', this._onPaste, true);
     store.bus.removeEventListener('change', this._onRemote);
     store.bus.removeEventListener('live', this._onLive);
   }
@@ -321,6 +347,10 @@ class Editor {
       const block = this.note.blocks.find((b) => b.id === op.blockId);
       const sheet = this.sheets.get(op.blockId);
       if (block && sheet) { block.strokes = op[key]; sheet.selection = null; sheet.render(); }
+    } else if (op.kind === 'photos') {
+      const block = this.note.blocks.find((b) => b.id === op.blockId);
+      const sheet = this.sheets.get(op.blockId);
+      if (block && sheet) { block.photos = op[key]; sheet.photoSel = null; this.onPhotoSelect(sheet, null); sheet.bgDirty = true; sheet.render(); }
     } else if (op.kind === 'blocks') {
       this.note.blocks = op[key];
       this.renderBlocks();
@@ -470,14 +500,91 @@ class Editor {
         await this.insertPdfPages(id, file.name);
         return;
       }
-      const url = await downscale(file, 1600);
-      const last = this.note.blocks.at(-1);
-      const target = last?.type === 'text' ? last : this.addBlock('text');
-      target.html += `<p><img src="${url}" alt="${file.name.replace(/"/g, '')}"></p><p><br></p>`;
-      this.renderBlocks();
-      this.save();
+      await this.addPhoto(file);
     };
     input.click();
+  }
+
+  // ---------- Fotos dentro de la hoja (GoodNotes) ----------
+  // La foto se pega en la hoja que se está viendo y se puede escribir encima.
+  async addPhoto(file, { block: target = null, y = null } = {}) {
+    let blob;
+    try {
+      blob = await downscale(file, 1600);
+    } catch {
+      toast('No se pudo leer la imagen', { error: true });
+      return null;
+    }
+    const blobId = `img:${db.uid()}`;
+    await db.put('blobs', { id: blobId, blob });
+    const bmp = await imageBitmap(blobId);
+    let sheet = target ? this.sheets.get(target.id) : this._visibleSheet();
+    let block = sheet?.block;
+    if (!block) {
+      block = this.addBlock('ink');
+      sheet = this.sheets.get(block.id);
+    }
+    const w = Math.min(store.PAPER_W * 0.7, bmp?.width || 600);
+    const hgt = bmp ? (w * bmp.height) / bmp.width : w * 0.75;
+    if (y == null) {
+      // Arriba de lo que se ve de la hoja (con un margen), no al principio de todo.
+      const r = sheet?.sheet.getBoundingClientRect();
+      const top = r ? Math.max(0, (this.scroller.getBoundingClientRect().top - r.top) * (store.PAPER_W / r.width)) : 0;
+      y = top + 60;
+    }
+    const ph = { id: db.uid('ph_'), blobId, x: Math.round((store.PAPER_W - w) / 2), y: Math.round(y), w: Math.round(w), h: Math.round(hgt) };
+    const before = block.photos || [];
+    block.photos = [...before, ph];
+    sheet?.fitHeight(ph.y + ph.h);
+    if (sheet) { sheet.bgDirty = true; sheet.render(); }
+    this.onPhotosChange(block, before);
+    return ph;
+  }
+
+  // La hoja que más se ve en pantalla.
+  _visibleSheet() {
+    const view = this.scroller.getBoundingClientRect();
+    let best = null;
+    let bestArea = 0;
+    for (const s of this.sheets.values()) {
+      if (s.block.image) continue; // las diapositivas ya ocupan toda la hoja
+      const r = s.sheet.getBoundingClientRect();
+      const area = Math.max(0, Math.min(r.bottom, view.bottom) - Math.max(r.top, view.top));
+      if (area > bestArea) { bestArea = area; best = s; }
+    }
+    return best;
+  }
+
+  // Fotos que quedaron pegadas en el texto (versiones anteriores): pasan a la hoja.
+  async _moveTextImagesToSheets() {
+    let moved = 0;
+    for (const tb of [...this.note.blocks]) {
+      if (tb.type !== 'text' || !/<img[^>]+src="data:image/i.test(tb.html || '')) continue;
+      const doc = new DOMParser().parseFromString(`<div>${tb.html}</div>`, 'text/html');
+      const imgs = [...doc.querySelectorAll('img[src^="data:image"]')];
+      const idx = this.note.blocks.indexOf(tb);
+      let target = [...this.note.blocks.slice(0, idx)].reverse().find((b) => b.type === 'ink' && !b.image && !b.pdf)
+        || this.note.blocks.slice(idx + 1).find((b) => b.type === 'ink' && !b.image && !b.pdf);
+      if (!target) {
+        target = store.newInkBlock({ paper: 'lined' });
+        this.note.blocks.splice(idx, 0, target);
+        this.renderBlocks();
+      }
+      for (const img of imgs) {
+        const file = await (await fetch(img.src)).blob();
+        const bottom = Math.max(0, ...(target.strokes || []).flatMap((st) => st.points.map((q) => q[1])), ...(target.photos || []).map((p) => p.y + p.h));
+        await this.addPhoto(file, { block: target, y: bottom + 50 });
+        const p = img.closest('p');
+        if (p && !p.textContent.trim() && p.querySelectorAll('img').length === 1) p.remove(); else img.remove();
+        moved++;
+      }
+      tb.html = doc.body.firstElementChild.innerHTML.replace(/^(<p><br><\/p>)+$/, '');
+    }
+    if (moved) {
+      this.renderBlocks();
+      this.save();
+      toast(moved === 1 ? 'La foto pasó a la hoja: ya le podés escribir encima' : `${moved} fotos pasaron a la hoja`);
+    }
   }
 
   async insertMaterial() {
@@ -506,6 +613,15 @@ class Editor {
   }
 
   _renderSelectionBar() {
+    if (this.activePhoto?.photoSel) {
+      const ps = this.activePhoto;
+      this.selectionBar.hidden = false;
+      this.selectionBar.replaceChildren(
+        h('span', 'Foto: arrastrala para moverla; el punto azul de la esquina cambia el tamaño'),
+        h('button.btn.small.danger', { type: 'button', onclick: () => ps.deletePhoto() }, icon('trash'), 'Borrar foto'),
+        h('button.btn.small', { type: 'button', onclick: () => ps.selectPhoto(null) }, 'Listo'));
+      return;
+    }
     const sheet = this.activeSelection;
     this.selectionBar.hidden = !sheet;
     if (!sheet) return;
@@ -733,7 +849,7 @@ async function downscale(file, max) {
   c.width = Math.round(bmp.width * k);
   c.height = Math.round(bmp.height * k);
   c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-  return c.toDataURL('image/jpeg', 0.85);
+  return new Promise((resolve) => c.toBlob(resolve, 'image/jpeg', 0.85));
 }
 
 const bitmaps = new Map();
