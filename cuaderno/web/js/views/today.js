@@ -5,6 +5,7 @@ import * as store from '../store.js';
 import * as campus from '../campus.js';
 import { h, icon, toast } from '../ui.js';
 import { go } from '../router.js';
+import { showClassPlan, readingsSummary } from './classplan.js';
 
 export async function renderToday(root, { date } = {}) {
   const day = date ? store.fromYmd(date) : new Date();
@@ -33,6 +34,17 @@ export async function renderToday(root, { date } = {}) {
     const nb = nbById.get(ev.notebookId);
     const live = now >= ev.start && now <= ev.end;
     const existing = notes.find((n) => n.notebookId === ev.notebookId && n.classDate === store.ymd(ev.start));
+    // Debajo de la clase: qué hay que leer (se completa solo).
+    const reading = h('div.class-reading');
+    if (nb) {
+      readingsSummary(nb, ev).then((p) => {
+        if (!p) return;
+        const names = p.readings.map((f) => f.name.replace(/\.[^.]+$/, ''));
+        reading.replaceChildren(
+          h('span', p.n ? `Clase ${p.n}${p.total ? ` de ${p.total}` : ''}` : 'Esta clase', names.length ? ` · para leer: ${names.slice(0, 3).join(' · ')}${names.length > 3 ? ` (+${names.length - 3})` : ''}` : p.excerpt ? ' · ver lo que dice el programa' : ''),
+          h('button.btn.small.ghost', { type: 'button', onclick: () => showClassPlan(ev, nb) }, icon('book'), 'Qué leer'));
+      });
+    }
     return h(`article.class-card${live ? '.live' : ''}`, { style: { '--c': nb?.color || '#8a8f98' } },
       h('div.class-time', h('strong', store.fmtTime(ev.start)), h('span', store.fmtTime(ev.end))),
       h('div.class-info',
@@ -40,7 +52,8 @@ export async function renderToday(root, { date } = {}) {
         h('div.meta',
           ev.location ? h('span', icon('location'), ev.location) : null,
           live ? h('span.badge.live', 'En curso') : null,
-          existing ? h('span.badge', 'Con notas') : null)),
+          existing ? h('span.badge', 'Con notas') : null),
+        reading),
       nb
         ? h('button.btn.primary', {
           type: 'button',

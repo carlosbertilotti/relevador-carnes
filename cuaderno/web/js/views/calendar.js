@@ -1,7 +1,9 @@
-// Vista semanal: clases, entregas y eventos. Tocar una clase abre su nota.
+// Vista semanal: clases, entregas y eventos. Tocar una clase muestra qué leer
+// y trabajar para ese día (y desde ahí se abre la nota).
 import * as store from '../store.js';
 import { h, icon } from '../ui.js';
 import { go } from '../router.js';
+import { showClassPlan } from './classplan.js';
 
 const HOUR_PX = 56;
 
@@ -37,7 +39,7 @@ export async function renderCalendar(root, { date } = {}) {
             style: { top: `${top}px`, height: `${height}px`, left: `${(lane / lanes) * 100}%`, width: `${100 / lanes}%`, '--c': nb?.color || ev.color || '#8a8f98' },
             title: `${ev.title}${ev.location ? ` — ${ev.location}` : ''}`,
             onclick: async () => {
-              if (ev.kind === 'clase' && nb) { const n = await store.noteForClass(nb.id, ev.start); go(`/nota/${n.id}`); }
+              if (ev.kind === 'clase' && nb) showClassPlan(ev, nb); // qué leer + tomar notas
               else if (ev.url) window.open(ev.url, '_blank');
               else go(`/hoy/${key}`);
             },

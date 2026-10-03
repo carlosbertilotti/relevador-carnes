@@ -146,7 +146,7 @@ function moduleLabel(type) {
   return { assign: 'Entrega', forum: 'Foro', quiz: 'Cuestionario', url: 'Enlace', page: 'Página', folder: 'Carpeta', zoom: 'Zoom', lti: 'Herramienta externa' }[type] || 'Abrir en el campus';
 }
 
-async function openFile(f) {
+export async function openFile(f) {
   try {
     const blob = await campus.download(f.id);
     const url = URL.createObjectURL(blob);
@@ -158,7 +158,7 @@ async function openFile(f) {
 }
 
 // Anotar un PDF: en la nota de hoy, en una nota nueva o en una existente.
-async function openInCuaderno(btn, f) {
+export async function openInCuaderno(btn, f) {
   btn.disabled = true;
   const label = btn.lastChild;
   try {

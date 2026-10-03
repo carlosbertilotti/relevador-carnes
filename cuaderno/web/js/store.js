@@ -235,8 +235,7 @@ export async function agenda(from, to) {
   const campusEvents = (await db.getSetting('campusEvents', [])) || [];
   for (const ev of campusEvents) {
     if (ev.end < from.getTime() || ev.start >= to.getTime()) continue;
-    const nb = notebooks.find((n) => n.courseId != null && n.courseId === ev.courseId);
-    out.push({ ...ev, notebookId: nb?.id || null });
+    out.push(classifyCampusEvent(ev, notebooks));
   }
 
   // Si una clase aparece en el horario y en un iCal, queda una sola.
@@ -250,6 +249,18 @@ export async function agenda(from, to) {
       seen.add(key);
       return true;
     });
+}
+
+// Los días de cursada vienen en el calendario del curso general ("Regional") con
+// títulos como "Finanzas Corporativas - Prof. Machinea": se asignan a esa materia
+// y cuentan como clase. Exámenes, ayudantías y avisos se asignan pero no son clase.
+export function classifyCampusEvent(ev, notebooks) {
+  const own = notebooks.find((n) => n.courseId != null && n.courseId === ev.courseId);
+  const subject = matchNotebook(notebooks.filter((n) => n !== own), ev.title);
+  const nb = subject || own;
+  const isClass = !!subject && /\s[-–]\s*prof/i.test(ev.title)
+    && !/(examen|parcial|recuperatorio|llamado|ayudant|consigna|deadline|entrega|coloquio)/i.test(ev.title);
+  return { ...ev, notebookId: nb?.id || null, kind: isClass ? 'clase' : ev.kind };
 }
 
 export function matchNotebook(notebooks, text) {
