@@ -91,7 +91,7 @@ const api = {
   'POST /api/campus/sync': async (body) => {
     const base = moodle.normalizeBase(body.url);
     if (!body.token) throw Object.assign(new Error('Falta el token del campus'), { status: 400 });
-    return moodle.snapshot(base, body.token, { daysAhead: body.daysAhead || 60 });
+    return moodle.snapshot(base, body.token, { daysAhead: body.daysAhead || 120 });
   },
 
   'POST /api/campus/file': async (body, res) => {

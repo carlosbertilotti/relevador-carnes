@@ -74,7 +74,9 @@ const DOWNLOADABLE = /\.(pdf|docx?|pptx?|xlsx?|txt|md|png|jpe?g|gif|zip|csv|ipyn
 
 // Devuelve todo lo que la app necesita en un solo viaje: materias, contenido
 // de cada una (secciones, recursos y archivos) y eventos del calendario.
-export async function snapshot(base, token, { daysAhead = 60, daysBack = 7 } = {}) {
+// daysBack: todo el cuatrimestre, así las clases ya pasadas también tienen su número
+// ("Clase 5") y se puede ver qué se leyó en cada una.
+export async function snapshot(base, token, { daysAhead = 120, daysBack = 240 } = {}) {
   const site = await call(base, token, 'core_webservice_get_site_info');
   const courses = await call(base, token, 'core_enrol_get_users_courses', { userid: site.userid });
   const now = Math.floor(Date.now() / 1000);
