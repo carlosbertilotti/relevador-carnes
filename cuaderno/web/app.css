@@ -424,3 +424,16 @@ body.in-editor #main { overflow: hidden; }
 .plan-excerpt { white-space: pre-wrap; margin: 6px 0 8px; padding: 10px 12px; border-left: 3px solid var(--accent); background: color-mix(in srgb, var(--text) 4%, transparent); border-radius: 6px; font-size: 14px; max-height: 40vh; overflow: auto; }
 .class-reading { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; font-size: 13px; color: var(--muted); }
 .class-reading:empty { display: none; }
+
+/* Preparación de exámenes */
+.row.space { justify-content: space-between; }
+.tabs { overflow-x: auto; scrollbar-width: none; }
+.tabs button { white-space: nowrap; }
+.exam-next { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-left: 4px solid var(--c, var(--accent)); }
+.exam-next h2 { margin: 2px 0; font-size: 18px; }
+.exam-next p { margin: 0; color: var(--muted); }
+.exam-days { text-align: center; min-width: 72px; }
+.exam-days strong { display: block; font-size: 34px; line-height: 1; color: var(--c, var(--accent)); }
+.exam-days span { font-size: 13px; color: var(--muted); }
+.exam-guide-edit { width: 100%; font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+.exam-group { font-size: 14px; color: var(--muted); margin: 12px 0 4px; }

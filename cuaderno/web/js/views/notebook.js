@@ -11,7 +11,7 @@ import { updateNotebookSummary, renderMarkdown, noteNeedsSummary, aiAvailable } 
 export async function renderNotebook(root, { id, tab = 'notas' }) {
   const nb = await db.get('notebooks', id);
   if (!nb) { root.replaceChildren(h('div.empty', 'Esta materia no existe.')); return; }
-  const tabs = [['notas', 'Notas'], ['resumen', 'Resumen'], ['material', 'Material'], ['horario', 'Horario']];
+  const tabs = [['notas', 'Notas'], ['resumen', 'Resumen'], ['material', 'Material'], ['examenes', 'Preparación de exámenes'], ['horario', 'Horario']];
   const body = h('div.tab-body');
 
   root.replaceChildren(h('div.page.notebook', { style: { '--c': nb.color } },
@@ -26,6 +26,7 @@ export async function renderNotebook(root, { id, tab = 'notas' }) {
     body));
 
   if (tab === 'material') await renderMaterial(body, nb);
+  else if (tab === 'examenes') await (await import('./exams.js')).renderExams(body, nb);
   else if (tab === 'resumen') await renderSummary(body, nb);
   else if (tab === 'horario') renderSchedule(body, nb);
   else await renderNotes(body, nb);
@@ -103,7 +104,7 @@ async function renderMaterial(body, nb) {
         : [h('li.file-row.link', { onclick: () => window.open(m.url, '_blank') }, icon(m.type === 'assign' ? 'checklist' : 'campus'), h('div.grow', h('div', m.name), h('small', moduleLabel(m.type))))]))));
   }).filter(Boolean);
 
-  const local = files.filter((f) => f.local);
+  const local = files.filter((f) => f.local && !f.exam); // los exámenes van en su pestaña
   const noCampus = nb.courseId != null && !acc?.token
     ? h('div.card.browser-warn',
       h('p', h('strong', 'Este dispositivo todavía no tiene la conexión del campus. '), 'Si ya lo conectaste en otro (por ejemplo, Safari en la Mac), abrí Cuaderno ahí: la conexión se pasa sola a este dispositivo en unos segundos.'),
