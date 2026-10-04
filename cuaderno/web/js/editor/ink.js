@@ -645,6 +645,19 @@ export class InkSheet {
     this._commit(before);
   }
 
+  // Imagen chica de la hoja (fondo + tinta) en JPEG, para enviarla a corregir.
+  toJpeg(width = 900, quality = 0.72) {
+    const c = document.createElement('canvas');
+    c.width = width;
+    c.height = Math.round((this.ink.height * width) / this.ink.width);
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(this.bg, 0, 0, c.width, c.height);
+    ctx.drawImage(this.ink, 0, 0, c.width, c.height);
+    return new Promise((resolve) => c.toBlob(resolve, 'image/jpeg', quality));
+  }
+
   // Imagen de la hoja (fondo + tinta), para exportar o imprimir.
   toDataURL() {
     const c = document.createElement('canvas');

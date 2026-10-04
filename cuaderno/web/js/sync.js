@@ -175,6 +175,7 @@ async function referencedBlobs() {
   const ids = new Set();
   for (const n of await db.all('notes')) {
     for (const rec of n.recordings || []) ids.add(rec.blobId);
+    for (const id of n.correction?.pages || []) ids.add(id);
     for (const b of n.blocks || []) {
       if (b.image?.blobId) ids.add(b.image.blobId);
       for (const ph of b.photos || []) ids.add(ph.blobId);

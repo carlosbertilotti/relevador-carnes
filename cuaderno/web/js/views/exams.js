@@ -8,6 +8,7 @@ import { canOpen } from '../editor/office.js';
 import { renderMarkdown } from '../summary.js';
 import { h, fill, icon, toast, confirmDialog } from '../ui.js';
 import { openInCuaderno, openFile } from './notebook.js';
+import { go } from '../router.js';
 
 const KINDS = [['examen', 'Examen anterior'], ['simulacro', 'Simulacro'], ['solucion', 'Solución'], ['guia', 'Guía / resumen']];
 const EXAM_RE = /(examen|parcial|final|recuperatorio|coloquio)/i;
@@ -25,6 +26,8 @@ export async function upcomingExams(nb, now = Date.now()) {
 export async function renderExams(body, nb) {
   const fresh = (await db.get('notebooks', nb.id)) || nb;
   const files = (await db.all('files')).filter((f) => f.exam && f.notebookId === nb.id).sort((a, b) => (a.examOrder ?? 99) - (b.examOrder ?? 99) || b.addedAt - a.addedAt);
+  const notes = await store.notesOf(nb.id);
+  const noteFor = (f) => notes.find((n) => n.blocks?.some((b) => b.pdf?.fileId === f.id || b.image?.fileId === f.id));
   const exams = await upcomingExams(nb);
 
   // 1) Próximo examen
@@ -59,7 +62,9 @@ export async function renderExams(body, nb) {
     icon(campus.isPdf(f) ? 'pdf' : 'file'),
     h('div.grow', h('div', f.name), h('small', [kindLabel[f.examKind] || 'Material', f.examNote].filter(Boolean).join(' · '))),
     h('div.row',
-      canOpen(f) ? h('button.btn.small.primary', { type: 'button', title: 'Abrir en Cuaderno para resolverlo a mano', onclick: (e) => openInCuaderno(e.currentTarget, f) }, icon('compose'), 'Resolver') : null,
+      canOpen(f) ? (noteFor(f)
+        ? h('button.btn.small.primary', { type: 'button', title: 'Seguir en la nota donde lo estás resolviendo', onclick: () => go(`/nota/${noteFor(f).id}`) }, icon('compose'), 'Seguir resolviendo')
+        : h('button.btn.small.primary', { type: 'button', title: 'Abrir en Cuaderno para resolverlo a mano', onclick: (e) => openInCuaderno(e.currentTarget, f) }, icon('compose'), 'Resolver')) : null,
       h('button.btn.small', { type: 'button', onclick: () => openFile(f) }, 'Original'),
       h('button.icon-btn', { type: 'button', 'aria-label': 'Quitar', onclick: async () => {
         if (!(await confirmDialog('Quitar archivo', `Se quita "${f.name}" de Preparación de exámenes.`, { ok: 'Quitar', danger: true }))) return;
