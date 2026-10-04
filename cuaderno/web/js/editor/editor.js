@@ -818,11 +818,36 @@ class Editor {
     setTimeout(() => window.print(), 100);
   }
 
+  // Manda una copia de las hojas (como imágenes chicas) a la nube, para que se
+  // puedan corregir desde afuera sin bajar todos los trazos.
+  async sendForCorrection() {
+    await this._save();
+    const stamp = Date.now().toString(36);
+    const pages = [];
+    const texts = [];
+    for (const b of this.note.blocks) {
+      if (b.type === 'text') { if (b.html?.replace(/<[^>]+>/g, '').trim()) texts.push(b.html); continue; }
+      const sheet = this.sheets.get(b.id);
+      if (!sheet) continue;
+      const blob = await sheet.toJpeg();
+      const id = `corr:${this.note.id}:${stamp}:${pages.length + 1}`;
+      await db.put('blobs', { id, blob });
+      pages.push(id);
+    }
+    for (const old of this.note.correction?.pages || []) await db.del('blobs', old).catch(() => {});
+    this.note.correction = { at: Date.now(), pages, texts, title: this.note.title };
+    await this._save();
+    toast(`Enviado a corregir: ${pages.length} hoja(s). Cuando termine de subir, avisale a Claude.`);
+    // Subir ya (si la sincronización está configurada; si no, no molestar pidiendo la clave).
+    if (await db.getSetting('appKey', '')) import('../sync.js').then((s) => s.syncNow()).catch(() => {});
+  }
+
   moreMenu(anchor) {
     const n = this.note;
     popover(anchor, [
       { label: n.pinned ? 'Desfijar' : 'Fijar arriba', icon: 'pin', onClick: () => { n.pinned = !n.pinned; this.save(); } },
       { label: 'Exportar PDF / imprimir', icon: 'share', onClick: () => this.exportPdf() },
+      { label: 'Enviar a corregir', icon: 'check', onClick: () => this.sendForCorrection() },
       '-',
       { label: 'Eliminar nota', icon: 'trash', danger: true, onClick: async () => {
         if (!(await confirmDialog('Eliminar nota', 'Se borra la nota, sus hojas y grabaciones.', { ok: 'Eliminar', danger: true }))) return;

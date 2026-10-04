@@ -68,6 +68,51 @@ try {
   await page.locator('.sheet').first().waitFor();
   step('"Resolver" abre el examen en una nota para escribir con el lápiz (y no se mezcla con Material)');
 
+  // Simulacro que viene con la app (srcUrl): se baja solo, se resuelve y se envía a corregir
+  await page.evaluate(async () => {
+    const db = await import('/js/db.js');
+    await db.put('files', { id: 'sim_test', courseId: null, notebookId: 'nb_c7704', name: 'Simulacro final.pdf', size: 81232, mimetype: 'application/pdf', modified: 1, local: false, seen: true, addedAt: 2, exam: true, examKind: 'simulacro', srcUrl: '/exams/simulacro-dop-2026-10.pdf' }, { remote: true });
+  });
+  await page.goto(`${base}/#/cuaderno/nb_c7704/examenes`);
+  const simRow = page.locator('.file-row', { hasText: 'Simulacro final.pdf' });
+  await simRow.waitFor();
+  await simRow.locator('button', { hasText: 'Resolver' }).click();
+  await page.waitForURL(/#\/nota\//, { timeout: 15000 });
+  await page.waitForFunction(() => document.querySelectorAll('.sheet').length === 8, null, { timeout: 15000 });
+  await page.waitForTimeout(1500);
+  const inkOnPage = await page.evaluate(() => {
+    const bg = document.querySelector('.sheet .layer.bg');
+    const d = bg.getContext('2d').getImageData(0, 0, bg.width, Math.min(bg.height, 400)).data;
+    let dark = 0; for (let i = 0; i < d.length; i += 4) if (d[i] < 100 && d[i + 3] > 0) dark++;
+    return dark;
+  });
+  if (inkOnPage < 500) throw new Error(`La primera hoja del simulacro no se dibujó (píxeles oscuros: ${inkOnPage})`);
+  step('El simulacro que viene con la app se baja solo y abre sus 8 hojas para resolver');
+  const simNote = page.url().split('/nota/')[1];
+
+  // Escribir algo y enviar a corregir
+  await page.locator('.segmented button', { hasText: 'Lápiz' }).click();
+  const sb = await page.locator('.sheet').first().boundingBox();
+  await page.mouse.move(sb.x + 100, sb.y + 300); await page.mouse.down(); await page.mouse.move(sb.x + 400, sb.y + 330, { steps: 8 }); await page.mouse.up();
+  await page.waitForTimeout(700);
+  await page.locator('.editor-head button[title="Más"]').click();
+  await page.locator('.popover .menu-item', { hasText: 'Enviar a corregir' }).click();
+  await page.waitForTimeout(2500);
+  const corr = await page.evaluate(async (id) => {
+    const db = await import('/js/db.js');
+    const n = await db.get('notes', id);
+    const blobs = (await db.all('blobs')).filter((b) => b.id.startsWith(`corr:${id}:`));
+    return { pages: n.correction?.pages?.length, blobs: blobs.length, types: [...new Set(blobs.map((b) => b.blob.type))], maxKb: Math.round(Math.max(...blobs.map((b) => b.blob.size)) / 1024) };
+  }, simNote);
+  if (corr.pages !== 8 || corr.blobs !== 8 || corr.types.join() !== 'image/jpeg' || corr.maxKb > 400) throw new Error(`Enviar a corregir: ${JSON.stringify(corr)}`);
+  step(`"Enviar a corregir" guarda las 8 hojas como JPEG (la más pesada: ${corr.maxKb} KB) y las deja listas para subir`);
+
+  // Volver a la pestaña: ahora dice "Seguir resolviendo" y va a la misma nota
+  await page.goto(`${base}/#/cuaderno/nb_c7704/examenes`);
+  await simRow.locator('button', { hasText: 'Seguir resolviendo' }).click();
+  await page.waitForURL(new RegExp(`/nota/${simNote}`));
+  step('"Seguir resolviendo" vuelve a la misma nota');
+
   // Celular: sin scroll horizontal
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto(`${base}/#/cuaderno/nb_c7704/examenes`);

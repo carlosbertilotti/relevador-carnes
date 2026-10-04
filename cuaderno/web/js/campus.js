@@ -214,6 +214,16 @@ export async function download(id) {
     const have = await getBlob(id);
     if (have) return have;
   }
+  if (f.srcUrl) {
+    // Archivo que viene con la app (por ejemplo, un simulacro de examen): se baja del propio sitio.
+    const res = await fetch(f.srcUrl);
+    if (!res.ok) throw new Error('No se pudo bajar el archivo');
+    const blob = await res.blob();
+    await db.put('blobs', { id: `file:${id}`, blob });
+    await db.put('files', { ...f, downloaded: true, downloadedAt: Date.now(), downloadError: null });
+    emit('change', { type: 'file', id });
+    return blob;
+  }
   const acc = await account();
   if (!acc?.token) {
     throw new Error('Este dispositivo todavía no tiene la conexión del campus. Abrí Cuaderno en el dispositivo donde lo conectaste (se pasa sola al sincronizar) o conectalo acá en "Campus y calendarios".');
