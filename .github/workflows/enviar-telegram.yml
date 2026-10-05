@@ -1,0 +1,42 @@
+name: Enviar por Telegram
+
+# Manda un mensaje (y opcionalmente un archivo del repo como documento) al
+# Telegram de Carlos, con el mismo bot que usa el relevamiento.
+on:
+  workflow_dispatch:
+    inputs:
+      mensaje:
+        description: Texto a enviar (va como epígrafe si hay archivo)
+        required: true
+        type: string
+      archivo:
+        description: Ruta de un archivo del repo para mandar como documento (opcional)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  enviar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        if: ${{ inputs.archivo != '' }}
+      - name: Enviar
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MENSAJE: ${{ inputs.mensaje }}
+          ARCHIVO: ${{ inputs.archivo }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then echo "Faltan los secrets de Telegram"; exit 1; fi
+          API="https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN"
+          if [ -n "$ARCHIVO" ]; then
+            [ -f "$ARCHIVO" ] || { echo "No existe $ARCHIVO"; exit 1; }
+            curl -sS --fail-with-body "$API/sendDocument" -F chat_id="$TELEGRAM_CHAT_ID" -F caption="$MENSAJE" -F document=@"$ARCHIVO" > r.json
+          else
+            curl -sS --fail-with-body "$API/sendMessage" --data-urlencode chat_id="$TELEGRAM_CHAT_ID" --data-urlencode text="$MENSAJE" > r.json
+          fi
+          python3 -c 'import json; r=json.load(open("r.json")); print("ok" if r.get("ok") else r); exit(0 if r.get("ok") else 1)'
