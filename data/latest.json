@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-10-04",
-  "anterior": "2026-10-03",
-  "generado": "2026-10-04T12:01:18.901113+00:00",
+  "ultima_corrida": "2026-10-05",
+  "anterior": "2026-10-04",
+  "generado": "2026-10-05T12:01:30.803697+00:00",
   "carnicerias": [
     "Beef Club",
     "Carrefour",
@@ -22,8 +22,8 @@
     "aguja": {
       "mejor_precio": 8486.9,
       "mejor_carniceria": "Vea",
-      "promedio": 14281.61,
-      "variacion_pct": 0.0,
+      "promedio": 14037.87,
+      "variacion_pct": -1.7,
       "precios": [
         {
           "carniceria": "Vea",
@@ -42,7 +42,7 @@
         },
         {
           "carniceria": "Cordiez",
-          "precio_kg": 12999.0,
+          "precio_kg": 11049.15,
           "url": "https://www.cordiez.com.ar/aguja-parrillera-especial-x-kg/p"
         },
         {
@@ -71,7 +71,7 @@
       "mejor_precio": 12812.18,
       "mejor_carniceria": "Vea",
       "promedio": 27057.02,
-      "variacion_pct": -0.5,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -118,8 +118,8 @@
     "bife_ancho": {
       "mejor_precio": 17666.0,
       "mejor_carniceria": "La Señalada",
-      "promedio": 48309.45,
-      "variacion_pct": 1.3,
+      "promedio": 45793.79,
+      "variacion_pct": -5.2,
       "precios": [
         {
           "carniceria": "La Señalada",
@@ -164,26 +164,11 @@
       ]
     },
     "bife_angosto": {
-      "mejor_precio": 14986.9,
-      "mejor_carniceria": "Vea",
-      "promedio": 39152.93,
-      "variacion_pct": 0.8,
+      "mejor_precio": 17666.0,
+      "mejor_carniceria": "La Señalada",
+      "promedio": 41168.15,
+      "variacion_pct": 5.1,
       "precios": [
-        {
-          "carniceria": "Vea",
-          "precio_kg": 14986.9,
-          "url": "https://www.vea.com.ar/bife-de-chorizo-novillito-2/p"
-        },
-        {
-          "carniceria": "Disco",
-          "precio_kg": 14986.9,
-          "url": "https://www.disco.com.ar/bife-de-chorizo-novillito-2/p"
-        },
-        {
-          "carniceria": "Jumbo",
-          "precio_kg": 14986.9,
-          "url": "https://www.jumbo.com.ar/bife-de-chorizo-novillito-2/p"
-        },
         {
           "carniceria": "La Señalada",
           "precio_kg": 17666.0,
@@ -191,7 +176,7 @@
         },
         {
           "carniceria": "Cordiez",
-          "precio_kg": 23999.0,
+          "precio_kg": 20399.15,
           "url": "https://www.cordiez.com.ar/bife-de-chorizo-especial-x-kg/p"
         },
         {
@@ -208,19 +193,39 @@
           "carniceria": "Carrefour",
           "precio_kg": 24500.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
+        },
+        {
+          "carniceria": "EQ Minorista 🏠",
+          "precio_kg": 25000.0,
+          "url": "supabase://carnes_precios.precio_local"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 25550.0,
+          "url": "https://www.res.com.ar/bife-angosto.html"
+        },
+        {
+          "carniceria": "El Origen",
+          "precio_kg": 25900.0,
+          "url": "https://carniceriaelorigen.com/cortes-vacunos/bife-de-chorizo-entero"
         }
       ]
     },
     "bola_lomo": {
       "mejor_precio": 16589.0,
       "mejor_carniceria": "Cordiez",
-      "promedio": 22170.26,
-      "variacion_pct": 2.1,
+      "promedio": 22002.52,
+      "variacion_pct": -0.8,
       "precios": [
         {
           "carniceria": "Cordiez",
           "precio_kg": 16589.0,
           "url": "https://www.cordiez.com.ar/bola-de-lomo-de-oferta-de-novillo-x-kg/p"
+        },
+        {
+          "carniceria": "Cordiez",
+          "precio_kg": 17599.25,
+          "url": "https://www.cordiez.com.ar/bola-de-lomo-especial-x-kg/p"
         },
         {
           "carniceria": "En Carne Propia",
@@ -236,11 +241,6 @@
           "carniceria": "Justino",
           "precio_kg": 20300.0,
           "url": "https://justino.com.ar/producto/bola-de-lomo/"
-        },
-        {
-          "carniceria": "Cordiez",
-          "precio_kg": 20705.0,
-          "url": "https://www.cordiez.com.ar/bola-de-lomo-especial-x-kg/p"
         },
         {
           "carniceria": "Vea",
@@ -262,8 +262,8 @@
     "colita_cuadril": {
       "mejor_precio": 19999.0,
       "mejor_carniceria": "Jumbo",
-      "promedio": 33387.11,
-      "variacion_pct": -0.0,
+      "promedio": 33216.66,
+      "variacion_pct": -0.5,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -274,6 +274,11 @@
           "carniceria": "ChangoMás",
           "precio_kg": 20165.83,
           "url": "https://www.masonline.com.ar/colita-de-cuadril-novillito-x-1-2-kg/p"
+        },
+        {
+          "carniceria": "Cordiez",
+          "precio_kg": 21249.15,
+          "url": "https://www.cordiez.com.ar/colita-de-cuadril-especial-x-kg/p"
         },
         {
           "carniceria": "Carrefour",
@@ -299,19 +304,14 @@
           "carniceria": "Jumbo",
           "precio_kg": 23998.0,
           "url": "https://www.jumbo.com.ar/colita-de-cuadril-tipo-gondola-sin-atributo-sin-atributo/p"
-        },
-        {
-          "carniceria": "Cordiez",
-          "precio_kg": 24999.0,
-          "url": "https://www.cordiez.com.ar/colita-de-cuadril-especial-x-kg/p"
         }
       ]
     },
     "cuadril": {
       "mejor_precio": 18396.78,
       "mejor_carniceria": "Vea",
-      "promedio": 27997.32,
-      "variacion_pct": -3.6,
+      "promedio": 27866.93,
+      "variacion_pct": -0.5,
       "precios": [
         {
           "carniceria": "Vea",
@@ -344,22 +344,22 @@
           "url": "https://www.lasenaladacarnes.com/productos/carnes/carne-de-novillito"
         },
         {
+          "carniceria": "Cordiez",
+          "precio_kg": 20399.15,
+          "url": "https://www.cordiez.com.ar/cuadril-especial-x-kg/p"
+        },
+        {
           "carniceria": "IPCVA (referencia)",
           "precio_kg": 21102.92,
           "url": "https://datos.gob.ar/dataset?q=105.1_I2C_2016_M_16"
-        },
-        {
-          "carniceria": "EQ Minorista 🏠",
-          "precio_kg": 22000.0,
-          "url": "supabase://carnes_precios.precio_local"
         }
       ]
     },
     "entrana": {
       "mejor_precio": 16525.58,
       "mejor_carniceria": "Vea",
-      "promedio": 36319.89,
-      "variacion_pct": -0.7,
+      "promedio": 36695.83,
+      "variacion_pct": 1.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -382,14 +382,14 @@
           "url": "https://www.disco.com.ar/centro-de-entrana-fresco-4/p"
         },
         {
-          "carniceria": "Jumbo",
-          "precio_kg": 19240.94,
-          "url": "https://www.jumbo.com.ar/centro-de-entrana-fresco-4/p"
-        },
-        {
           "carniceria": "Vea",
           "precio_kg": 20611.38,
           "url": "https://www.vea.com.ar/centro-de-entrana-fresco/p"
+        },
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 20611.38,
+          "url": "https://www.jumbo.com.ar/centro-de-entrana-fresco/p"
         },
         {
           "carniceria": "RES",
@@ -404,11 +404,16 @@
       ]
     },
     "falda": {
-      "mejor_precio": 13300.0,
-      "mejor_carniceria": "En Carne Propia",
-      "promedio": 15179.14,
-      "variacion_pct": -0.0,
+      "mejor_precio": 13174.15,
+      "mejor_carniceria": "Cordiez",
+      "promedio": 14528.52,
+      "variacion_pct": -4.3,
       "precios": [
+        {
+          "carniceria": "Cordiez",
+          "precio_kg": 13174.15,
+          "url": "https://www.cordiez.com.ar/falda-especial-x-kg/p"
+        },
         {
           "carniceria": "En Carne Propia",
           "precio_kg": 13300.0,
@@ -425,19 +430,9 @@
           "url": "https://encarnepropia.com.ar/tienda/producto-09/"
         },
         {
-          "carniceria": "Cordiez",
-          "precio_kg": 15499.0,
-          "url": "https://www.cordiez.com.ar/falda-especial-x-kg/p"
-        },
-        {
           "carniceria": "Vea",
           "precio_kg": 15810.0,
           "url": "https://www.vea.com.ar/falda-2-2/p"
-        },
-        {
-          "carniceria": "Disco",
-          "precio_kg": 16758.0,
-          "url": "https://www.disco.com.ar/falda-2-2/p"
         },
         {
           "carniceria": "Cordiez",
@@ -449,8 +444,8 @@
     "lomo": {
       "mejor_precio": 12799.6,
       "mejor_carniceria": "Cordiez",
-      "promedio": 34816.46,
-      "variacion_pct": -0.0,
+      "promedio": 34747.02,
+      "variacion_pct": -0.2,
       "precios": [
         {
           "carniceria": "Cordiez",
@@ -459,7 +454,7 @@
         },
         {
           "carniceria": "Cordiez",
-          "precio_kg": 16666.0,
+          "precio_kg": 14166.1,
           "url": "https://www.cordiez.com.ar/lomo-especial-x-kg/p"
         },
         {
@@ -497,8 +492,8 @@
     "matambre": {
       "mejor_precio": 11990.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 26363.61,
-      "variacion_pct": 0.0,
+      "promedio": 26177.99,
+      "variacion_pct": -0.7,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -526,6 +521,11 @@
           "url": "https://www.masonline.com.ar/matambre-de-novillito-x-1-kg-2/p"
         },
         {
+          "carniceria": "Cordiez",
+          "precio_kg": 15639.32,
+          "url": "https://www.cordiez.com.ar/matambre-especial-x-kg/p"
+        },
+        {
           "carniceria": "Vea",
           "precio_kg": 16309.1,
           "url": "https://www.vea.com.ar/matambre-novillito-especial/p"
@@ -534,23 +534,18 @@
           "carniceria": "Disco",
           "precio_kg": 16309.1,
           "url": "https://www.disco.com.ar/matambre-novillito-especial/p"
-        },
-        {
-          "carniceria": "El Origen",
-          "precio_kg": 16900.0,
-          "url": "https://carniceriaelorigen.com/cortes-vacunos/matambre"
         }
       ]
     },
     "nalga": {
-      "mejor_precio": 21605.0,
+      "mejor_precio": 18364.25,
       "mejor_carniceria": "Cordiez",
-      "promedio": 25635.38,
-      "variacion_pct": 3.5,
+      "promedio": 25400.95,
+      "variacion_pct": -0.9,
       "precios": [
         {
           "carniceria": "Cordiez",
-          "precio_kg": 21605.0,
+          "precio_kg": 18364.25,
           "url": "https://www.cordiez.com.ar/nalga-especial-x-kg/p"
         },
         {
@@ -569,11 +564,6 @@
           "url": "https://encarnepropia.com.ar/tienda/nalga/"
         },
         {
-          "carniceria": "ChangoMás",
-          "precio_kg": 24270.0,
-          "url": "https://www.masonline.com.ar/nalga-feteada-de-novillito-x-600-gr-2/p"
-        },
-        {
           "carniceria": "Justino",
           "precio_kg": 26900.0,
           "url": "https://justino.com.ar/producto/nalga/"
@@ -587,6 +577,11 @@
           "carniceria": "Cordiez",
           "precio_kg": 27999.0,
           "url": "https://www.cordiez.com.ar/nalga-en-trozo-especial-novara-x-kg/p"
+        },
+        {
+          "carniceria": "RES",
+          "precio_kg": 34170.0,
+          "url": "https://www.res.com.ar/nalga.html"
         }
       ]
     },
@@ -594,7 +589,7 @@
       "mejor_precio": 7854.98,
       "mejor_carniceria": "Vea",
       "promedio": 15442.96,
-      "variacion_pct": -1.0,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -641,8 +636,8 @@
     "paleta": {
       "mejor_precio": 13832.5,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 28609.87,
-      "variacion_pct": -1.5,
+      "promedio": 28780.47,
+      "variacion_pct": 0.6,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -687,16 +682,11 @@
       ]
     },
     "peceto": {
-      "mejor_precio": 15832.5,
-      "mejor_carniceria": "ChangoMás",
-      "promedio": 31721.99,
-      "variacion_pct": -0.1,
+      "mejor_precio": 17999.0,
+      "mejor_carniceria": "Jumbo",
+      "promedio": 32439.01,
+      "variacion_pct": 2.3,
       "precios": [
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 15832.5,
-          "url": "https://www.masonline.com.ar/peceto-feteado-de-novillito-x-600-gr-4/p"
-        },
         {
           "carniceria": "Jumbo",
           "precio_kg": 17999.0,
@@ -713,6 +703,16 @@
           "url": "https://www.cordiez.com.ar/peceto-de-oferta-de-novillo-x-kg/p"
         },
         {
+          "carniceria": "ChangoMás",
+          "precio_kg": 19415.83,
+          "url": "https://www.masonline.com.ar/peceto-feteado-de-novillito-x-600-gr-4/p"
+        },
+        {
+          "carniceria": "Cordiez",
+          "precio_kg": 20399.15,
+          "url": "https://www.cordiez.com.ar/peceto-especial-x-kg/p"
+        },
+        {
           "carniceria": "En Carne Propia",
           "precio_kg": 21850.0,
           "url": "https://encarnepropia.com.ar/tienda/peceto-venta-por-unidad-14-kg-aprox-2/"
@@ -726,11 +726,6 @@
           "carniceria": "La Señalada",
           "precio_kg": 23333.0,
           "url": "https://www.lasenaladacarnes.com/productos/carnes/carne-de-novillito"
-        },
-        {
-          "carniceria": "Cordiez",
-          "precio_kg": 23999.0,
-          "url": "https://www.cordiez.com.ar/peceto-especial-x-kg/p"
         }
       ]
     },
@@ -786,7 +781,7 @@
       "mejor_precio": 8252.7,
       "mejor_carniceria": "Vea",
       "promedio": 17355.37,
-      "variacion_pct": -0.7,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -881,8 +876,8 @@
     "tapa_asado": {
       "mejor_precio": 13490.0,
       "mejor_carniceria": "Carrefour",
-      "promedio": 23151.75,
-      "variacion_pct": -0.0,
+      "promedio": 23020.51,
+      "variacion_pct": -0.6,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -915,22 +910,22 @@
           "url": "https://www.lasenaladacarnes.com/productos/carnes/carne-de-novillito"
         },
         {
+          "carniceria": "Cordiez",
+          "precio_kg": 17849.15,
+          "url": "https://www.cordiez.com.ar/tapa-de-asado-especial-x-kg/p"
+        },
+        {
           "carniceria": "EQ Minorista 🏠",
           "precio_kg": 18000.0,
           "url": "supabase://carnes_precios.precio_local"
-        },
-        {
-          "carniceria": "El Origen",
-          "precio_kg": 18900.0,
-          "url": "https://carniceriaelorigen.com/cortes-vacunos/tapa-de-asado-entera"
         }
       ]
     },
     "tapa_cuadril": {
       "mejor_precio": 14999.0,
       "mejor_carniceria": "Cordiez",
-      "promedio": 26857.92,
-      "variacion_pct": 0.0,
+      "promedio": 26517.02,
+      "variacion_pct": -1.3,
       "precios": [
         {
           "carniceria": "Cordiez",
@@ -949,7 +944,7 @@
         },
         {
           "carniceria": "Cordiez",
-          "precio_kg": 24999.0,
+          "precio_kg": 21249.15,
           "url": "https://www.cordiez.com.ar/tapa-de-cuadril-especial-x-kg/p"
         },
         {
@@ -977,8 +972,8 @@
     "tapa_nalga": {
       "mejor_precio": 10136.52,
       "mejor_carniceria": "Vea",
-      "promedio": 24023.68,
-      "variacion_pct": -5.0,
+      "promedio": 23801.34,
+      "variacion_pct": -0.9,
       "precios": [
         {
           "carniceria": "Vea",
@@ -1025,8 +1020,8 @@
     "tortuguita": {
       "mejor_precio": 10733.7,
       "mejor_carniceria": "Vea",
-      "promedio": 16210.49,
-      "variacion_pct": 0.0,
+      "promedio": 15880.5,
+      "variacion_pct": -2.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -1073,8 +1068,8 @@
     "vacio": {
       "mejor_precio": 13532.67,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 30374.87,
-      "variacion_pct": -2.9,
+      "promedio": 30163.25,
+      "variacion_pct": -0.7,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -1083,7 +1078,7 @@
         },
         {
           "carniceria": "Cordiez",
-          "precio_kg": 14999.0,
+          "precio_kg": 15879.0,
           "url": "https://www.cordiez.com.ar/vacio-de-novillo-x-kg/p"
         },
         {
@@ -1095,6 +1090,11 @@
           "carniceria": "El Origen",
           "precio_kg": 19900.0,
           "url": "https://carniceriaelorigen.com/cortes-vacunos/vacio-entero"
+        },
+        {
+          "carniceria": "Cordiez",
+          "precio_kg": 21249.15,
+          "url": "https://www.cordiez.com.ar/vacio-especial-x-kg/p"
         },
         {
           "carniceria": "La Señalada",
@@ -1110,11 +1110,6 @@
           "carniceria": "Disco",
           "precio_kg": 24641.04,
           "url": "https://www.disco.com.ar/vacio-de-novillito-por-kg-3/p"
-        },
-        {
-          "carniceria": "Jumbo",
-          "precio_kg": 24641.04,
-          "url": "https://www.jumbo.com.ar/vacio-de-novillito-por-kg-3/p"
         }
       ]
     }
