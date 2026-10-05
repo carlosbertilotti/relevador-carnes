@@ -247,7 +247,12 @@ export function stripHtml(html) {
 
 // Las URLs de archivos de Moodle aceptan el token como parámetro.
 export function fileUrlWithToken(base, fileurl, token) {
-  const u = new URL(fileurl);
+  let u;
+  try {
+    u = new URL(fileurl);
+  } catch {
+    throw new MoodleError('Este archivo no viene del campus. Recargá Cuaderno para usar la versión nueva.', 'badfile', 400);
+  }
   const b = new URL(base);
   if (u.origin !== b.origin) throw new MoodleError('Archivo fuera del campus', 'badfile', 400);
   if (u.pathname.includes('/pluginfile.php') && !u.pathname.includes('/webservice/pluginfile.php')) {

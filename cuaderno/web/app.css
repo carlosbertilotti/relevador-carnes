@@ -437,3 +437,6 @@ body.in-editor #main { overflow: hidden; }
 .exam-days span { font-size: 13px; color: var(--muted); }
 .exam-guide-edit { width: 100%; font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
 .exam-group { font-size: 14px; color: var(--muted); margin: 12px 0 4px; }
+.exam-list { display: grid; gap: 12px; }
+.exam-today .row { margin-top: 10px; flex-wrap: wrap; }
+.exam-today p.muted { margin-top: 4px; }
