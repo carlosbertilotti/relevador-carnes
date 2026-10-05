@@ -113,6 +113,35 @@ try {
   await page.waitForURL(new RegExp(`/nota/${simNote}`));
   step('"Seguir resolviendo" vuelve a la misma nota');
 
+  // Mi día: el examen con la cuenta regresiva y el simulacro a un toque
+  await page.goto(`${base}/#/hoy`);
+  const card = page.locator('.exams-today .exam-today', { hasText: 'Dirección de Operaciones' });
+  await card.waitFor({ timeout: 8000 });
+  if ((await card.locator('.exam-days strong').innerText()) !== '3') throw new Error('Mi día: cuenta regresiva');
+  if (!(await card.innerText()).includes('enviado a corregir')) throw new Error('Mi día: no dice que el simulacro se envió a corregir');
+  if (await page.locator('.exams-today', { hasText: 'Finanzas' }).count()) throw new Error('Mi día: mostró una clase como examen');
+  await card.locator('button', { hasText: 'Seguir el simulacro' }).click();
+  await page.waitForURL(new RegExp(`/nota/${simNote}`));
+  await card.page().goto(`${base}/#/hoy`);
+  await card.locator('button', { hasText: 'Preparación' }).click();
+  await page.waitForURL(/#\/cuaderno\/nb_c7704\/examenes/);
+  step('Mi día muestra el examen (faltan 3 días), que el simulacro ya se mandó a corregir, y lleva al simulacro y a Preparación');
+
+  // Errores claros en vez de "Invalid URL"
+  const errs = await page.evaluate(async () => {
+    const db = await import('/js/db.js');
+    const campus = await import('/js/campus.js');
+    await db.put('files', { id: 'no_url', notebookId: 'nb_c7704', name: 'x.pdf', local: false }, { remote: true });
+    await db.put('files', { id: 'bad_src', notebookId: 'nb_c7704', name: 'y.pdf', local: false, srcUrl: '/index.html' }, { remote: true });
+    const out = [];
+    for (const id of ['no_url', 'bad_src']) out.push(await campus.download(id).then(() => 'ok', (e) => e.message));
+    const r = await fetch('/api/campus/file', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: 'https://campusvirtual.utdt.edu', token: 't' }) });
+    out.push((await r.json()).error);
+    return out;
+  });
+  if (!/sincronizar/.test(errs[0]) || !/no es un PDF/.test(errs[1]) || !/no viene del campus/.test(errs[2])) throw new Error(`Errores: ${JSON.stringify(errs)}`);
+  step('Un archivo sin dirección o que no es un PDF da un mensaje claro (no "Invalid URL")');
+
   // Celular: sin scroll horizontal
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto(`${base}/#/cuaderno/nb_c7704/examenes`);

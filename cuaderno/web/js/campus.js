@@ -216,14 +216,22 @@ export async function download(id) {
   }
   if (f.srcUrl) {
     // Archivo que viene con la app (por ejemplo, un simulacro de examen): se baja del propio sitio.
-    const res = await fetch(f.srcUrl);
-    if (!res.ok) throw new Error('No se pudo bajar el archivo');
+    let res;
+    try {
+      res = await fetch(f.srcUrl, { cache: 'no-cache' });
+    } catch {
+      throw new Error('Sin conexión: abrilo una vez con internet para que quede guardado.');
+    }
+    if (!res.ok) throw new Error(`No se pudo bajar el archivo (${res.status})`);
     const blob = await res.blob();
+    // Que sea de verdad un PDF (y no, por ejemplo, la página de la app).
+    if (/\.pdf$/i.test(f.name) && (await blob.slice(0, 5).text()) !== '%PDF-') throw new Error('El archivo bajado no es un PDF. Probá de nuevo con internet.');
     await db.put('blobs', { id: `file:${id}`, blob });
     await db.put('files', { ...f, downloaded: true, downloadedAt: Date.now(), downloadError: null });
     emit('change', { type: 'file', id });
     return blob;
   }
+  if (!f.url) throw new Error('Este archivo no está en este dispositivo todavía: llega al sincronizar.');
   const acc = await account();
   if (!acc?.token) {
     throw new Error('Este dispositivo todavía no tiene la conexión del campus. Abrí Cuaderno en el dispositivo donde lo conectaste (se pasa sola al sincronizar) o conectalo acá en "Campus y calendarios".');

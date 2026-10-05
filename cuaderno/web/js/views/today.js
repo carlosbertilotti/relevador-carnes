@@ -69,6 +69,15 @@ export async function renderToday(root, { date } = {}) {
       h('div', h('div', ev.title), h('small', [ev.allDay ? 'Todo el día' : `${store.DAYS[new Date(ev.start).getDay()].slice(0, 3)} ${store.fmtDate(ev.start)} · ${store.fmtTime(ev.start)}`, nb?.name].filter(Boolean).join(' · '))));
   };
 
+  // Exámenes que se vienen (del calendario del campus), con el simulacro a mano.
+  const examsSection = h('section.exams-today', { hidden: true });
+  import('./exams.js').then(({ examsAhead }) => examsAhead(21)).then(async (list) => {
+    if (!list.length) return;
+    const { examCard } = await import('./exams.js');
+    examsSection.replaceChildren(h('h2.section-title', list.length > 1 ? 'Exámenes' : 'Examen'), h('div.exam-list', list.slice(0, 3).map(examCard)));
+    examsSection.hidden = false;
+  }).catch((err) => console.warn('exámenes en Mi día:', err));
+
   const empty = !notebooks.length;
   root.replaceChildren(h('div.page.today',
     h('header.page-head',
@@ -86,6 +95,8 @@ export async function renderToday(root, { date } = {}) {
       h('div.row',
         h('button.btn.primary', { type: 'button', onclick: () => go('/campus') }, icon('campus'), 'Conectar el campus'),
         h('button.btn', { type: 'button', onclick: async () => { const nb = await store.createNotebook({ name: 'Mi primera materia' }); go(`/cuaderno/${nb.id}`); } }, icon('plus'), 'Crear una materia a mano'))) : null,
+
+    examsSection,
 
     h('section',
       h('h2.section-title', 'Clases'),

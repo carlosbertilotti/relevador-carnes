@@ -167,6 +167,26 @@ async function renderSyncBadge() {
   el.textContent = state.error ? `Sin sincronizar: ${state.error}` : state.running ? 'Sincronizando…' : state.lastOk ? `Sincronizado ${store.fmtRelative(state.lastOk)}` : '';
 }
 
+// Versión nueva publicada: el iPad o la compu pueden quedar días con la app
+// abierta, así que se busca la actualización al volver a la app y se recarga sola
+// (dentro de una nota, recién al salir de ella, para no cortar lo que se escribe).
+function watchUpdates(reg) {
+  let hadController = !!navigator.serviceWorker.controller;
+  let pending = false;
+  const reload = () => setTimeout(() => location.reload(), 800);
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) { hadController = true; return; }
+    if (pending) return;
+    pending = true;
+    if (!location.hash.includes('/nota/')) { reload(); return; }
+    toast('Hay una versión nueva de Cuaderno: se actualiza al salir de esta nota', { ms: 6000 });
+    window.addEventListener('hashchange', reload, { once: true });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) reload(); });
+  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
+  setInterval(() => reg.update().catch(() => {}), 30 * 60000);
+}
+
 async function start() {
   await applyTheme();
   await campus.refreshCourseNames().catch(() => {});
@@ -176,7 +196,7 @@ async function start() {
   window.addEventListener('hashchange', route);
   await route();
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js').then(watchUpdates).catch(() => {});
   }
   // Sincronizaciones de fondo al abrir.
   campus.maybeAutoSync();

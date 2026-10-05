@@ -23,6 +23,51 @@ export async function upcomingExams(nb, now = Date.now()) {
     .sort((a, b) => a.start - b.start);
 }
 
+// Para "Mi día": los exámenes de todas las materias en los próximos días, con la
+// nota del simulacro (o del examen anterior) donde se practica.
+export async function examsAhead(days = 21, now = Date.now()) {
+  const notebooks = await store.listNotebooks();
+  const byId = new Map(notebooks.map((n) => [n.id, n]));
+  const events = ((await db.getSetting('campusEvents', [])) || []).map((e) => store.classifyCampusEvent(e, notebooks));
+  const list = events
+    .filter((e) => byId.has(e.notebookId) && EXAM_RE.test(e.title) && !/(consigna|deadline|se abre)/i.test(e.title) && e.start > now - 6 * 3600000 && e.start < now + days * DAY)
+    .sort((a, b) => a.start - b.start);
+  if (!list.length) return [];
+  const files = (await db.all('files')).filter((f) => f.exam);
+  const notes = await db.all('notes');
+  const rank = { simulacro: 0, examen: 1 };
+  return list.map((ev) => {
+    const mine = files.filter((f) => f.notebookId === ev.notebookId && f.examKind in rank)
+      .sort((a, b) => rank[a.examKind] - rank[b.examKind] || (a.examOrder ?? 99) - (b.examOrder ?? 99));
+    let practice = null;
+    for (const f of mine) {
+      const note = notes.find((n) => n.notebookId === ev.notebookId && n.blocks?.some((b) => b.pdf?.fileId === f.id));
+      if (note) { practice = { file: f, note }; break; }
+    }
+    if (!practice && mine[0]) practice = { file: mine[0], note: null };
+    const days = Math.ceil((new Date(ev.start).setHours(0, 0, 0, 0) - new Date(now).setHours(0, 0, 0, 0)) / DAY);
+    return { ev, nb: byId.get(ev.notebookId), days, practice, files: mine.length };
+  });
+}
+
+export function examCard({ ev, nb, days, practice }) {
+  const when = `${store.DAYS[new Date(ev.start).getDay()]} ${store.fmtDate(ev.start)} · ${store.fmtTime(ev.start)}`;
+  const sent = practice?.note?.correction;
+  const label = practice?.file.examKind === 'simulacro' ? 'simulacro' : 'examen anterior';
+  return h('article.card.exam-next.exam-today', { style: { '--c': nb.color || '#8a8f98' } },
+    h('div.grow',
+      h('p.eyebrow', days <= 0 ? 'Examen hoy' : days === 1 ? 'Examen mañana' : 'Próximo examen'),
+      h('h2', nb.name),
+      h('p', [ev.title.split('|')[0].trim(), when].join(' · ')),
+      sent ? h('p.muted', `Simulacro enviado a corregir ${store.fmtRelative(sent.at)}`) : null,
+      h('div.row',
+        practice?.note
+          ? h('button.btn.primary', { type: 'button', onclick: () => go(`/nota/${practice.note.id}`) }, icon('compose'), practice.note.blocks.some((b) => b.strokes?.length) ? `Seguir el ${label}` : `Resolver el ${label}`)
+          : practice ? h('button.btn.primary', { type: 'button', onclick: (e) => openInCuaderno(e.currentTarget, practice.file) }, icon('compose'), `Resolver el ${label}`) : null,
+        h('button.btn', { type: 'button', onclick: () => go(`/cuaderno/${nb.id}/examenes`) }, icon('book'), 'Preparación'))),
+    h('div.exam-days', h('strong', days <= 0 ? 'Hoy' : String(days)), days > 0 ? h('span', days === 1 ? 'día' : 'días') : null));
+}
+
 export async function renderExams(body, nb) {
   const fresh = (await db.get('notebooks', nb.id)) || nb;
   const files = (await db.all('files')).filter((f) => f.exam && f.notebookId === nb.id).sort((a, b) => (a.examOrder ?? 99) - (b.examOrder ?? 99) || b.addedAt - a.addedAt);
