@@ -62,6 +62,21 @@ try {
   await popup.close();
   step('Tocar un link dentro de una nota lo abre en otra pestaña');
 
+  // Abrir una nota pesada (8 hojas con PDF) y volver enseguida a Mi día: tiene que quedar Mi día
+  await page.evaluate(async () => {
+    const db = await import('/js/db.js');
+    await db.put('files', { id: 'sim_t', notebookId: 'nb_fin', name: 'Simulacro.pdf', srcUrl: '/exams/simulacro-dop-2026-10.pdf', local: false, seen: true, addedAt: 1 }, { remote: true });
+    const blocks = Array.from({ length: 8 }, (_, i) => ({ id: `p${i}`, type: 'ink', paper: 'lined', height: 1414, strokes: [], pdf: { fileId: 'sim_t', page: i + 1, name: 'Simulacro.pdf' } }));
+    await db.put('notes', { id: 'n_heavy', notebookId: 'nb_fin', title: 'Pesada', classDate: '2026-10-12', createdAt: 1, updatedAt: 1, recordings: [], blocks }, { remote: true });
+  });
+  for (let i = 0; i < 4; i++) {
+    await page.evaluate(() => { location.hash = '#/nota/n_heavy'; setTimeout(() => { location.hash = '#/hoy'; }, 30); });
+    await page.waitForTimeout(1500);
+    const state = await page.evaluate(() => ({ today: !!document.querySelector('.page.today'), editor: !!document.querySelector('.editor'), hash: location.hash }));
+    if (!state.today || state.editor) throw new Error(`Volver rápido a Mi día: ${JSON.stringify(state)}`);
+  }
+  step('Abrir una nota y volver enseguida a Mi día muestra Mi día (la nota no queda encima)');
+
   if (errors.length) throw new Error(`Errores:\n${errors.join('\n')}`);
   console.log('\nTodo OK');
 } catch (err) {

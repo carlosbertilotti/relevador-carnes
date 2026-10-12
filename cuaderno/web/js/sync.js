@@ -74,7 +74,7 @@ async function stampLegacy() {
     }
   }
   for (const row of await db.all('kv')) {
-    if (!db.SYNC_KV.includes(row.key) || row._mod || row.value == null) continue;
+    if (!db.isSyncedKey(row.key) || row._mod || row.value == null) continue;
     const v = row.value;
     await db.put('kv', { ...row, _mod: (v && (v.lastSync || v.connectedAt)) || 1 }, { remote: true });
   }
@@ -93,7 +93,7 @@ async function push(k) {
     }
   }
   for (const row of await db.all('kv')) {
-    if (db.SYNC_KV.includes(row.key) && (row._mod || 0) > c.pushed) docs.push({ store: 'kv', id: row.key, data: { value: row.value }, mod: row._mod });
+    if (db.isSyncedKey(row.key) && (row._mod || 0) > c.pushed) docs.push({ store: 'kv', id: row.key, data: { value: row.value }, mod: row._mod });
   }
   const tomb = (await db.getSetting('syncTombstones', [])) || [];
   for (const t of tomb) docs.push({ store: t.store, id: t.id, data: null, mod: t.mod, deleted: true });

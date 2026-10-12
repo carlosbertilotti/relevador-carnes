@@ -84,7 +84,11 @@ let running = null;
 export function syncing() { return !!running; }
 
 export function sync(opts) {
-  if (!running) running = doSync(opts).finally(() => { running = null; emit('change', { type: 'campus' }); });
+  if (!running) {
+    running = doSync(opts).finally(() => { running = null; emit('change', { type: 'campus' }); });
+    // Después de traer el campus: texto de programas y consignas de las materias en curso.
+    running.then(() => import('./programs.js')).then((m) => m.extractKeyDocs()).catch(() => {});
+  }
   return running;
 }
 

@@ -79,6 +79,14 @@ function loadScript(src, globalName) {
   });
 }
 
+// Texto plano de un Word (.docx), para leer programas y consignas.
+export async function docxText(blob) {
+  mammothLoading ||= loadScript('/vendor/mammoth/mammoth.browser.min.js', 'mammoth');
+  const mammoth = await mammothLoading;
+  const { value } = await mammoth.extractRawText({ arrayBuffer: await blob.arrayBuffer() });
+  return value || '';
+}
+
 async function docxToHtml(blob) {
   mammothLoading ||= loadScript('/vendor/mammoth/mammoth.browser.min.js', 'mammoth');
   const mammoth = await mammothLoading;
