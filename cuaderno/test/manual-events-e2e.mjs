@@ -49,6 +49,19 @@ try {
   await page.locator('.cal-subs li', { hasText: 'fechas cargadas en Cuaderno' }).waitFor();
   step('En Campus y calendarios figura como "fechas cargadas en Cuaderno"');
 
+  // Links dentro de una nota: se abren con un toque
+  await page.evaluate(async () => {
+    const db = await import('/js/db.js');
+    await db.put('notes', { id: 'n_links', notebookId: 'nb_fin', title: 'Plan', classDate: '2026-10-12', createdAt: 1, updatedAt: 1, recordings: [],
+      blocks: [{ id: 'b1', type: 'text', html: '<p>Ayudantía: <a href="https://example.com/zoom">Zoom</a></p>' }] }, { remote: true });
+  });
+  await page.context().route('https://example.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: 'ok' }));
+  await page.goto(`${base}/#/nota/n_links`);
+  const [popup] = await Promise.all([page.waitForEvent('popup', { timeout: 5000 }), page.locator('.text-block a', { hasText: 'Zoom' }).click()]);
+  if (!popup.url().startsWith('https://example.com/zoom')) throw new Error(`Abrió ${popup.url()}`);
+  await popup.close();
+  step('Tocar un link dentro de una nota lo abre en otra pestaña');
+
   if (errors.length) throw new Error(`Errores:\n${errors.join('\n')}`);
   console.log('\nTodo OK');
 } catch (err) {

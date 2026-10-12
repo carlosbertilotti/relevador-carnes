@@ -384,6 +384,9 @@ class Editor {
       el.addEventListener('click', (e) => {
         const ts = e.target.closest('.ts');
         if (ts) { e.preventDefault(); this.jumpTo(Number(ts.dataset.t)); return; }
+        // Links (Zoom, videos, campus): se abren en otra pestaña con un toque.
+        const a = e.target.closest('a[href]');
+        if (a && /^https?:/i.test(a.getAttribute('href'))) { e.preventDefault(); window.open(a.href, '_blank', 'noopener'); return; }
         const li = e.target.closest('ul.checklist > li');
         if (li && e.offsetX < 26) {
           li.toggleAttribute('data-checked');
