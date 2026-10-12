@@ -151,8 +151,10 @@ async function applyRemote(r) {
   if (r.store === 'kv') {
     const local = await db.get('kv', r.id);
     if (local && (local._mod || 0) >= r.mod) return false;
-    if (r.deleted) await db.del('kv', r.id, { remote: true });
-    else await db.put('kv', { key: r.id, value: r.data?.value, _mod: r.mod }, { remote: true });
+    if (r.deleted) {
+      if (!local) return false; // ya no estaba: no hay nada que redibujar
+      await db.del('kv', r.id, { remote: true });
+    } else await db.put('kv', { key: r.id, value: r.data?.value, _mod: r.mod }, { remote: true });
     return true;
   }
   if (!db.SYNC_STORES.includes(r.store)) return false;

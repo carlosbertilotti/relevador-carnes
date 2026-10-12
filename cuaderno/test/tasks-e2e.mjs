@@ -52,6 +52,29 @@ try {
   if (!(await sec.locator('.todo.done', { hasText: 'Guía U1' }).count())) throw new Error('La atrasada hecha no aparece tachada en Hoy');
   step('Tachar una atrasada la saca de Atrasadas y la muestra hecha en Hoy');
 
+  // Lo que se está escribiendo no se pierde al tachar otra tarea
+  await sec.locator('.todo-new').fill('a medio escribir');
+  await sec.locator('.todo', { hasText: 'Ver TEDx Nancy Duarte' }).locator('.todo-check').click();
+  await page.waitForTimeout(700);
+  if ((await sec.locator('.todo-new').inputValue()) !== 'a medio escribir') throw new Error('Se perdió lo escrito al tachar');
+  await sec.locator('.todo', { hasText: 'Ver TEDx Nancy Duarte' }).locator('.todo-check').click(); // la vuelvo a dejar pendiente
+  await page.waitForTimeout(700);
+  step('Tachar no borra lo que estás escribiendo en "Agregar"');
+
+  // Reloj atrasado: si la nube tiene una versión con marca "del futuro", tachar igual gana
+  const skew = await page.evaluate(async () => {
+    const db = await import('/js/db.js');
+    const todos = await import('/js/todos.js');
+    const row = await db.get('kv', 'todo:f');
+    await db.put('kv', { ...row, _mod: Date.now() + 60000 }, { remote: true }); // vino de otro equipo con reloj adelantado
+    await todos.setDone('f', true);
+    const after = await db.get('kv', 'todo:f');
+    await todos.setDone('f', false);
+    return after._mod > Date.now() + 59000;
+  });
+  if (!skew) throw new Error('Con reloj atrasado el cambio no le gana a la versión remota');
+  step('Con el reloj del dispositivo atrasado, tachar igual le gana a la versión de la nube');
+
   await sec.locator('.todo-new').fill('Armar grupo del TP');
   await sec.locator('.todo-nb').selectOption('nb_mkt');
   await sec.locator('.todo-new').press('Enter');
@@ -72,7 +95,11 @@ try {
   await page.locator('.tasks-tools .chip', { hasText: 'Dirección de Marketing' }).click();
   await page.waitForTimeout(300);
   if ((await page.locator('.page.tasks').innerText()).includes('Ver TEDx Nancy Duarte')) throw new Error('El filtro por materia no filtra');
-  step('Página Tareas: todo el plan por día, con "Mostrar hechas" y filtro por materia');
+  await page.locator('.page.tasks .todo-new').fill('Leer caso Dove');
+  await page.locator('.page.tasks .todo-new').press('Enter');
+  await page.locator('.page.tasks .todo', { hasText: 'Leer caso Dove' }).waitFor({ timeout: 3000 });
+  if (!(await page.evaluate(() => document.activeElement?.classList.contains('todo-new')))) throw new Error('Después de agregar, el cursor no vuelve al campo');
+  step('Página Tareas: todo el plan por día, con "Mostrar hechas" y filtro por materia (lo agregado con filtro queda en esa materia)');
 
   await page.locator('.page.tasks .todo', { hasText: 'Subir TP de Marketing' }).locator('.todo-del').click();
   await page.locator('.modal button', { hasText: 'Borrar' }).click();
@@ -84,7 +111,9 @@ try {
   await page.goto(`${base}/#/calendario`);
   await page.locator('.cal-chip.task', { hasText: 'Ver TEDx Nancy Duarte' }).waitFor();
   await page.locator('.cal-chip.task.done', { hasText: 'Leer Growth Outside the Core' }).waitFor();
-  step('En el calendario aparecen las tareas del día (tachadas si están hechas)');
+  const heights = await page.evaluate(() => [...document.querySelectorAll('.cal-allday')].map((e) => Math.round(e.getBoundingClientRect().height)));
+  if (new Set(heights).size !== 1) throw new Error(`Alturas de la fila de tareas: ${heights}`);
+  step('En el calendario aparecen las tareas del día (tachadas si están hechas) y la grilla queda alineada');
 
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto(`${base}/#/hoy`);

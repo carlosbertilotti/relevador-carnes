@@ -22,13 +22,18 @@ export async function renderCalendar(root, { date } = {}) {
   const todayKey = store.ymd();
   const nav = (d) => { const x = new Date(monday); x.setDate(x.getDate() + d); go(`/calendario/${store.ymd(x)}`); };
 
+  // La fila de "todo el día" (eventos sin hora y tareas) tiene la misma altura en toda la semana.
+  const chipsOn = (key) => items.filter((e) => e.allDay && store.ymd(e.start) === key).length + todos.filter((t) => t.due === key).length;
+  const maxChips = Math.max(0, ...Array.from({ length: 7 }, (_, i) => chipsOn(store.ymd(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i)))));
+  const allDayStyle = { minHeight: `${maxChips ? maxChips * 22 + 6 : 6}px` };
+
   const col = (d) => {
     const key = store.ymd(d);
     const dayItems = timed.filter((e) => store.ymd(e.start) === key);
     const allDay = items.filter((e) => e.allDay && store.ymd(e.start) === key);
     return h(`div.cal-col${key === todayKey ? '.today' : ''}`,
       h('div.cal-day', { onclick: () => go(`/hoy/${key}`) }, h('span', store.DAYS[d.getDay()].slice(0, 3)), h('strong', d.getDate())),
-      h('div.cal-allday',
+      h('div.cal-allday', { style: allDayStyle },
         allDay.map((e) => h('div.cal-chip', { title: e.title }, e.title)),
         todos.filter((t) => t.due === key).map((t) => h(`a.cal-chip.task${t.done ? '.done' : ''}`, { href: '#/tareas', title: t.title, style: { '--c': nbById.get(t.notebookId)?.color || '#8a8f98' } }, `${t.done ? '☑' : '☐'} ${t.title}`))),
       h('div.cal-body', { style: { height: `${(maxH - minH) * HOUR_PX}px` } },
@@ -63,7 +68,7 @@ export async function renderCalendar(root, { date } = {}) {
     h('div.cal-scroll',
       h('div.cal-grid',
         h('div.cal-hours',
-          h('div.cal-day.spacer'), h('div.cal-allday'),
+          h('div.cal-day.spacer'), h('div.cal-allday', { style: allDayStyle }),
           h('div.cal-body', { style: { height: `${(maxH - minH) * HOUR_PX}px` } },
             Array.from({ length: maxH - minH }, (_, i) => h('span', { style: { top: `${i * HOUR_PX}px` } }, `${minH + i}:00`)))),
         days.map(col)))));

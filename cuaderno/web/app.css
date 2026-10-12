@@ -474,5 +474,6 @@ body.in-editor #main { overflow: hidden; }
 .tasks-toggle { font-size: 14px; color: var(--muted); white-space: nowrap; }
 .tasks-summary { margin: 4px 0 10px; }
 .todo-day { margin-top: 14px; }
+.cal-allday .cal-chip { box-sizing: border-box; height: 20px; line-height: 16px; }
 .cal-chip.task { display: block; text-decoration: none; color: inherit; border-left: 3px solid var(--c, var(--accent)); }
 .cal-chip.task.done { text-decoration: line-through; opacity: .6; }

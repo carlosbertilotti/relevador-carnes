@@ -7,12 +7,15 @@ const PREFIX = 'todo:';
 
 export async function listTodos() {
   return (await db.all('kv'))
-    .filter((r) => String(r.key).startsWith(PREFIX) && r.value && !r.value.deleted)
-    .map((r) => r.value);
+    .filter((r) => String(r.key).startsWith(PREFIX) && r.value && typeof r.value === 'object')
+    .map((r) => ({ ...r.value, id: String(r.key).slice(PREFIX.length) })); // la clave manda
 }
 
 export async function saveTodo(t) {
-  await db.setSetting(PREFIX + t.id, t);
+  // Se conserva la marca anterior para que el cambio le gane aunque el reloj de este
+  // dispositivo atrase respecto del que la escribió (stamp usa max(ahora, anterior + 1)).
+  const prev = await db.get('kv', PREFIX + t.id);
+  await db.put('kv', { key: PREFIX + t.id, value: t, _mod: prev?._mod });
   emit('change', { type: 'todos' });
   return t;
 }
@@ -22,10 +25,17 @@ export async function addTodo({ title, due = ymd(), notebookId = null, minutes =
   return saveTodo(t);
 }
 
-export async function toggleTodo(id) {
+// Marca hecha o pendiente (estado explícito: dos toques seguidos no se pisan).
+export async function setDone(id, done) {
   const t = await db.getSetting(PREFIX + id, null);
   if (!t) return null;
-  return saveTodo({ ...t, done: !t.done, doneAt: t.done ? null : Date.now() });
+  if (!!t.done === !!done) return t;
+  return saveTodo({ ...t, id, done: !!done, doneAt: done ? Date.now() : null });
+}
+
+export async function toggleTodo(id) {
+  const t = await db.getSetting(PREFIX + id, null);
+  return t ? setDone(id, !t.done) : null;
 }
 
 export async function deleteTodo(id) {

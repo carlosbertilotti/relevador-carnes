@@ -71,10 +71,12 @@ export const put = (store, value, opts = {}) => tx(store, 'readwrite', (s) => wr
 export const putMany = (store, values, opts = {}) =>
   tx(store, 'readwrite', (s) => Promise.all(values.map((v) => wrap(s.put(stamp(store, v, opts.remote))))));
 export async function del(store, id, opts = {}) {
+  const prev = !opts.remote && isSynced(store, id) ? await get(store, id) : null;
   await tx(store, 'readwrite', (s) => wrap(s.delete(id)));
   if (!opts.remote && isSynced(store, id)) {
     const tomb = (await get('kv', 'syncTombstones'))?.value || [];
-    tomb.push({ store, id, mod: Date.now() });
+    // Gana a la última versión conocida aunque el reloj de este dispositivo atrase.
+    tomb.push({ store, id, mod: Math.max(Date.now(), (prev?._mod || 0) + 1) });
     await tx('kv', 'readwrite', (s) => wrap(s.put({ key: 'syncTombstones', value: tomb })));
   }
 }
