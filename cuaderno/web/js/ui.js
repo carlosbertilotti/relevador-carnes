@@ -104,6 +104,7 @@ export function toast(msg, { error = false, ms = 3200 } = {}) {
   wrap.append(t);
   requestAnimationFrame(() => t.classList.add('show'));
   setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, ms);
+  return t;
 }
 
 // Hoja modal (tipo iPadOS). Devuelve { el, close, done } donde done es una promesa con el resultado.

@@ -16,6 +16,7 @@ const HOLD_TO_SNAP_MS = 550;
 
 export const tools = {
   tool: 'pen', // pen | highlighter | eraser | lasso | none
+  prevTool: null, // la herramienta anterior, para el doble toque
   color: '#1c1c1e',
   size: 4,
   highlighterColor: '#ffd60a',
