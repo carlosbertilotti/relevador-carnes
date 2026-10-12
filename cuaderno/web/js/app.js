@@ -110,7 +110,20 @@ store.bus.addEventListener('live', async (e) => {
   go(`/nota/${st.noteId}`);
 });
 
-async function route() {
+// Los cambios de pantalla van en fila: si se abre una nota y enseguida se vuelve a
+// "Mi día", la nota termina de cargar y recién ahí se cierra para dibujar Mi día
+// (antes la nota podía terminar de cargar después y tapar la pantalla nueva).
+// Si mientras tanto se pidieron varias pantallas, solo se dibuja la última.
+let routing = Promise.resolve();
+let routeSeq = 0;
+function route() {
+  const my = ++routeSeq;
+  const prev = Promise.race([routing, new Promise((r) => setTimeout(r, 8000))]); // una pantalla trabada no bloquea las demás
+  routing = prev.then(() => (my === routeSeq ? doRoute() : null)).catch((err) => console.error(err));
+  return routing;
+}
+
+async function doRoute() {
   const { name, params } = current();
   if (cleanup) { const c = cleanup; cleanup = null; await c(); }
   document.body.classList.toggle('in-editor', name === 'nota');
@@ -212,6 +225,8 @@ async function start() {
     (await import('./live.js')).start();
     // En un dispositivo nuevo la cuenta del campus llega por la nube: sincronizar el campus después.
     store.bus.addEventListener('change', (e) => { if (e.detail?.type === 'sync') campus.maybeAutoSync(); });
+    // Texto de programas y consignas de las materias en curso (si falta o cambió el archivo).
+    setTimeout(() => import('./programs.js').then((m) => m.extractKeyDocs()).catch(() => {}), 6000);
   }
 }
 
