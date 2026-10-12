@@ -305,6 +305,7 @@ body.in-editor #main { overflow: hidden; }
 .text-block h1 { font-size: 28px; margin: .3em 0 .2em; line-height: 1.2; }
 .text-block h2 { font-size: 22px; margin: .6em 0 .2em; }
 .text-block h3 { font-size: 18px; margin: .6em 0 .2em; }
+.text-block a[href] { color: var(--accent); text-decoration: underline; cursor: pointer; }
 .text-block p { margin: .2em 0; }
 .text-block pre { font: 15px/1.5 ui-monospace, "SF Mono", Menlo, monospace; background: color-mix(in srgb, var(--text) 6%, transparent); padding: 8px 10px; border-radius: 8px; white-space: pre-wrap; }
 .text-block blockquote { margin: .4em 0; padding-left: 12px; border-left: 3px solid var(--accent); color: var(--muted); }
