@@ -57,7 +57,7 @@ export async function renderCampus(root) {
     h('span.dot', { style: { background: c.color || '#8a8f98' } }),
     h('div.grow',
       h('div', c.name),
-      h('small', c.error ? `Error: ${c.error}` : `${(c.events || []).length} eventos · ${c.kind === 'clase' ? 'horario de clases' : 'eventos'} · ${c.syncedAt ? `actualizado ${store.fmtRelative(c.syncedAt)}` : 'sin actualizar'}`)),
+      h('small', c.error ? `Error: ${c.error}` : !c.url ? `${(c.events || []).length} fechas cargadas en Cuaderno${c.syncedAt ? ` · ${store.fmtRelative(c.syncedAt)}` : ''}` : `${(c.events || []).length} eventos · ${c.kind === 'clase' ? 'horario de clases' : 'eventos'} · ${c.syncedAt ? `actualizado ${store.fmtRelative(c.syncedAt)}` : 'sin actualizar'}`)),
     h('button.icon-btn', { type: 'button', 'aria-label': 'Quitar', onclick: async () => { cals.splice(i, 1); await db.setSetting('icsCalendars', cals); renderCampus(root); } }, icon('trash')))));
   const nameIn = h('input.input', { placeholder: 'Nombre (ej. Horarios Di Tella)' });
   const urlIn = h('input.input.grow', { placeholder: 'https://calendar.google.com/…/basic.ics  ó  webcal://…' });
