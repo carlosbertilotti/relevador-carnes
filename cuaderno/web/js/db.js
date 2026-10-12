@@ -55,8 +55,8 @@ export const byIndex = (store, index, value) => tx(store, 'readonly', (s) => wra
 // Cada cambio local lleva _mod (milisegundos) para saber qué subir y quién gana.
 export const SYNC_STORES = ['notebooks', 'notes', 'files'];
 export const SYNC_KV = ['campus', 'icsCalendars', 'campusEvents', 'hiddenCourses', 'defaultMode', 'defaultPaper'];
-// Texto de documentos clave (programas, reglas, consignas): uno por archivo, "programText:<fileId>".
-export const SYNC_KV_PREFIXES = ['programText:'];
+// Texto de documentos clave ("programText:<fileId>") y tareas ("todo:<id>"): una clave por cosa.
+export const SYNC_KV_PREFIXES = ['programText:', 'todo:'];
 export const isSyncedKey = (key) => SYNC_KV.includes(key) || SYNC_KV_PREFIXES.some((p) => String(key).startsWith(p));
 export const isSynced = (store, value) =>
   SYNC_STORES.includes(store) || (store === 'kv' && isSyncedKey(value?.key ?? value));
