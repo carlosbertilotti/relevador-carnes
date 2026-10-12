@@ -125,6 +125,9 @@ export function expandEvents(events, from, to) {
       start,
       end: start + dur,
       allDay: !!e.allDay,
+      ...(e.kind ? { kind: e.kind } : {}),
+      ...(e.url ? { url: e.url } : {}),
+      ...(e.notebookId ? { notebookId: e.notebookId } : {}),
     });
   };
 

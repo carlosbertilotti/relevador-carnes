@@ -227,7 +227,7 @@ export async function agenda(from, to) {
     if (!cal.events) continue;
     for (const ev of expandEvents(cal.events, from.getTime(), to.getTime())) {
       const nb = matchNotebook(notebooks, `${ev.title} ${ev.description}`);
-      out.push({ ...ev, id: `ics|${cal.id}|${ev.id}`, kind: cal.kind || (nb ? 'clase' : 'evento'), notebookId: nb?.id || null, source: cal.name, color: cal.color });
+      out.push({ ...ev, id: `ics|${cal.id}|${ev.id}`, kind: ev.kind || cal.kind || (nb ? 'clase' : 'evento'), notebookId: ev.notebookId || nb?.id || null, source: cal.name, color: cal.color });
     }
   }
 
@@ -281,6 +281,7 @@ export async function refreshIcs(api) {
   const cals = (await db.getSetting('icsCalendars', [])) || [];
   const errors = [];
   for (const cal of cals) {
+    if (!cal.url) continue; // fechas cargadas a mano (sin link): no hay nada que bajar
     try {
       const { ics } = await api.post('/api/ics', { url: cal.url });
       cal.events = parseICS(ics);
