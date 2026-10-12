@@ -6,6 +6,7 @@ import * as campus from '../campus.js';
 import { h, icon, toast } from '../ui.js';
 import { go } from '../router.js';
 import { showClassPlan, readingsSummary } from './classplan.js';
+import { todoSection } from './tasks.js';
 
 export async function renderToday(root, { date } = {}) {
   const day = date ? store.fromYmd(date) : new Date();
@@ -97,6 +98,8 @@ export async function renderToday(root, { date } = {}) {
         h('button.btn', { type: 'button', onclick: async () => { const nb = await store.createNotebook({ name: 'Mi primera materia' }); go(`/cuaderno/${nb.id}`); } }, icon('plus'), 'Crear una materia a mano'))) : null,
 
     examsSection,
+
+    todoSection(store.ymd(start)),
 
     h('section',
       h('h2.section-title', 'Clases'),

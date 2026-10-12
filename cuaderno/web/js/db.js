@@ -55,8 +55,8 @@ export const byIndex = (store, index, value) => tx(store, 'readonly', (s) => wra
 // Cada cambio local lleva _mod (milisegundos) para saber qué subir y quién gana.
 export const SYNC_STORES = ['notebooks', 'notes', 'files'];
 export const SYNC_KV = ['campus', 'icsCalendars', 'campusEvents', 'hiddenCourses', 'defaultMode', 'defaultPaper'];
-// Texto de documentos clave (programas, reglas, consignas): uno por archivo, "programText:<fileId>".
-export const SYNC_KV_PREFIXES = ['programText:'];
+// Texto de documentos clave ("programText:<fileId>") y tareas ("todo:<id>"): una clave por cosa.
+export const SYNC_KV_PREFIXES = ['programText:', 'todo:'];
 export const isSyncedKey = (key) => SYNC_KV.includes(key) || SYNC_KV_PREFIXES.some((p) => String(key).startsWith(p));
 export const isSynced = (store, value) =>
   SYNC_STORES.includes(store) || (store === 'kv' && isSyncedKey(value?.key ?? value));
@@ -71,10 +71,12 @@ export const put = (store, value, opts = {}) => tx(store, 'readwrite', (s) => wr
 export const putMany = (store, values, opts = {}) =>
   tx(store, 'readwrite', (s) => Promise.all(values.map((v) => wrap(s.put(stamp(store, v, opts.remote))))));
 export async function del(store, id, opts = {}) {
+  const prev = !opts.remote && isSynced(store, id) ? await get(store, id) : null;
   await tx(store, 'readwrite', (s) => wrap(s.delete(id)));
   if (!opts.remote && isSynced(store, id)) {
     const tomb = (await get('kv', 'syncTombstones'))?.value || [];
-    tomb.push({ store, id, mod: Date.now() });
+    // Gana a la última versión conocida aunque el reloj de este dispositivo atrase.
+    tomb.push({ store, id, mod: Math.max(Date.now(), (prev?._mod || 0) + 1) });
     await tx('kv', 'readwrite', (s) => wrap(s.put({ key: 'syncTombstones', value: tomb })));
   }
 }

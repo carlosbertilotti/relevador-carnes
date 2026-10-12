@@ -8,6 +8,8 @@ import { renderToday } from './views/today.js';
 import { renderCalendar } from './views/calendar.js';
 import { renderNotebook } from './views/notebook.js';
 import { renderCampus, renderSettings } from './views/settings.js';
+import { renderTasks } from './views/tasks.js';
+import { listTodos } from './todos.js';
 import { openEditor } from './editor/editor.js';
 
 const sidebar = document.getElementById('sidebar');
@@ -25,6 +27,8 @@ async function renderSidebar() {
   for (const f of files) if (!f.seen && !f.local) unseen.set(f.notebookId, (unseen.get(f.notebookId) || 0) + 1);
   const acc = await campus.account();
   const activeNb = name === 'cuaderno' ? params[0] : name === 'nota' ? sidebar.dataset.noteNotebook : null;
+  const todayKey = store.ymd();
+  const pendingToday = (await listTodos()).filter((t) => !t.done && t.due && t.due <= todayKey).length;
 
   const link = (path, ic, label, active, extra) => h(`a.nav-item${active ? '.active' : ''}`, { href: `#${path}` }, icon(ic), h('span', label), extra || null);
   searchInput = h('input.search', {
@@ -39,7 +43,8 @@ async function renderSidebar() {
     h('label.search-wrap', icon('search'), searchInput),
     h('nav.nav',
       link('/hoy', 'today', 'Mi día', name === 'hoy'),
-      link('/calendario', 'calendar', 'Calendario', name === 'calendario')),
+      link('/calendario', 'calendar', 'Calendario', name === 'calendario'),
+      link('/tareas', 'checklist', 'Tareas', name === 'tareas', pendingToday ? h('span.count', pendingToday) : null)),
     h('div.nav-title', h('span', 'Materias'), h('button.icon-btn.small', { type: 'button', 'aria-label': 'Nueva materia', onclick: async () => {
       const v = await prompt('Nueva materia', { placeholder: 'Ej. Macroeconomía II', ok: 'Crear' });
       if (v) { const nb = await store.createNotebook({ name: v }); go(`/cuaderno/${nb.id}/horario`); }
@@ -132,6 +137,7 @@ async function doRoute() {
     switch (name) {
       case 'hoy': await renderToday(main, { date: params[0] }); break;
       case 'calendario': await renderCalendar(main, { date: params[0] }); break;
+      case 'tareas': await renderTasks(main); break;
       case 'cuaderno': await renderNotebook(main, { id: params[0], tab: params[1] }); break;
       case 'nota': {
         const note = await db.get('notes', params[0]);
@@ -166,7 +172,7 @@ store.bus.addEventListener('change', (e) => {
     const { name } = current();
     if (e.detail?.type === 'campus' && (name === 'hoy' || name === 'cuaderno')) route();
     // Llegaron cambios de otro dispositivo: refrescar la vista (el editor se actualiza solo).
-    if (e.detail?.type === 'sync' && ['hoy', 'calendario', 'cuaderno', 'buscar'].includes(name)) route();
+    if (e.detail?.type === 'sync' && ['hoy', 'calendario', 'cuaderno', 'buscar', 'tareas'].includes(name)) route();
   }, 150);
 });
 

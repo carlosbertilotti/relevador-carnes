@@ -441,3 +441,39 @@ body.in-editor #main { overflow: hidden; }
 .exam-list { display: grid; gap: 12px; }
 .exam-today .row { margin-top: 10px; flex-wrap: wrap; }
 .exam-today p.muted { margin-top: 4px; }
+
+/* ---- Tareas ---- */
+.todo-today { margin-bottom: 8px; }
+.todo-card { padding: 10px 14px; }
+.todo-list { list-style: none; margin: 0; padding: 0; }
+.todo-list.card { padding: 4px 10px; }
+.todo { display: flex; align-items: center; gap: 10px; padding: 8px 2px; border-bottom: 1px solid var(--line, rgba(0,0,0,.06)); }
+.todo:last-child { border-bottom: 0; }
+.todo-check { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--c, var(--accent)); background: transparent; display: grid; place-items: center; cursor: pointer; padding: 0; color: transparent; }
+.todo-check svg { width: 15px; height: 15px; }
+.todo.done .todo-check { background: var(--c, var(--accent)); color: #fff; }
+.todo-main { flex: 1; min-width: 0; }
+.todo-title { line-height: 1.3; }
+.todo.done .todo-title { text-decoration: line-through; color: var(--muted); }
+.todo-meta { color: var(--muted); font-size: 12px; }
+.todo-del { opacity: 0; transition: opacity .15s; }
+.todo:hover .todo-del, .todo:focus-within .todo-del { opacity: .6; }
+@media (hover: none) { .todo-del { opacity: .45; } }
+.todo-group { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 10px 0 2px; }
+.todo-group.late { color: var(--danger, #c0392b); }
+.todo-group-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.todo-progress { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.todo-progress .bar { width: 90px; height: 6px; border-radius: 3px; background: var(--line, rgba(0,0,0,.08)); overflow: hidden; display: inline-block; }
+.todo-progress .bar span { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.todo-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 10px; margin-top: 6px; border-top: 1px dashed var(--line, rgba(0,0,0,.1)); }
+.todo-add .todo-new { flex: 1 1 220px; min-width: 0; }
+.todo-add .todo-nb { flex: 0 1 180px; min-width: 0; }
+.todo-add .todo-date { flex: 0 0 auto; }
+.tasks-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.tasks-tools .chip.on { background: var(--c, var(--accent)); color: #fff; }
+.tasks-toggle { font-size: 14px; color: var(--muted); white-space: nowrap; }
+.tasks-summary { margin: 4px 0 10px; }
+.todo-day { margin-top: 14px; }
+.cal-allday .cal-chip { box-sizing: border-box; height: 20px; line-height: 16px; }
+.cal-chip.task { display: block; text-decoration: none; color: inherit; border-left: 3px solid var(--c, var(--accent)); }
+.cal-chip.task.done { text-decoration: line-through; opacity: .6; }
