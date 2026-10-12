@@ -17,6 +17,7 @@ import * as live from '../live.js';
 const PEN_COLORS = ['#1c1c1e', '#2f6fde', '#d0342c', '#23915a', '#8e44c9', '#e98a15'];
 const HL_COLORS = ['#ffd60a', '#7ee081', '#ff9fc6', '#7cc8ff', '#ffb35c'];
 const PEN_SIZES = [2.5, 4, 7];
+const TOOL_NAMES = { pen: 'Lapicera', highlighter: 'Resaltador', eraser: 'Goma', lasso: 'Lazo' };
 const PAPERS = [['lined', 'Rayada'], ['grid', 'Cuadriculada'], ['dots', 'Puntos'], ['blank', 'Lisa'], ['cornell', 'Cornell']];
 
 export async function openEditor(root, noteId, { back, watch = false } = {}) {
@@ -153,10 +154,11 @@ class Editor {
         tools.penOnly = true;
         this.persistTools();
         this.renderToolbar();
-        toast('Lápiz detectado: el dedo ahora desplaza y el lápiz escribe');
+        toast('Lápiz detectado: el dedo desplaza y el lápiz escribe. Dos toques con el dedo: herramienta anterior', { ms: 5000 });
       }
     };
     document.addEventListener('pointerdown', this._onPen, true);
+    this._bindDoubleTap();
     // Pegar una foto (⌘V o "Pegar" en el iPad): va a la hoja, no al texto.
     this._onPaste = (e) => {
       const file = [...(e.clipboardData?.files || [])].find((f) => f.type.startsWith('image/'));
@@ -304,7 +306,7 @@ class Editor {
         h('div.vsep'),
         h(`button.tbtn.pen-only${t.penOnly ? '.active' : ''}`, {
           type: 'button',
-          title: t.penOnly ? 'Sólo el lápiz escribe (el dedo desplaza)' : 'El dedo también escribe',
+          title: t.penOnly ? 'Sólo el lápiz escribe (el dedo desplaza; dos toques con el dedo vuelven a la herramienta anterior)' : 'El dedo también escribe',
           onclick: () => { t.penOnly = !t.penOnly; this.persistTools(); this.renderToolbar(); toast(t.penOnly ? 'Sólo lápiz: el dedo desplaza' : 'Ahora también podés escribir con el dedo'); },
         }, icon(t.penOnly ? 'pencilOnly' : 'hand')));
     }
@@ -316,12 +318,58 @@ class Editor {
   }
 
   setTool(name) {
-    if (name !== 'none') this.lastInkTool = name;
+    if (name !== 'none') {
+      this.lastInkTool = name;
+      if (tools.tool !== 'none' && tools.tool !== name) tools.prevTool = tools.tool;
+    }
     if (name !== 'lasso') for (const s of this.sheets.values()) s.clearSelection();
     tools.tool = name;
     if (name !== 'none' && document.activeElement?.isContentEditable) document.activeElement.blur();
     this.persistTools();
     this.renderToolbar();
+  }
+
+  // Como el doble toque del Apple Pencil en Notas ("cambiar entre la herramienta
+  // actual y la última usada"). Sin herramienta anterior, alterna con la goma.
+  swapTool() {
+    const cur = tools.tool;
+    if (cur === 'none') return;
+    const next = tools.prevTool && tools.prevTool !== cur && TOOL_NAMES[tools.prevTool] ? tools.prevTool : cur === 'eraser' ? 'pen' : 'eraser';
+    this.setTool(next);
+    this._toolHud?.remove();
+    this._toolHud = toast(TOOL_NAMES[next], { ms: 1100 });
+  }
+
+  // Safari no les pasa a las páginas web el doble toque del Apple Pencil (es sólo
+  // para apps nativas), así que el mismo gesto se hace con el dedo: dos toques
+  // rápidos sobre la hoja. Sólo cuando el dedo no escribe ("sólo lápiz").
+  _bindDoubleTap() {
+    const fingers = new Set();
+    let down = null;
+    let lastTap = null;
+    const sc = this.scroller;
+    sc.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'touch') return;
+      fingers.add(e.pointerId);
+      down = fingers.size === 1 && e.target.closest?.('.sheet') ? { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp } : null;
+      if (fingers.size > 1) lastTap = null;
+    });
+    sc.addEventListener('pointercancel', (e) => { fingers.delete(e.pointerId); down = null; lastTap = null; });
+    sc.addEventListener('pointerup', (e) => {
+      if (e.pointerType !== 'touch') return;
+      fingers.delete(e.pointerId);
+      const d = down;
+      down = null;
+      if (!d || d.id !== e.pointerId || fingers.size) return;
+      if (tools.tool === 'none' || !tools.penOnly || (this.seekMode && this.playback)) { lastTap = null; return; }
+      if (e.timeStamp - d.t > 300 || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 12) { lastTap = null; return; }
+      if (lastTap && d.t - lastTap.t < 400 && Math.hypot(d.x - lastTap.x, d.y - lastTap.y) < 40) {
+        lastTap = null;
+        this.swapTool();
+        return;
+      }
+      lastTap = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+    });
   }
 
   setColor(c) {
