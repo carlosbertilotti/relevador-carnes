@@ -22,11 +22,13 @@ export async function renderToday(root, { date } = {}) {
     campus.account(),
   ]);
   const nbById = new Map(notebooks.map((n) => [n.id, n]));
+  // Mi día es de la facultad: las notas y carpetas de "Personal" no aparecen acá.
+  const subjects = notebooks.filter((nb) => !store.isPersonal(nb));
   const classes = items.filter((e) => e.kind === 'clase');
   const others = items.filter((e) => e.kind !== 'clase');
   const deadlines = upcoming.filter((e) => e.kind === 'entrega').slice(0, 6);
   const fresh = files.filter((f) => !f.seen && !f.local).sort((a, b) => b.addedAt - a.addedAt).slice(0, 8);
-  const recent = store.sortNotes(notes.slice()).sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 6);
+  const recent = store.sortNotes(notes.filter((n) => !store.isPersonal(nbById.get(n.notebookId)))).sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 6);
 
   const shift = (d) => { const x = new Date(start); x.setDate(x.getDate() + d); go(`/hoy/${store.ymd(x)}`); };
   const now = Date.now();
@@ -79,7 +81,7 @@ export async function renderToday(root, { date } = {}) {
     examsSection.hidden = false;
   }).catch((err) => console.warn('exámenes en Mi día:', err));
 
-  const empty = !notebooks.length;
+  const empty = !subjects.length;
   root.replaceChildren(h('div.page.today',
     h('header.page-head',
       h('div',
@@ -106,9 +108,9 @@ export async function renderToday(root, { date } = {}) {
       classes.length
         ? h('div.class-list', classes.map(classCard))
         : h('div.card.muted-card',
-          h('p', notebooks.length ? 'No hay clases cargadas para este día.' : 'Todavía no hay materias.'),
-          notebooks.length ? h('p.muted', 'Cargá el horario de cada materia (en la materia → Horario) o suscribí tu calendario en Campus y calendarios.') : null,
-          notebooks.length ? h('div.row', notebooks.slice(0, 6).map((nb) => h('button.chip', {
+          h('p', subjects.length ? 'No hay clases cargadas para este día.' : 'Todavía no hay materias.'),
+          subjects.length ? h('p.muted', 'Cargá el horario de cada materia (en la materia → Horario) o suscribí tu calendario en Campus y calendarios.') : null,
+          subjects.length ? h('div.row', subjects.slice(0, 6).map((nb) => h('button.chip', {
             type: 'button',
             style: { '--c': nb.color },
             onclick: async () => { const n = await store.noteForClass(nb.id, start); go(`/nota/${n.id}`); },
@@ -146,7 +148,7 @@ export function noteCard(n, nb) {
   const sheets = n.blocks.filter((b) => b.type === 'ink').length;
   return h('button.note-card', { type: 'button', style: { '--c': nb?.color || '#8a8f98' }, onclick: () => go(`/nota/${n.id}`) },
     h('div.note-card-top', h('span.crumb', nb?.name || ''), n.pinned ? icon('pin') : null),
-    h('h3', store.noteTitle(n)),
+    h('h3', store.noteTitle(n, nb)),
     h('p', text.slice(0, 140) || (sheets ? `${sheets} hoja(s) escritas a mano` : 'Sin contenido')),
     h('small', `${store.fmtDate(n.classDate)} · editada ${store.fmtRelative(n.updatedAt)}`));
 }

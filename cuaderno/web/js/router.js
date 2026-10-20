@@ -1,4 +1,4 @@
-// Enrutado por hash: #/hoy, #/calendario, #/cuaderno/:id, #/nota/:id, #/campus, #/ajustes, #/buscar/:q
+// Enrutado por hash: #/hoy, #/calendario, #/tareas, #/personal/:carpeta?, #/cuaderno/:id, #/nota/:id, #/campus, #/ajustes, #/buscar/:q
 export function go(path) {
   const next = `#${path}`;
   if (location.hash === next) window.dispatchEvent(new HashChangeEvent('hashchange'));
