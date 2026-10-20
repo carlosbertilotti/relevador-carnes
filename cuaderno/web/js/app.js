@@ -117,7 +117,7 @@ store.bus.addEventListener('live', async (e) => {
   }
   if (!note && st.notebookId && (await db.get('notebooks', st.notebookId))) {
     // Todavía no llegó la nota: se crea con el mismo id (la de la compu la completa al sincronizar).
-    await db.put('notes', { id: st.noteId, notebookId: st.notebookId, title: st.title || '', classDate: store.ymd(), blocks: [store.newTextBlock(), store.newInkBlock({ paper: 'lined' })], pinned: false, recordings: [], video: { url: st.url || null, title: st.title || '' }, createdAt: Date.now(), updatedAt: Date.now(), _mod: 1 }, { remote: true });
+    await db.put('notes', { id: st.noteId, notebookId: st.notebookId, title: st.title || '', classDate: store.ymd(), blocks: [store.newInkBlock({ paper: 'lined', html: '' })], pinned: false, recordings: [], video: { url: st.url || null, title: st.title || '' }, createdAt: Date.now(), updatedAt: Date.now(), _mod: 1 }, { remote: true });
     note = true;
   }
   if (!note) return;

@@ -206,6 +206,14 @@ export class InkSheet {
     this.ink.className = 'layer ink';
     this.live.className = 'layer live';
     this.sheet.append(this.bg, this.ink, this.live);
+    this.sheet.dataset.paper = block.paper || 'lined';
+    // En una hoja de papel se puede escribir con el teclado: el texto va entre el papel
+    // y la tinta (lo dibujado queda por encima, lo tipeado por debajo).
+    if (!block.pdf && !block.image) {
+      this.sheet.classList.add('has-text');
+      this.text = host.pageText?.(this) || null;
+      if (this.text) this.sheet.insertBefore(this.text, this.ink);
+    }
     this.el.append(this.sheet);
     this.selection = null;
     this.current = null;
@@ -235,6 +243,33 @@ export class InkSheet {
     }
     this.bgDirty = true;
     this.render();
+    this.fitText();
+  }
+
+  // Cambió el papel (rayado, cuadriculado…): el texto se acomoda a sus renglones.
+  applyPaper() {
+    this.sheet.dataset.paper = this.block.paper || 'lined';
+    this.bgDirty = true;
+    this.render();
+  }
+
+  // La hoja crece sola si el texto tipeado llega abajo (como al dibujar cerca del final).
+  fitText() {
+    if (!this.text || this._fitting) return;
+    const w = this.el.clientWidth;
+    if (!w) return;
+    const range = document.createRange();
+    range.selectNodeContents(this.text);
+    const content = range.getBoundingClientRect();
+    if (!content.height) return;
+    const bottom = ((content.bottom - this.text.getBoundingClientRect().top) * PAPER_W) / w; // en unidades de la hoja
+    if (bottom > this.block.height - GROW_MARGIN) {
+      this._fitting = true;
+      this.block.height = Math.ceil((bottom + GROW_MARGIN) / GROW_STEP) * GROW_STEP;
+      this.layout();
+      this._fitting = false;
+      this.host.onSheetGrow?.(this.block);
+    }
   }
 
   async renderBackground() {
@@ -382,6 +417,9 @@ export class InkSheet {
       return;
     }
     if (!this._accepts(e)) return;
+    // Un ⏱ (minuto de la clase) o un link dentro del texto de la hoja: el mouse y el dedo lo tocan
+    // en vez de dibujar encima (el lápiz sigue dibujando).
+    if (e.pointerType !== 'pen' && e.target.closest?.('.ts, a[href]')) return;
     if (this.pointerId != null) return;
     e.preventDefault();
     this.pointerId = e.pointerId;
@@ -657,6 +695,14 @@ export class InkSheet {
     ctx.drawImage(this.bg, 0, 0, c.width, c.height);
     ctx.drawImage(this.ink, 0, 0, c.width, c.height);
     return new Promise((resolve) => c.toBlob(resolve, 'image/jpeg', quality));
+  }
+
+  // El papel solo y la tinta sola, para imprimir con el texto tipeado en el medio.
+  bgDataURL() {
+    return this.bg.toDataURL('image/png');
+  }
+  inkDataURL() {
+    return this.ink.toDataURL('image/png');
   }
 
   // Imagen de la hoja (fondo + tinta), para exportar o imprimir.

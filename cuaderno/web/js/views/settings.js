@@ -216,7 +216,7 @@ export async function renderSettings(root) {
     h('header.page-head', h('div', h('p.eyebrow', 'Cuaderno'), h('h1', 'Ajustes'))),
     h('section.card',
       h('h2.section-title', 'Notas'),
-      h('label.field', h('span', 'Formato de las notas nuevas'), select('defaultMode', [['mixed', 'Texto arriba + hoja para el lápiz'], ['text', 'Sólo texto (como Notas de Apple)'], ['ink', 'Sólo a mano (como GoodNotes)']])),
+      h('label.field', h('span', 'Formato de las notas nuevas'), select('defaultMode', [['mixed', 'Una hoja para escribir con el teclado y dibujar con el lápiz'], ['text', 'Sólo texto (como Notas de Apple)']])),
       h('label.field', h('span', 'Hoja por defecto'), select('defaultPaper', [['lined', 'Rayada'], ['grid', 'Cuadriculada'], ['dots', 'Puntos'], ['blank', 'Lisa'], ['cornell', 'Cornell (preguntas + notas + resumen)']]))),
     h('section.card',
       h('h2.section-title', 'Apariencia'),

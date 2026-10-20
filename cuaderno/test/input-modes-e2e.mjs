@@ -1,6 +1,6 @@
-// Escribir con el teclado o con el lápiz sin tocar "Texto"/"Lápiz" (como Notas de Apple):
-// en la compu la nota se abre lista para tipear; en el iPad, tocar el texto pasa a
-// "Texto" y apoyar el lápiz en una hoja pasa a dibujar.
+// Escribir con el teclado o con el lápiz sin cambiar de hoja (como Notas de Apple):
+// en la compu la nota abre lista para tipear; en el iPad el lápiz apoyado en la hoja
+// pasa a dibujar, y el dedo (con el lápiz elegido) sólo desplaza.
 //   node test/input-modes-e2e.mjs
 import { createServer } from '../server/server.js';
 
@@ -23,7 +23,7 @@ async function setup(ctx) {
     // La última vez se usó el lápiz (así queda guardado en el iPad y, a veces, en la compu).
     await db.setSetting('tools', { tool: 'pen', color: '#1c1c1e', size: 4, highlighterColor: '#ffd60a', highlighterSize: 22, eraserSize: 18, penOnly: true });
     const nb = await store.defaultPersonalFolder();
-    return (await store.createNote(nb.id)).id; // texto arriba + hoja
+    return (await store.createNote(nb.id)).id; // una sola hoja: texto y lápiz
   });
   await page.goto(`${base}/#/nota/${id}`);
   await page.locator('.sheet').first().waitFor();
@@ -32,74 +32,71 @@ async function setup(ctx) {
 const mode = (page) => page.locator('.segmented button.active').innerText();
 const tool = (page) => page.evaluate(async () => (await import('/js/editor/ink.js')).tools.tool);
 const note = (page, id) => page.evaluate(async (nid) => (await import('/js/db.js')).get('notes', nid), id);
+const penStroke = (page, from, to) => page.evaluate(([f, t]) => {
+  const sheet = document.querySelector('.sheet');
+  const r = sheet.getBoundingClientRect();
+  const ev = (type, x, y) => sheet.dispatchEvent(new PointerEvent(type, { pointerId: 7, pointerType: 'pen', isPrimary: true, bubbles: true, cancelable: true, composed: true, clientX: r.left + x, clientY: r.top + y, pressure: 0.6, buttons: type === 'pointerup' ? 0 : 1 }));
+  ev('pointerdown', f[0], f[1]);
+  for (let i = 1; i <= 10; i++) ev('pointermove', f[0] + ((t[0] - f[0]) * i) / 10, f[1] + ((t[1] - f[1]) * i) / 10);
+  ev('pointerup', t[0], t[1]);
+}, [from, to]);
 
 try {
   // ---- Compu: sin pantalla táctil ----
   const desk = await browser.newContext({ viewport: { width: 1200, height: 900 }, serviceWorkers: 'block' });
   const { page: pc, id: pcId } = await setup(desk);
+  if ((await pc.locator('.block').count()) !== 1) throw new Error('Una nota nueva debería tener una sola hoja');
   if ((await mode(pc)).trim() !== 'Texto') throw new Error(`En la compu debería abrir en "Texto": ${await mode(pc)}`);
-  if (!(await pc.evaluate(() => document.activeElement?.classList.contains('text-block')))) throw new Error('El cursor no quedó en el texto');
+  if (!(await pc.evaluate(() => document.activeElement?.classList.contains('page-text')))) throw new Error('El cursor no quedó en el texto de la hoja');
   await pc.keyboard.type('Comprar entradas para el sábado');
   await pc.waitForTimeout(800);
-  if (!(await note(pc, pcId)).blocks[0].html.includes('Comprar entradas')) throw new Error('No se guardó lo tipeado');
+  let n = await note(pc, pcId);
+  if (!n.blocks[0].html.includes('Comprar entradas')) throw new Error('No se guardó lo tipeado en la hoja');
   const box = await pc.locator('.sheet').first().boundingBox();
-  await pc.mouse.move(box.x + 100, box.y + 100);
+  await pc.mouse.move(box.x + 300, box.y + 400);
   await pc.mouse.down();
-  await pc.mouse.move(box.x + 300, box.y + 140, { steps: 8 });
+  await pc.mouse.move(box.x + 500, box.y + 440, { steps: 8 });
   await pc.mouse.up();
   await pc.waitForTimeout(700);
-  if ((await note(pc, pcId)).blocks[1].strokes.length) throw new Error('En modo texto el mouse no debería dibujar');
-  step('En la compu la nota abre en "Texto" con el cursor listo: se escribe con el teclado y el mouse no raya la hoja');
-  const paper = await pc.evaluate(() => {
-    const blk = document.querySelector('.block.text');
-    const tb = blk.querySelector('.text-block');
-    const cs = getComputedStyle(tb);
-    return { cls: blk.className, bg: cs.backgroundColor, img: cs.backgroundImage, lh: parseFloat(cs.lineHeight) };
-  });
-  if (!paper.cls.includes('paper-lined') || paper.bg !== 'rgb(255, 253, 248)' || !paper.img.includes('gradient') || paper.lh < 26) throw new Error(`El texto no va sobre la hoja rayada: ${JSON.stringify(paper)}`);
-  await pc.locator('.block.ink .block-menu').first().click();
-  await pc.locator('.popover .menu-item', { hasText: 'Cuadriculada' }).click();
-  if (!(await pc.locator('.block.text').getAttribute('class')).includes('paper-grid')) throw new Error('El texto no sigue el papel de la hoja');
-  await pc.locator('.block.ink .block-menu').first().click();
-  await pc.locator('.popover .menu-item', { hasText: 'Rayada' }).click();
-  step('Lo tipeado va sobre papel rayado como la hoja (y sigue el papel si se cambia)');
+  if ((await note(pc, pcId)).blocks[0].strokes.length) throw new Error('En modo texto el mouse no debería dibujar');
+  step('En la compu la nota abre en "Texto" con el cursor en la hoja: se escribe con el teclado y el mouse no la raya');
   await pc.locator('.segmented button', { hasText: 'Lápiz' }).click();
-  await pc.mouse.move(box.x + 100, box.y + 100);
+  await pc.mouse.move(box.x + 300, box.y + 400);
   await pc.mouse.down();
-  await pc.mouse.move(box.x + 300, box.y + 140, { steps: 8 });
+  await pc.mouse.move(box.x + 500, box.y + 440, { steps: 8 });
   await pc.mouse.up();
   await pc.waitForTimeout(700);
-  if ((await note(pc, pcId)).blocks[1].strokes.length !== 1) throw new Error('Con "Lápiz" elegido, el mouse debería dibujar');
-  step('Eligiendo "Lápiz", en la compu también se puede dibujar');
+  n = await note(pc, pcId);
+  if (n.blocks.length !== 1 || n.blocks[0].strokes.length !== 1 || !n.blocks[0].html.includes('Comprar entradas')) throw new Error('Texto y dibujo deberían quedar en la misma hoja');
+  step('Eligiendo "Lápiz", en la compu también se dibuja: texto y trazo quedan en la misma hoja');
   await desk.close();
 
   // ---- iPad: pantalla táctil + lápiz ----
   const ipad = await browser.newContext({ viewport: { width: 1180, height: 820 }, hasTouch: true, serviceWorkers: 'block' });
   const { page, id } = await setup(ipad);
   if ((await mode(page)).trim() !== 'Lápiz') throw new Error(`En el iPad debería abrir con el lápiz: ${await mode(page)}`);
-  const tb = await page.locator('.text-block').first().boundingBox();
-  await page.touchscreen.tap(tb.x + 40, tb.y + 10);
+  const sb = await page.locator('.sheet').first().boundingBox();
+  await page.touchscreen.tap(sb.x + 200, sb.y + 150);
+  await page.waitForTimeout(250);
+  if ((await mode(page)).trim() !== 'Lápiz' || (await page.evaluate(() => document.activeElement?.classList.contains('page-text')))) throw new Error('Con el lápiz elegido, el dedo no debería abrir el teclado');
+  step('En el iPad, con el lápiz elegido el dedo no abre el teclado (desplaza y hace el doble toque)');
+
+  await page.locator('.segmented button', { hasText: 'Texto' }).click();
+  await page.touchscreen.tap(sb.x + 200, sb.y + 150);
   await page.waitForTimeout(200);
-  if ((await mode(page)).trim() !== 'Texto') throw new Error('Tocar el texto debería pasar a "Texto"');
   await page.keyboard.type('Idea: app para el súper');
   await page.waitForTimeout(800);
   if (!(await note(page, id)).blocks[0].html.includes('Idea: app')) throw new Error('No se guardó lo tipeado en el iPad');
-  step('En el iPad, tocar el texto pasa a "Texto" y se escribe con el teclado');
+  step('Eligiendo "Texto", tocar la hoja pone el cursor y se escribe con el teclado');
 
-  // El lápiz apoyado en la hoja pasa solo a dibujar y el trazo arranca en ese mismo toque.
-  await page.evaluate(() => {
-    const sheet = document.querySelector('.sheet');
-    const r = sheet.getBoundingClientRect();
-    const ev = (type, x, y) => sheet.dispatchEvent(new PointerEvent(type, { pointerId: 7, pointerType: 'pen', isPrimary: true, bubbles: true, cancelable: true, composed: true, clientX: r.left + x, clientY: r.top + y, pressure: 0.6, buttons: type === 'pointerup' ? 0 : 1 }));
-    ev('pointerdown', 80, 80);
-    for (let i = 1; i <= 10; i++) ev('pointermove', 80 + i * 20, 80 + i * 4);
-    ev('pointerup', 280, 120);
-  });
+  // El lápiz apoyado en la hoja vuelve solo a dibujar y el trazo arranca en ese mismo toque.
+  await penStroke(page, [80, 300], [280, 340]);
   await page.waitForTimeout(800);
   if ((await mode(page)).trim() !== 'Lápiz' || (await tool(page)) !== 'pen') throw new Error(`El lápiz debería volver a la lapicera: ${await tool(page)}`);
-  if ((await note(page, id)).blocks[1].strokes.length !== 1) throw new Error('El trazo del lápiz no quedó en la hoja');
-  if (await page.evaluate(() => document.activeElement?.classList.contains('text-block'))) throw new Error('El teclado debería cerrarse al dibujar');
-  step('Con el lápiz en la hoja vuelve solo a "Lápiz" y el primer trazo ya se dibuja');
+  n = await note(page, id);
+  if (n.blocks[0].strokes.length !== 1 || !n.blocks[0].html.includes('Idea: app')) throw new Error('El trazo y el texto deberían estar en la misma hoja');
+  if (await page.evaluate(() => document.activeElement?.classList.contains('page-text'))) throw new Error('El teclado debería cerrarse al dibujar');
+  step('Con el lápiz en la hoja vuelve solo a "Lápiz" y el primer trazo ya se dibuja, sin perder el texto');
 
   if (errors.length) throw new Error(`Errores en la página: ${errors.join(' | ')}`);
   console.log('\nTodo OK');
