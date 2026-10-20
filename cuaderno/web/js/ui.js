@@ -125,7 +125,10 @@ export function modal(title, content, { actions = [], wide = false } = {}) {
     ? h('div.modal-actions', actions.map((a) => h(`button.btn${a.primary ? '.primary' : ''}${a.danger ? '.danger' : ''}`, {
       type: 'button',
       onclick: async () => {
-        const v = a.onClick ? await a.onClick() : a.value;
+        // Un botón con valor fijo (Cancelar: false o null) cierra y devuelve ese valor. Si tiene
+        // onClick, devolver false lo deja abierto (p. ej. un campo vacío) y otro valor lo cierra.
+        if (!a.onClick) { close(a.value === undefined ? true : a.value); return; }
+        const v = await a.onClick();
         if (v !== false) close(v ?? a.value ?? true);
       },
     }, a.label)))

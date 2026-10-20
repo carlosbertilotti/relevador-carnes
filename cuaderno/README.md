@@ -21,7 +21,7 @@ App para tomar notas de clase en el iPad con el Apple Pencil, sincronizada con e
 
 | De… | Qué |
 |---|---|
-| **Notas de Apple** | Formato de texto (Título/Encabezado/Subencabezado/Cuerpo/Mono), checklist con círculos, tablas, notas fijadas, lista agrupada por mes, búsqueda. Con el lápiz sobre el texto funciona **Scribble** (se convierte en texto). |
+| **Notas de Apple** | Formato de texto (Título/Encabezado/Subencabezado/Cuerpo/Mono), checklist con círculos, tablas, notas fijadas, lista agrupada por mes, búsqueda. Con el lápiz sobre un texto suelto funciona **Scribble** (se convierte en texto); sobre la hoja, el lápiz dibuja. |
 | **GoodNotes** | Plantillas de hoja (rayada, cuadriculada, puntos, lisa), **lazo** para seleccionar/mover/recolorear/duplicar trazos, **mantener el lápiz quieto para hacer una línea recta**, "sólo lápiz" (el dedo desplaza, la palma no raya), anotar PDFs. |
 | **Notability** | **Grabar la clase sincronizada con lo que escribís**: al reproducir, lo que todavía no se había escrito aparece tenue y tocando un trazo saltás a ese momento del audio. Hojas que crecen solas al escribir abajo. Velocidad 1×/1,5×/2×. |
 | **Saber** (open source) | Resaltador que no se oscurece al superponerse, **modo oscuro que invierte las hojas** (tinta clara sobre fondo oscuro). |

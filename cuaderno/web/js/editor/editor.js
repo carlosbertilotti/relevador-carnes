@@ -18,6 +18,7 @@ const PEN_COLORS = ['#1c1c1e', '#2f6fde', '#d0342c', '#23915a', '#8e44c9', '#e98
 const HL_COLORS = ['#ffd60a', '#7ee081', '#ff9fc6', '#7cc8ff', '#ffb35c'];
 const PEN_SIZES = [2.5, 4, 7];
 const TOOL_NAMES = { pen: 'Lapicera', highlighter: 'Resaltador', eraser: 'Goma', lasso: 'Lazo' };
+const PRINT_STRIP = 1050; // alto de una tira al imprimir, en unidades de la hoja (cabe en A4 y en carta)
 const PAPERS = [['lined', 'Rayada'], ['grid', 'Cuadriculada'], ['dots', 'Puntos'], ['blank', 'Lisa'], ['cornell', 'Cornell']];
 
 export async function openEditor(root, noteId, { back, watch = false } = {}) {
@@ -94,7 +95,8 @@ class Editor {
     this.save();
   }
   onPhotoSelect(sheet, ph) {
-    this.activePhoto = ph ? sheet : null;
+    if (ph) this.activePhoto = sheet;
+    else if (this.activePhoto === sheet) this.activePhoto = null;
     if (ph) this.activeSelection = null;
     this._renderSelectionBar();
   }
@@ -209,7 +211,13 @@ class Editor {
       const files = [...(e.dataTransfer?.files || [])].filter((f) => f.type.startsWith('image/'));
       if (!files.length) return;
       e.preventDefault();
-      (async () => { for (const f of files) await this.addPhoto(f); })();
+      (async () => {
+        let prev = null;
+        for (const f of files) {
+          // Cada imagen debajo de la anterior (la hoja crece si hace falta).
+          prev = await this.addPhoto(f, prev ? { block: this.note.blocks.find((b) => b.photos?.includes(prev)), y: prev.y + prev.h + 24 } : {});
+        }
+      })();
     };
     this.scroller.addEventListener('dragover', this._onDragOver);
     this.scroller.addEventListener('drop', this._onDrop);
@@ -470,6 +478,9 @@ class Editor {
   renderBlocks() {
     for (const s of this.sheets.values()) s.destroy();
     this.sheets.clear();
+    this.activePhoto = null; // las hojas son nuevas: lo que estaba seleccionado ya no existe
+    this.activeSelection = null;
+    this._renderSelectionBar?.();
     this.blocksEl.replaceChildren(...this.note.blocks.map((b) => this.renderBlock(b)));
   }
 
@@ -517,7 +528,7 @@ class Editor {
       dataset: { blockId: b.id, ...(first ? { placeholder: 'Escribí con el teclado o dibujá con el lápiz…' } : {}) },
       html: b.html || '',
     });
-    this._bindText(el, b, { onInput: () => sheet.fitText() });
+    this._bindText(el, b, { onInput: () => { sheet.fitText({ persist: true }); this._dropMergeUndo(); } });
     // Con el lápiz elegido, el dedo desplaza (y el doble toque cambia de herramienta): no abre el teclado.
     // Para escribir con el teclado se elige "Texto"; ya en modo texto, tocar pone el cursor.
     el.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch' && tools.tool !== 'none') e.preventDefault(); });
@@ -575,14 +586,15 @@ class Editor {
     this._blocksOp(() => { this.note.blocks = [...this.note.blocks, block]; });
     const el = this.blocksEl.querySelector(`[data-block-id="${block.id}"]`);
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    if (type === 'text') setTimeout(() => el?.querySelector('.text-block')?.focus(), 250);
+    if (type === 'text' || (tools.tool === 'none' && store.isPlainSheet(block))) setTimeout(() => el?.querySelector('.text-block')?.focus(), 250); // sigue escribiendo
     else if (tools.tool === 'none') this.setTool(this.lastInkTool || 'pen');
     return block;
   }
 
   async removeBlock(id, { confirm = true } = {}) {
     const b = this.note.blocks.find((x) => x.id === id);
-    if (confirm && b?.type === 'ink' && b.strokes.length && !(await confirmDialog('Eliminar hoja', 'Se borra la hoja con todo lo escrito. Podés deshacerlo.', { ok: 'Eliminar', danger: true }))) return;
+    const hasContent = b?.type === 'ink' && (b.strokes.length || b.photos?.length || (b.html || '').replace(/<[^>]+>/g, '').trim());
+    if (confirm && hasContent && !(await confirmDialog('Eliminar hoja', 'Se borra la hoja con todo lo escrito. Podés deshacerlo.', { ok: 'Eliminar', danger: true }))) return;
     this._blocksOp(() => { this.note.blocks = this.note.blocks.filter((x) => x.id !== id); });
   }
 
@@ -660,7 +672,7 @@ class Editor {
 
   // ---------- Fotos dentro de la hoja (GoodNotes) ----------
   // La foto se pega en la hoja que se está viendo y se puede escribir encima.
-  async addPhoto(file, { block: target = null, y = null } = {}) {
+  async addPhoto(file, { block: target = null, y = null, select = true } = {}) {
     let blob;
     try {
       blob = await downscale(file, 1600);
@@ -692,10 +704,12 @@ class Editor {
     if (sheet) { sheet.bgDirty = true; sheet.render(); }
     this.onPhotosChange(block, before);
     // Queda seleccionada: se mueve, se cambia de tamaño, se recorta o se gira enseguida.
-    if (sheet) {
+    if (sheet && select) {
       const was = this.lastInkTool; // "Lápiz" sigue volviendo a la herramienta de antes
       this.setTool('lasso');
       this.lastInkTool = was || 'pen';
+      this.onActivate(sheet); // suelta lo que estuviera seleccionado en otras hojas
+      sheet.clearSelection();
       sheet.selectPhoto(ph);
     }
     return ph;
@@ -786,11 +800,14 @@ class Editor {
     const pos = (e) => { const b = canvas.getBoundingClientRect(); return [(e.clientX - b.left) / b.width, (e.clientY - b.top) / b.height]; };
     stage.addEventListener('pointerdown', (e) => {
       const [u, v] = pos(e);
-      const reach = 18 / Math.min(cw, ch);
+      // Radio de agarre de 18 px por eje (no en proporciones: en una imagen larga y finita sería enorme),
+      // y menor si el marco es chico, para que el centro se pueda agarrar para moverlo.
+      const rx = Math.min(18, (r.w * cw) / 3) / cw;
+      const ry = Math.min(18, (r.h * ch) / 3) / ch;
       let hit = null;
-      let best = reach * reach;
+      let best = 1;
       for (const [name, hx, hy] of handlePoints(r, true)) {
-        const d = (hx - u) ** 2 + (hy - v) ** 2;
+        const d = ((hx - u) / rx) ** 2 + ((hy - v) / ry) ** 2;
         if (d <= best) { best = d; hit = name; }
       }
       if (!hit && u > r.x && u < r.x + r.w && v > r.y && v < r.y + r.h) hit = 'move';
@@ -836,12 +853,31 @@ class Editor {
     const src = toSource(r, rot);
     const cur = ph.crop || full;
     if (Math.abs(src.x - cur.x) + Math.abs(src.y - cur.y) + Math.abs(src.w - cur.w) + Math.abs(src.h - cur.h) < 1e-4) return;
-    const probe = { ...ph, crop: src };
-    const g = photoGeom(probe, bmp);
-    const aspect = swap ? g.sh / g.sw : g.sw / g.sh; // ancho / alto de lo que se ve
-    const w = Math.min(ph.w, store.PAPER_W * 1.2);
-    // Si el recorte es más "alto" que la hoja permite, se achica el ancho en vez de salir de la hoja.
-    this._updatePhoto(sheet, ph, { crop: src, w: Math.round(w), h: Math.round(w / aspect) });
+    // La parte que queda se ve a la misma escala que antes y en el mismo lugar de la hoja: recortar
+    // achica el marco (agrandar el recorte lo agranda), nunca estira la foto ni la hoja.
+    const R0 = fromSource(cur, rot);
+    const R1 = fromSource(src, rot);
+    const fullW = swap ? bmp.height : bmp.width; // tamaño de la foto entera, como se ve
+    const fullH = swap ? bmp.width : bmp.height;
+    const sx = ph.w / (R0.w * fullW); // unidades de la hoja por píxel de la foto
+    const sy = ph.h / (R0.h * fullH);
+    let w = Math.min(R1.w * fullW * sx, store.PAPER_W * 1.2);
+    let h2 = (w * R1.h * fullH * sy) / (R1.w * fullW * sx);
+    const grow = Math.max(1, 24 / Math.min(w, h2)); // un mínimo parejo: una franja finita no se estira
+    w *= grow;
+    h2 *= grow;
+    // Mientras estaba el diálogo pudo cambiar la nota (otro dispositivo, deshacer): se busca de nuevo la foto.
+    const liveSheet = this.sheets.get(sheet.block.id);
+    const livePh = liveSheet?.block.photos?.find((x) => x.id === ph.id);
+    if (!livePh) { toast('La foto cambió mientras la recortabas: volvé a abrir Recortar', { error: true }); return; }
+    liveSheet.photoSel = livePh;
+    this._updatePhoto(liveSheet, livePh, {
+      crop: src,
+      w: Math.round(w),
+      h: Math.round(h2),
+      x: Math.round(livePh.x + (R1.x - R0.x) * fullW * sx),
+      y: Math.max(0, Math.round(livePh.y + (R1.y - R0.y) * fullH * sy)),
+    });
   }
 
   // La hoja que más se ve en pantalla.
@@ -867,6 +903,7 @@ class Editor {
     const merged = { ...b, html: a.html || '' };
     this.note.blocks = [merged];
     this.renderBlocks();
+    this.sheets.get(merged.id)?.fitText({ persist: true });
     this.save();
     return true;
   }
@@ -892,7 +929,17 @@ class Editor {
         return { ...x, html: [...p.before, x.html || '', ...p.after].join('') };
       });
     });
+    this.undoStack.at(-1).merge = true;
+    for (const sh of this.sheets.values()) sh.fitText({ persist: true });
     toast('El texto pasó a la hoja');
+  }
+
+  // Deshacer la unión devolvería las hojas de antes y perdería lo escrito después: al escribir deja de ofrecerse.
+  _dropMergeUndo() {
+    if (!this.undoStack.some((o) => o.merge) && !this.redoStack.some((o) => o.merge)) return;
+    this.undoStack = this.undoStack.filter((o) => !o.merge);
+    this.redoStack = this.redoStack.filter((o) => !o.merge);
+    this._syncUndo();
   }
 
   // Fotos que quedaron pegadas en el texto (versiones anteriores): pasan a la hoja.
@@ -913,7 +960,7 @@ class Editor {
       for (const img of imgs) {
         const file = await (await fetch(img.src)).blob();
         const bottom = Math.max(0, ...(target.strokes || []).flatMap((st) => st.points.map((q) => q[1])), ...(target.photos || []).map((p) => p.y + p.h));
-        await this.addPhoto(file, { block: target, y: bottom + 50 });
+        await this.addPhoto(file, { block: target, y: bottom + 50, select: false });
         const p = img.closest('p');
         if (p && !p.textContent.trim() && p.querySelectorAll('img').length === 1) p.remove(); else img.remove();
         moved++;
@@ -1136,7 +1183,7 @@ class Editor {
     const el = this.blocksEl.querySelector(`.text-block[data-block-id="${block.id}"]`);
     if (el) {
       el.innerHTML = block.html;
-      this.sheets.get(block.id)?.fitText();
+      this.sheets.get(block.id)?.fitText({ persist: true });
       el.focus();
       const r = document.createRange();
       r.selectNodeContents(el.lastElementChild || el);
@@ -1156,11 +1203,23 @@ class Editor {
         if (b.type === 'text') return h('div.print-text', { html: b.html });
         const sheet = this.sheets.get(b.id);
         if (!(store.isPlainSheet(b) && (b.html || '').replace(/<[^>]+>/g, '').trim())) return h('img.print-sheet', { src: sheet.toDataURL() });
-        // Hoja con texto tipeado: papel, texto y tinta en capas, como en pantalla.
-        return h('div.print-page', { dataset: { paper: b.paper || 'lined' } },
-          h('img.print-bg', { src: sheet.bgDataURL() }),
-          h('div.text-block.page-text', { html: b.html }),
-          h('img.print-ink', { src: sheet.inkDataURL() }));
+        // Hoja con texto tipeado: papel, texto y tinta en capas, como en pantalla. Se parte en tiras
+        // del alto de una página: cada una lleva su pedazo de las tres capas (una imagen más alta
+        // que la página se corta distinto que el texto y se desfasan).
+        const H = sheet.effectiveHeight();
+        const bg = sheet.bgDataURL();
+        const ink = sheet.inkDataURL();
+        const strips = [];
+        for (let top = 0; top < H; top += PRINT_STRIP) {
+          const hh = Math.min(PRINT_STRIP, H - top);
+          const layer = (url) => h('div.print-layer', { style: { backgroundImage: `url(${url})`, backgroundSize: `100% ${H / 10}cqw`, backgroundPosition: `0 -${top / 10}cqw` } });
+          const strip = h('div.print-strip', { dataset: { paper: b.paper || 'lined' }, style: { aspectRatio: `1000 / ${hh}` } },
+            layer(bg),
+            h('div.text-block.page-text', { html: b.html, style: { top: `-${top / 10}cqw`, bottom: 'auto', height: `${H / 10}cqw` } }),
+            layer(ink));
+          strips.push(strip);
+        }
+        return strips;
       }));
     document.body.append(printable);
     document.body.classList.add('printing');
@@ -1253,7 +1312,10 @@ async function downscale(file, max) {
   const c = document.createElement('canvas');
   c.width = Math.round(bmp.width * k);
   c.height = Math.round(bmp.height * k);
-  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff'; // el JPEG no tiene transparencia: sin esto los bordes transparentes (capturas de ventanas) salen negros
+  g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(bmp, 0, 0, c.width, c.height);
   return new Promise((resolve) => c.toBlob(resolve, 'image/jpeg', 0.85));
 }
 
@@ -1279,7 +1341,8 @@ function handlePoints(r, named = false) {
 const bitmaps = new Map();
 function imageBitmap(blobId) {
   if (!bitmaps.has(blobId)) {
-    bitmaps.set(blobId, db.get('blobs', blobId).then((row) => (row?.blob ? createImageBitmap(row.blob) : null)).catch(() => null));
+    // Si la imagen todavía no llegó (se sincroniza aparte), no se recuerda la falta: la próxima vez se vuelve a buscar.
+    bitmaps.set(blobId, db.get('blobs', blobId).then((row) => (row?.blob ? createImageBitmap(row.blob) : (bitmaps.delete(blobId), null))).catch(() => { bitmaps.delete(blobId); return null; }));
   }
   return bitmaps.get(blobId);
 }

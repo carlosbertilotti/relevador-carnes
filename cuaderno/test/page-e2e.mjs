@@ -84,18 +84,24 @@ try {
   if (!found.includes('Con texto')) throw new Error(`La búsqueda no encuentra el texto de la hoja: ${found}`);
   step('La búsqueda y los resúmenes leen el texto de la hoja');
 
-  // Exportar: papel, texto y tinta
+  // Exportar: papel, texto y tinta, en tiras del alto de una página
   await db(() => { window.print = () => {}; });
   await page.locator('.editor-head button[title="Exportar / imprimir"]').click();
   await page.waitForTimeout(200);
   const pr = await db(() => {
-    const root = document.querySelector('.print-root');
-    const pg = root?.querySelector('.print-page');
-    return { page: !!pg, kids: pg ? [...pg.children].map((c) => c.tagName + '.' + c.className.split(' ')[0]).join() : '', text: pg?.textContent.includes('Línea 7') };
+    const strips = [...document.querySelectorAll('.print-root .print-strip')];
+    return {
+      n: strips.length,
+      kids: strips[0] ? [...strips[0].children].map((c) => c.className.split(' ')[0]).join() : '',
+      tops: strips.map((st) => st.querySelector('.page-text').style.top),
+      text: strips[0]?.textContent.includes('Línea 7'),
+      ratio: strips[0]?.style.aspectRatio,
+    };
   });
-  if (!pr.page || pr.kids !== 'IMG.print-bg,DIV.text-block,IMG.print-ink' || !pr.text) throw new Error(`Exportación: ${JSON.stringify(pr)}`);
+  const expectStrips = Math.ceil(n.blocks[0].height / 1050);
+  if (pr.n !== expectStrips || pr.kids !== 'print-layer,text-block,print-layer' || !pr.text || pr.tops[0] !== '0cqw' || pr.tops[1] !== '-105cqw' || !/^1000 \/ 1050$/.test(pr.ratio)) throw new Error(`Exportación: ${JSON.stringify({ pr, expectStrips })}`);
   await db(() => { document.querySelector('.print-root')?.remove(); document.body.classList.remove('printing'); });
-  step('Exportar / imprimir lleva el papel, el texto y la tinta en capas');
+  step(`Exportar / imprimir parte la hoja en ${pr.n} tiras con el papel, el texto y la tinta de cada una (no se desfasan entre páginas)`);
 
   // ---- Notas hechas con el formato anterior ----
   await page.goto(`${base}/#/nota/n_viejo`);
@@ -123,6 +129,7 @@ try {
 
   // ---- Fotos ----
   await page.goto(`${base}/#/nota/${idCon}`);
+  await page.waitForFunction(() => document.querySelector('input.note-title')?.value === 'Con texto'); // ya cambió de nota
   await page.locator('.sheet .page-text').waitFor();
   const paste = () => db(async () => {
     const c = Object.assign(document.createElement('canvas'), { width: 400, height: 300 });
@@ -233,6 +240,160 @@ try {
   await page.waitForTimeout(900);
   if ((await note(idCon)).blocks[0].photos.length !== before + 1) throw new Error('Soltar una imagen en la nota no la agregó');
   step('Arrastrar una imagen y soltarla en la nota también la agrega');
+
+  // ---- Arreglos de la revisión ----
+  // Abrir una nota en una pantalla angosta no agranda la hoja guardada
+  await db(async () => {
+    const d = await import('/js/db.js');
+    const store = await import('/js/store.js');
+    const nb = (await d.all('notebooks'))[0];
+    const html = Array.from({ length: 24 }, (_, i) => `<p>Párrafo ${i + 1} con bastante texto para que ocupe más de una línea en pantallas angostas y se note la diferencia</p>`).join('');
+    await d.put('notes', { id: 'n_ancha', notebookId: nb.id, title: 'Ancha', classDate: '2026-10-01', blocks: [store.newInkBlock({ paper: 'lined', html })], recordings: [], createdAt: 1, updatedAt: 1, _mod: 5 }, { remote: true });
+    await d.put('notes', { id: 'n_larga', notebookId: nb.id, title: 'Larga', classDate: '2026-10-01', blocks: [{ ...store.newInkBlock({ paper: 'lined', html: '<p>larga</p>' }), height: 40000 }], recordings: [], createdAt: 1, updatedAt: 1, _mod: 5 }, { remote: true });
+  });
+  await page.setViewportSize({ width: 420, height: 800 });
+  await page.goto(`${base}/#/nota/n_ancha`);
+  await page.locator('.sheet .page-text').waitFor();
+  await page.waitForTimeout(1300);
+  const small = await db(async () => { const nn = await (await import('/js/db.js')).get('notes', 'n_ancha'); return { h: nn.blocks[0].height, mod: nn._mod, shown: Math.round(document.querySelector('.sheet').getBoundingClientRect().height / document.querySelector('.sheet').getBoundingClientRect().width * 1000) }; });
+  if (small.h !== 1414 || small.mod !== 5) throw new Error(`Abrir en pantalla chica cambió la nota guardada: ${JSON.stringify(small)}`);
+  if (small.shown < 1414) throw new Error(`En pantalla chica el texto no entra: ${JSON.stringify(small)}`);
+  step(`Abrir una nota en una pantalla angosta muestra la hoja más larga sin agrandar ni volver a guardar la nota (${small.shown} vs 1414)`);
+  await page.setViewportSize({ width: 1200, height: 900 });
+
+  // Una hoja larguísima no revienta el canvas
+  await page.goto(`${base}/#/nota/n_larga`);
+  await page.locator('.sheet .layer.bg').waitFor();
+  await page.waitForTimeout(600);
+  const area = await db(() => { const c = document.querySelector('.sheet .layer.bg'); return c.width * c.height; });
+  if (area > 12_500_000) throw new Error(`Canvas demasiado grande: ${area} px`);
+  step(`Una hoja de 40.000 unidades baja la resolución para entrar en memoria (${(area / 1e6).toFixed(1)} Mpx)`);
+
+  // Menú contextual: en modo texto el navegador, al dibujar no
+  await page.goto(`${base}/#/nota/${idCon}`);
+  await page.waitForFunction(() => document.querySelector('input.note-title')?.value === 'Con texto');
+  await page.locator('.sheet .page-text').waitFor();
+  await page.locator('.segmented button', { hasText: 'Texto' }).click();
+  const ctxText = await db(() => { const ev = new MouseEvent('contextmenu', { bubbles: true, cancelable: true }); document.querySelector('.page-text').dispatchEvent(ev); return ev.defaultPrevented; });
+  await page.locator('.segmented button', { hasText: 'Lápiz' }).click();
+  const ctxPen = await db(() => { const ev = new MouseEvent('contextmenu', { bubbles: true, cancelable: true }); document.querySelector('.page-text').dispatchEvent(ev); return ev.defaultPrevented; });
+  if (ctxText || !ctxPen) throw new Error(`Menú contextual: texto=${ctxText} lápiz=${ctxPen}`);
+  step('En modo texto el clic derecho mantiene el menú del navegador (corrector, copiar, pegar); con el lápiz no');
+
+  // + Hoja en modo texto sigue escribiendo en la hoja nueva
+  await page.locator('.segmented button', { hasText: 'Texto' }).click();
+  await page.locator('.add-row button', { hasText: 'Hoja' }).click();
+  await page.waitForTimeout(500);
+  const focused = await db(() => ({ pt: document.activeElement?.classList.contains('page-text'), sheets: document.querySelectorAll('.sheet').length, active: document.querySelector('.segmented button.active')?.textContent.trim() }));
+  if (!focused.pt || focused.sheets !== 2 || focused.active !== 'Texto') throw new Error(`Hoja nueva: ${JSON.stringify(focused)}`);
+  await page.keyboard.type('segunda pagina');
+  await page.waitForTimeout(800);
+  if (!(await note(idCon)).blocks[1].html.includes('segunda pagina')) throw new Error('No se escribió en la hoja nueva');
+  step('Agregar una hoja en modo texto deja el cursor en la hoja nueva (sin cambiar a lápiz)');
+
+  // Borrar una hoja con sólo texto pide confirmación
+  await page.locator('.block-menu').nth(1).click();
+  await page.locator('.popover .menu-item', { hasText: 'Eliminar hoja' }).click();
+  await page.locator('.modal', { hasText: 'Eliminar hoja' }).waitFor();
+  await page.locator('.modal-actions button', { hasText: 'Cancelar' }).click();
+  await page.locator('.backdrop').waitFor({ state: 'detached' }); // "Cancelar" cierra el diálogo
+  if ((await note(idCon)).blocks.length !== 2) throw new Error('Cancelar no debería borrar la hoja');
+  step('Eliminar una hoja que sólo tiene texto pregunta antes de borrarla');
+
+  // Cancelar en un diálogo de texto no devuelve "verdadero" (antes creaba una carpeta llamada "true")
+  const cancelled = await db(async () => {
+    const { prompt } = await import('/js/ui.js');
+    const p = prompt('Nombre', { placeholder: 'x' });
+    document.querySelector('.modal-actions button').click(); // Cancelar
+    return await p;
+  });
+  if (cancelled !== null) throw new Error(`Cancelar devolvió ${JSON.stringify(cancelled)} en vez de null`);
+  await page.locator('.backdrop').waitFor({ state: 'detached' });
+  step('"Cancelar" en un diálogo lo cierra y cancela (antes quedaba abierto, o devolvía verdadero)');
+
+  // Cornell: el texto no queda debajo del borde y el primer renglón va bajo la raya del encabezado
+  await page.locator('.block-menu').first().click();
+  await page.locator('.popover .menu-item', { hasText: 'Cornell' }).click();
+  await page.waitForTimeout(900);
+  const corn = await db(async () => {
+    const sh = document.querySelector('.sheet');
+    const pt = sh.querySelector('.page-text');
+    const nn = await (await import('/js/db.js')).get('notes', document.location.hash.split('/').pop());
+    const r = document.createRange(); r.selectNodeContents(pt);
+    const bottom = ((r.getBoundingClientRect().bottom - pt.getBoundingClientRect().top) * 1000) / sh.getBoundingClientRect().width;
+    return { padTop: Math.round(parseFloat(getComputedStyle(pt).paddingTop) * 1000 / sh.getBoundingClientRect().width), height: nn.blocks[0].height, bottom: Math.round(bottom) };
+  });
+  if (corn.padTop < 115 || corn.bottom > corn.height) throw new Error(`Cornell: ${JSON.stringify(corn)}`);
+  await page.locator('.block-menu').first().click();
+  await page.locator('.popover .menu-item', { hasText: 'Rayada' }).click();
+  step('Cornell: el texto arranca debajo de la raya del encabezado y, si ocupa más, la hoja crece');
+
+  // Deshacer la unión deja de ofrecerse si después se escribe
+  await page.goto(`${base}/#/nota/n_dibujo`);
+  await page.locator('.sheet').first().waitFor();
+  await page.waitForTimeout(400);
+  await page.locator('.editor-head button[title="Más"]').click();
+  await page.locator('.popover .menu-item', { hasText: 'Pasar el texto a la hoja' }).click();
+  await page.waitForTimeout(400);
+  await page.locator('.segmented button', { hasText: 'Texto' }).click();
+  await page.locator('.page-text').click({ position: { x: 300, y: 200 } });
+  await page.keyboard.type(' ESCRITO DESPUES');
+  await page.waitForTimeout(300);
+  if (!(await page.locator('.toolbar button[title="Deshacer"]').isDisabled())) throw new Error('Deshacer la unión debería dejar de ofrecerse al escribir');
+  step('Después de escribir en la hoja unida, "Deshacer" ya no pierde lo escrito');
+
+  // Recortar conserva la escala (el marco se achica, no se estira la hoja)
+  await page.goto(`${base}/#/nota/${idCon}`);
+  await page.waitForFunction(() => document.querySelector('input.note-title')?.value === 'Con texto');
+  await page.locator('.sheet').first().waitFor();
+  await paste();
+  await page.locator('.selection-bar button', { hasText: 'Recortar' }).waitFor();
+  const p0 = await photo();
+  await page.locator('.selection-bar button', { hasText: 'Recortar' }).click();
+  const cv = page.locator('.modal .crop-canvas');
+  await cv.waitFor();
+  const cbx = await cv.boundingBox();
+  await page.mouse.move(cbx.x + cbx.width / 2, cbx.y + cbx.height + 6); // el borde de abajo: la manija se agarra desde el margen
+  await page.mouse.down();
+  await page.mouse.move(cbx.x + cbx.width / 2, cbx.y + cbx.height * 0.1, { steps: 6 });
+  await page.mouse.up();
+  await page.locator('.modal-actions button', { hasText: /^Recortar$/ }).click();
+  const p1 = await photo();
+  const heightAfter = (await note(idCon)).blocks[0].height;
+  if (!(p1.h < p0.h * 0.25 && p1.w === p0.w && p1.y === p0.y && heightAfter < 3000)) throw new Error(`Recorte horizontal fino: ${JSON.stringify({ p0, p1, heightAfter })}`);
+  step('Recortar una franja fina deja una franja fina (misma escala y lugar); no estira la foto ni la hoja');
+
+  // Imágenes con transparencia (capturas de ventana) no se ponen negras
+  await db(async () => {
+    const c = Object.assign(document.createElement('canvas'), { width: 200, height: 100 }); // todo transparente
+    const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+    const dt = new DataTransfer();
+    dt.items.add(new File([blob], 'transparente.png', { type: 'image/png' }));
+    document.querySelector('.page-text').dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+  });
+  const pt = await photo();
+  const tpx = await pixel(pt);
+  if (!(tpx[0] > 230 && tpx[1] > 230 && tpx[2] > 230)) throw new Error(`Una imagen transparente se ve negra: ${tpx}`);
+  step('Una imagen con transparencia se pega con fondo blanco (no negro)');
+
+  // Varias imágenes soltadas juntas quedan una debajo de la otra
+  const photosBefore = (await note(idCon)).blocks[0].photos.length;
+  await db(async () => {
+    const mk = async (color, name) => {
+      const c2 = Object.assign(document.createElement('canvas'), { width: 120, height: 80 });
+      const g = c2.getContext('2d'); g.fillStyle = color; g.fillRect(0, 0, 120, 80);
+      return new File([await new Promise((r) => c2.toBlob(r, 'image/png'))], name, { type: 'image/png' });
+    };
+    const dt = new DataTransfer();
+    dt.items.add(await mk('#ff00ff', 'a.png'));
+    dt.items.add(await mk('#00ffff', 'b.png'));
+    dt.items.add(await mk('#ffff00', 'c.png'));
+    document.querySelector('.editor-scroll').dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true }));
+  });
+  await page.waitForTimeout(1800);
+  const dropped = (await note(idCon)).blocks[0].photos.slice(photosBefore);
+  if (dropped.length !== 3 || !(dropped[1].y >= dropped[0].y + dropped[0].h && dropped[2].y >= dropped[1].y + dropped[1].h)) throw new Error(`Imágenes soltadas apiladas: ${JSON.stringify(dropped.map((q) => [q.y, q.h]))}`);
+  step('Soltar varias imágenes juntas las deja una debajo de la otra (no una encima de otra)');
 
   if (errors.length) throw new Error(`Errores en la página: ${errors.join(' | ')}`);
   console.log('\nTodo OK');

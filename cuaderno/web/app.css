@@ -535,28 +535,21 @@ body.in-editor #main { overflow: hidden; }
 
 /* ---------- Texto tipeado sobre la hoja ----------
    La hoja es un contenedor: las medidas en cqw son proporcionales a su ancho (1000 unidades),
-   así el interlineado coincide con los renglones del papel (42 unidades) a cualquier tamaño. */
-.sheet, .print-page { container-type: inline-size; }
+   así el interlineado coincide con los renglones del papel (42 unidades) a cualquier tamaño y el
+   texto se acomoda igual en todos los dispositivos (el tamaño de letra tiene un piso de 12px). */
+.sheet, .print-strip { container-type: inline-size; }
 .sheet.has-text > .layer { pointer-events: none; } /* los toques llegan al texto o a la hoja */
 .text-block.page-text {
   --text: #1c1c1e; --muted: #8a8a8e; --line: #e4e0d8; --rule: 4.2cqw; color-scheme: light;
   position: absolute; inset: 0; overflow: hidden; min-height: 0;
-  color: #1c1c1e; font-size: max(16px, 2.3cqw); line-height: var(--rule);
+  color: #1c1c1e; font-size: max(12px, 2.3cqw); line-height: var(--rule);
   padding: 7.8cqw 3cqw 0 10.6cqw; /* el primer renglón queda sobre la 1.ª raya (a 120) */
   cursor: text; user-select: text; -webkit-user-select: text; -webkit-touch-callout: default;
 }
-@container (max-width: 640px) { /* en pantallas chicas, una línea de texto cada dos renglones */
-  .text-block.page-text { --rule: 8.4cqw; font-size: 16px; padding-top: 3.6cqw; }
-}
-:is(.sheet, .print-page)[data-paper="cornell"] > .page-text { padding-left: 30.6cqw; }
-:is(.sheet, .print-page)[data-paper="grid"] > .page-text,
-:is(.sheet, .print-page)[data-paper="dots"] > .page-text,
-:is(.sheet, .print-page)[data-paper="blank"] > .page-text { padding-left: 4cqw; padding-top: 4.2cqw; }
-@container (max-width: 640px) {
-  :is(.sheet, .print-page)[data-paper="grid"] > .page-text,
-  :is(.sheet, .print-page)[data-paper="dots"] > .page-text,
-  :is(.sheet, .print-page)[data-paper="blank"] > .page-text { padding-top: 0; }
-}
+:is(.sheet, .print-strip)[data-paper="cornell"] > .page-text { padding-left: 30.6cqw; padding-top: 12cqw; } /* debajo de la raya del encabezado */
+:is(.sheet, .print-strip)[data-paper="grid"] > .page-text,
+:is(.sheet, .print-strip)[data-paper="dots"] > .page-text,
+:is(.sheet, .print-strip)[data-paper="blank"] > .page-text { padding-left: 4cqw; padding-top: 4.2cqw; }
 .page-text :is(p, div, ul, ol, li, blockquote, pre, h1, h2, h3) { margin-top: 0; margin-bottom: 0; }
 .page-text :is(h1, h2, h3, pre, blockquote) { line-height: var(--rule); }
 .page-text h1 { font-size: 1.35em; }
@@ -564,14 +557,19 @@ body.in-editor #main { overflow: hidden; }
 .page-text h3 { font-size: 1em; }
 .page-text pre { padding: 0 .4em; background: transparent; font-size: .92em; }
 .page-text a[href] { color: #2f6fde; }
+/* listas de verificación y tablas: cada fila ocupa un renglón, así lo de abajo no se desalinea */
+.page-text ul.checklist > li { margin: 0; }
+.page-text ul.checklist > li::before { top: calc((var(--rule) - 20px) / 2); }
+.page-text .note-table { margin: 0; border-collapse: collapse; }
+.page-text .note-table :is(th, td) { padding: 0 8px; height: var(--rule); line-height: var(--rule); box-sizing: border-box; }
 .page-text[data-placeholder]:empty::before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
 .editor.ink-mode .page-text { cursor: crosshair; }
 .editor.ink-mode .page-text[data-placeholder]:empty::before { content: none; }
 @media print {
-  .print-page { position: relative; width: 100%; margin: 10pt 0; break-inside: avoid; border: 1px solid #ddd; }
-  .print-page > img.print-bg { display: block; width: 100%; }
-  .print-page > .page-text { cursor: auto; }
-  .print-page > img.print-ink { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .page-text ul.checklist { list-style: "☐  "; }
-  .page-text ul.checklist li[data-checked] { list-style: "☑  "; }
+  .print-strip { position: relative; overflow: hidden; width: 100%; break-inside: avoid; border: 1px solid #ddd; margin: 0 0 6pt; }
+  .print-strip > .print-layer { position: absolute; inset: 0; background-repeat: no-repeat; }
+  .print-strip > .page-text { cursor: auto; }
+  .print-strip .page-text ul.checklist { list-style: "☐  "; }
+  .print-strip .page-text ul.checklist li[data-checked] { list-style: "☑  "; }
+  .print-strip .page-text ul.checklist > li::before { display: none; }
 }

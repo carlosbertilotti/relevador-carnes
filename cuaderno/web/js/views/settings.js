@@ -266,7 +266,7 @@ export async function renderSettings(root) {
       h('h2.section-title', 'Consejos para el iPad'),
       h('ul.tips',
         h('li', 'Instalala: en Safari, Compartir → "Agregar a pantalla de inicio". Se abre a pantalla completa y funciona sin conexión.'),
-        h('li', 'Con el Apple Pencil escribí directo sobre el texto: Scribble lo convierte en texto. En las hojas queda a mano.'),
+        h('li', 'Cada nota es una hoja donde escribís con el teclado y dibujás con el lápiz. Con el Apple Pencil apoyado sobre la hoja, dibuja; en un texto suelto (Texto en el pie de la nota) funciona Scribble.'),
         h('li', 'Al apoyar el lápiz por primera vez se activa "sólo lápiz": el dedo desplaza y la palma no raya.'),
         h('li', 'Mantené el lápiz quieto al terminar un trazo para convertirlo en línea recta.'),
         h('li', 'Grabá la clase con el micrófono: después tocá cualquier trazo para escuchar qué se decía en ese momento.')))));
