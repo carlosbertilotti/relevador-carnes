@@ -216,7 +216,7 @@ export async function renderSettings(root) {
     h('header.page-head', h('div', h('p.eyebrow', 'Cuaderno'), h('h1', 'Ajustes'))),
     h('section.card',
       h('h2.section-title', 'Notas'),
-      h('label.field', h('span', 'Formato de las notas nuevas'), select('defaultMode', [['mixed', 'Texto arriba + hoja para el lápiz'], ['text', 'Sólo texto (como Notas de Apple)'], ['ink', 'Sólo a mano (como GoodNotes)']])),
+      h('label.field', h('span', 'Formato de las notas nuevas'), select('defaultMode', [['mixed', 'Una hoja para escribir con el teclado y dibujar con el lápiz'], ['text', 'Sólo texto (como Notas de Apple)']])),
       h('label.field', h('span', 'Hoja por defecto'), select('defaultPaper', [['lined', 'Rayada'], ['grid', 'Cuadriculada'], ['dots', 'Puntos'], ['blank', 'Lisa'], ['cornell', 'Cornell (preguntas + notas + resumen)']]))),
     h('section.card',
       h('h2.section-title', 'Apariencia'),
@@ -266,7 +266,7 @@ export async function renderSettings(root) {
       h('h2.section-title', 'Consejos para el iPad'),
       h('ul.tips',
         h('li', 'Instalala: en Safari, Compartir → "Agregar a pantalla de inicio". Se abre a pantalla completa y funciona sin conexión.'),
-        h('li', 'Con el Apple Pencil escribí directo sobre el texto: Scribble lo convierte en texto. En las hojas queda a mano.'),
+        h('li', 'Cada nota es una hoja donde escribís con el teclado y dibujás con el lápiz. Con el Apple Pencil apoyado sobre la hoja, dibuja; en un texto suelto (Texto en el pie de la nota) funciona Scribble.'),
         h('li', 'Al apoyar el lápiz por primera vez se activa "sólo lápiz": el dedo desplaza y la palma no raya.'),
         h('li', 'Mantené el lápiz quieto al terminar un trazo para convertirlo en línea recta.'),
         h('li', 'Grabá la clase con el micrófono: después tocá cualquier trazo para escuchar qué se decía en ese momento.')))));

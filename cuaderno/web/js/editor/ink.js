@@ -12,6 +12,9 @@ import { PAPER_W } from '../store.js';
 
 const GROW_MARGIN = 160;
 const GROW_STEP = 700;
+// Un canvas más grande que esto no se dibuja en el iPad (y gasta mucha memoria): en hojas muy
+// largas se baja un poco la resolución en vez de perder el papel y la tinta.
+const MAX_CANVAS_PIXELS = 12_000_000;
 const HOLD_TO_SNAP_MS = 550;
 
 export const tools = {
@@ -206,6 +209,14 @@ export class InkSheet {
     this.ink.className = 'layer ink';
     this.live.className = 'layer live';
     this.sheet.append(this.bg, this.ink, this.live);
+    this.sheet.dataset.paper = block.paper || 'lined';
+    // En una hoja de papel se puede escribir con el teclado: el texto va entre el papel
+    // y la tinta (lo dibujado queda por encima, lo tipeado por debajo).
+    if (!block.pdf && !block.image) {
+      this.sheet.classList.add('has-text');
+      this.text = host.pageText?.(this) || null;
+      if (this.text) this.sheet.insertBefore(this.text, this.ink);
+    }
     this.el.append(this.sheet);
     this.selection = null;
     this.current = null;
@@ -225,9 +236,9 @@ export class InkSheet {
   layout() {
     const w = this.el.clientWidth;
     if (!w) return;
-    this.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    const cssH = (w * this.effectiveHeight()) / PAPER_W;
+    this.dpr = Math.max(0.5, Math.min(window.devicePixelRatio || 1, 2.5, Math.sqrt(MAX_CANVAS_PIXELS / (w * cssH))));
     this.scale = (w / PAPER_W) * this.dpr;
-    const cssH = (w * this.block.height) / PAPER_W;
     this.sheet.style.height = `${cssH}px`;
     for (const c of [this.bg, this.ink, this.live]) {
       c.width = Math.round(w * this.dpr);
@@ -235,6 +246,46 @@ export class InkSheet {
     }
     this.bgDirty = true;
     this.render();
+    this.fitText();
+  }
+
+  // Cambió el papel (rayado, cuadriculado…): el texto se acomoda a sus renglones.
+  applyPaper() {
+    this.sheet.dataset.paper = this.block.paper || 'lined';
+    this.bgDirty = true;
+    this.render();
+    this.fitText({ persist: true }); // otro margen puede hacer que el texto ocupe más
+  }
+
+  // Alto con el que se muestra la hoja: el guardado o, si el texto lo necesita, más (sin guardarlo).
+  effectiveHeight() {
+    return Math.max(this.block.height, this.extra || 0);
+  }
+
+  // La hoja crece sola si el texto tipeado llega abajo (como al dibujar cerca del final).
+  // Sólo lo que se escribe en este dispositivo (persist) cambia la hoja guardada: abrir una nota
+  // o cambiar el ancho de la pantalla nunca agranda la hoja para los demás dispositivos.
+  fitText({ persist = false } = {}) {
+    if (!this.text || this._fitting) return;
+    const w = this.el.clientWidth;
+    if (!w) return;
+    const range = document.createRange();
+    range.selectNodeContents(this.text);
+    const content = range.getBoundingClientRect();
+    if (!content.height) return;
+    const need = ((content.bottom - this.text.getBoundingClientRect().top) * PAPER_W) / w + GROW_MARGIN; // en unidades de la hoja
+    if (need <= this.effectiveHeight() && !(persist && need > this.block.height)) return;
+    this._fitting = true;
+    const grown = Math.ceil(need / GROW_STEP) * GROW_STEP;
+    if (persist && need > this.block.height) {
+      this.block.height = grown;
+      this.extra = 0;
+    } else if (!persist) {
+      this.extra = grown;
+    }
+    this.layout();
+    this._fitting = false;
+    if (persist) this.host.onSheetGrow?.(this.block);
   }
 
   async renderBackground() {
@@ -249,7 +300,7 @@ export class InkSheet {
       ctx.fillRect(0, 0, this.bg.width, this.bg.height);
       await this.host.renderPdf(this.block.pdf, this.bg);
     } else {
-      drawPaper(ctx, this.block.paper, this.block.height, this.scale);
+      drawPaper(ctx, this.block.paper, this.effectiveHeight(), this.scale);
     }
     // Fotos pegadas en la hoja: van en el fondo, así se escribe encima.
     for (const ph of this.block.photos || []) await this.host.drawPhoto?.(ph, ctx, this.scale);
@@ -359,7 +410,8 @@ export class InkSheet {
     s.addEventListener('pointermove', (e) => this._move(e));
     s.addEventListener('pointerup', (e) => this._up(e));
     s.addEventListener('pointercancel', (e) => this._up(e, true));
-    s.addEventListener('contextmenu', (e) => e.preventDefault());
+    // Sin menú del navegador al dibujar; en modo texto sí (corrector, copiar, pegar).
+    s.addEventListener('contextmenu', (e) => { if (tools.tool !== 'none' || !e.target.closest?.('.page-text')) e.preventDefault(); });
   }
 
   _isStylus(e) {
@@ -382,6 +434,9 @@ export class InkSheet {
       return;
     }
     if (!this._accepts(e)) return;
+    // Un ⏱ (minuto de la clase) o un link dentro del texto de la hoja: el mouse y el dedo lo tocan
+    // en vez de dibujar encima (el lápiz sigue dibujando).
+    if (e.pointerType !== 'pen' && e.target.closest?.('.ts, a[href]')) { e.preventDefault(); return; } // el clic igual llega, sin mover el foco
     if (this.pointerId != null) return;
     e.preventDefault();
     this.pointerId = e.pointerId;
@@ -657,6 +712,14 @@ export class InkSheet {
     ctx.drawImage(this.bg, 0, 0, c.width, c.height);
     ctx.drawImage(this.ink, 0, 0, c.width, c.height);
     return new Promise((resolve) => c.toBlob(resolve, 'image/jpeg', quality));
+  }
+
+  // El papel solo y la tinta sola, para imprimir con el texto tipeado en el medio.
+  bgDataURL() {
+    return this.bg.toDataURL('image/png');
+  }
+  inkDataURL() {
+    return this.ink.toDataURL('image/png');
   }
 
   // Imagen de la hoja (fondo + tinta), para exportar o imprimir.

@@ -94,6 +94,8 @@ export const ICONS = {
   hand: svg('<path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-5.9-2.3l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/>'),
   video: svg('<rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-3v10l-6-3z"/>'),
   notes: svg('<path d="M20 14V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8z"/><path d="M14 21v-5a2 2 0 0 1 2-2h4M8 8h8M8 12h5"/>'),
+  crop: svg('<path d="M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14"/>'),
+  rotate: svg('<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>'),
   clock: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
   location: svg('<path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>'),
 };
@@ -123,7 +125,10 @@ export function modal(title, content, { actions = [], wide = false } = {}) {
     ? h('div.modal-actions', actions.map((a) => h(`button.btn${a.primary ? '.primary' : ''}${a.danger ? '.danger' : ''}`, {
       type: 'button',
       onclick: async () => {
-        const v = a.onClick ? await a.onClick() : a.value;
+        // Un botón con valor fijo (Cancelar: false o null) cierra y devuelve ese valor. Si tiene
+        // onClick, devolver false lo deja abierto (p. ej. un campo vacío) y otro valor lo cierra.
+        if (!a.onClick) { close(a.value === undefined ? true : a.value); return; }
+        const v = await a.onClick();
         if (v !== false) close(v ?? a.value ?? true);
       },
     }, a.label)))

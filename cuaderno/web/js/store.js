@@ -5,7 +5,8 @@
 //   schedule: [{ day: 0-6 (0=domingo), start: 'HH:MM', end: 'HH:MM', room }]
 // Nota (= clase):       { id, notebookId, title, classDate: 'YYYY-MM-DD', blocks[], pinned, createdAt, updatedAt, recordings[] }
 //   bloque de texto:    { id, type: 'text', html }
-//   bloque de lápiz:    { id, type: 'ink', paper, height, strokes[], pdf?: { fileId, page } }
+//   bloque de lápiz:    { id, type: 'ink', paper, height, strokes[], pdf?: { fileId, page }, html? }
+//     html: el texto tipeado sobre la hoja (sólo en hojas de papel: no en PDFs ni diapositivas)
 import * as db from './db.js';
 import { parseICS, expandEvents } from './lib/ics.js';
 
@@ -124,10 +125,13 @@ export async function deleteNotebook(id) {
 export function newTextBlock(html = '') {
   return { id: db.uid('b_'), type: 'text', html };
 }
+// Una hoja de papel (no un PDF ni una diapositiva): ahí se puede escribir con el teclado y dibujar.
+export const isPlainSheet = (b) => b?.type === 'ink' && !b.pdf && !b.image;
 export function newInkBlock(opts = {}) {
   return {
     id: db.uid('b_'), type: 'ink', paper: opts.paper || 'lined', height: opts.height || PAGE_H, strokes: [],
     pdf: opts.pdf || null,
+    ...(opts.html != null ? { html: opts.html } : {}),
     image: opts.image || null, // { blobId, name }: diapositiva o foto como fondo
     ...(opts.slideText ? { slideText: opts.slideText } : {}),
   };
@@ -137,9 +141,8 @@ export async function createNote(notebookId, data = {}) {
   const now = Date.now();
   const paper = (await db.getSetting('defaultPaper', 'lined')) || 'lined';
   const mode = (await db.getSetting('defaultMode', 'mixed')) || 'mixed';
-  const blocks = data.blocks || (mode === 'ink'
-    ? [newInkBlock({ paper })]
-    : mode === 'text' ? [newTextBlock()] : [newTextBlock(), newInkBlock({ paper })]);
+  // Por defecto, una sola hoja donde se escribe con el teclado y se dibuja con el lápiz.
+  const blocks = data.blocks || (mode === 'text' ? [newTextBlock()] : [newInkBlock({ paper, html: '' })]);
   const note = {
     id: db.uid('n_'),
     notebookId,
@@ -179,7 +182,7 @@ export function noteText(note) {
   const div = document.createElement('div');
   const slides = note.blocks.filter((b) => b.slideText).map((b) => b.slideText).join('\n');
   return (note.blocks
-    .filter((b) => b.type === 'text')
+    .filter((b) => b.type === 'text' || (isPlainSheet(b) && b.html))
     .map((b) => {
       // Separar párrafos, títulos e ítems con saltos de línea (textContent los junta).
       div.innerHTML = b.html.replace(/<img[^>]*>/gi, '').replace(/<\/(p|div|h\d|li|pre|blockquote|tr)>|<br\s*\/?>/gi, '$&\n');

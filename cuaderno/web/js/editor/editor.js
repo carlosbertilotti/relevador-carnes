@@ -18,6 +18,7 @@ const PEN_COLORS = ['#1c1c1e', '#2f6fde', '#d0342c', '#23915a', '#8e44c9', '#e98
 const HL_COLORS = ['#ffd60a', '#7ee081', '#ff9fc6', '#7cc8ff', '#ffb35c'];
 const PEN_SIZES = [2.5, 4, 7];
 const TOOL_NAMES = { pen: 'Lapicera', highlighter: 'Resaltador', eraser: 'Goma', lasso: 'Lazo' };
+const PRINT_STRIP = 1050; // alto de una tira al imprimir, en unidades de la hoja (cabe en A4 y en carta)
 const PAPERS = [['lined', 'Rayada'], ['grid', 'Cuadriculada'], ['dots', 'Puntos'], ['blank', 'Lisa'], ['cornell', 'Cornell']];
 
 export async function openEditor(root, noteId, { back, watch = false } = {}) {
@@ -74,7 +75,18 @@ class Editor {
   }
   async drawPhoto(ph, ctx, scale) {
     const bmp = await imageBitmap(ph.blobId);
-    if (bmp) ctx.drawImage(bmp, ph.x * scale, ph.y * scale, ph.w * scale, ph.h * scale);
+    if (!bmp) return;
+    // Recorte (en proporciones de la imagen original) y giro en cuartos de vuelta; el
+    // marco (x, y, w, h) es lo que se ve, ya recortado y girado.
+    const { sx, sy, sw, sh, rot } = photoGeom(ph, bmp);
+    const swap = rot % 2 === 1;
+    const dw = (swap ? ph.h : ph.w) * scale;
+    const dh = (swap ? ph.w : ph.h) * scale;
+    ctx.save();
+    ctx.translate((ph.x + ph.w / 2) * scale, (ph.y + ph.h / 2) * scale);
+    ctx.rotate((rot * Math.PI) / 2);
+    ctx.drawImage(bmp, sx, sy, sw, sh, -dw / 2, -dh / 2, dw, dh);
+    ctx.restore();
   }
   onPhotosChange(block, before) {
     this.undoStack.push({ kind: 'photos', blockId: block.id, before, after: block.photos });
@@ -83,7 +95,8 @@ class Editor {
     this.save();
   }
   onPhotoSelect(sheet, ph) {
-    this.activePhoto = ph ? sheet : null;
+    if (ph) this.activePhoto = sheet;
+    else if (this.activePhoto === sheet) this.activePhoto = null;
     if (ph) this.activeSelection = null;
     this._renderSelectionBar();
   }
@@ -192,6 +205,22 @@ class Editor {
       this.addPhoto(file);
     };
     document.addEventListener('paste', this._onPaste, true);
+    // Arrastrar una imagen (del Finder, de otra ventana) y soltarla en la nota.
+    this._onDragOver = (e) => { if ([...(e.dataTransfer?.items || [])].some((i) => i.kind === 'file' && i.type.startsWith('image/'))) e.preventDefault(); };
+    this._onDrop = (e) => {
+      const files = [...(e.dataTransfer?.files || [])].filter((f) => f.type.startsWith('image/'));
+      if (!files.length) return;
+      e.preventDefault();
+      (async () => {
+        let prev = null;
+        for (const f of files) {
+          // Cada imagen debajo de la anterior (la hoja crece si hace falta).
+          prev = await this.addPhoto(f, prev ? { block: this.note.blocks.find((b) => b.photos?.includes(prev)), y: prev.y + prev.h + 24 } : {});
+        }
+      })();
+    };
+    this.scroller.addEventListener('dragover', this._onDragOver);
+    this.scroller.addEventListener('drop', this._onDrop);
     // Cambios que llegan de otro dispositivo mientras la nota está abierta.
     this._onRemote = async (e) => {
       const d = e.detail || {};
@@ -238,8 +267,11 @@ class Editor {
     store.bus.addEventListener('live', this._onLive);
     if (!this.note.blocks.length) this.addBlock('text');
     await this._moveTextImagesToSheets();
+    this._mergeTextIntoEmptySheet();
     // Nota vacía en la compu: el cursor queda en el texto, listo para escribir.
-    if (!navigator.maxTouchPoints && tools.tool === 'none' && this.note.blocks[0]?.type === 'text' && !store.noteText(this.note)) {
+    const first = this.note.blocks[0];
+    const empty = !store.noteText(this.note) && !this.note.blocks.some((b) => b.strokes?.length || b.photos?.length);
+    if (!navigator.maxTouchPoints && tools.tool === 'none' && (first?.type === 'text' || store.isPlainSheet(first)) && empty) {
       this.blocksEl.querySelector('.text-block')?.focus();
     }
   }
@@ -264,6 +296,8 @@ class Editor {
     document.removeEventListener('visibilitychange', this._onVis);
     document.removeEventListener('pointerdown', this._onPen, true);
     document.removeEventListener('paste', this._onPaste, true);
+    this.scroller.removeEventListener('dragover', this._onDragOver);
+    this.scroller.removeEventListener('drop', this._onDrop);
     store.bus.removeEventListener('change', this._onRemote);
     store.bus.removeEventListener('live', this._onLive);
   }
@@ -444,8 +478,65 @@ class Editor {
   renderBlocks() {
     for (const s of this.sheets.values()) s.destroy();
     this.sheets.clear();
+    this.activePhoto = null; // las hojas son nuevas: lo que estaba seleccionado ya no existe
+    this.activeSelection = null;
+    this._renderSelectionBar?.();
     this.blocksEl.replaceChildren(...this.note.blocks.map((b) => this.renderBlock(b)));
   }
+
+  // Lo que se hace con un texto editable (bloque suelto o capa de texto de una hoja).
+  _bindText(el, b, { onInput = null, removable = false } = {}) {
+    el.addEventListener('input', () => { b.html = el.innerHTML; this.save(); this._hideSidebarOnWrite(); onInput?.(); });
+    // Tocar el texto para escribir con el teclado pasa la barra a "Texto" (negrita, listas…).
+    el.addEventListener('focus', () => { if (tools.tool !== 'none') this.setTool('none'); });
+    el.addEventListener('paste', (e) => {
+      const text = e.clipboardData?.getData('text/plain');
+      if (text == null) return;
+      e.preventDefault();
+      document.execCommand('insertText', false, text);
+    });
+    el.addEventListener('click', (e) => {
+      const ts = e.target.closest('.ts');
+      if (ts) { e.preventDefault(); this.jumpTo(Number(ts.dataset.t)); return; }
+      // Links (Zoom, videos, campus): se abren en otra pestaña con un toque.
+      const a = e.target.closest('a[href]');
+      if (a && /^https?:/i.test(a.getAttribute('href'))) { e.preventDefault(); window.open(a.href, '_blank', 'noopener'); return; }
+      const li = e.target.closest('ul.checklist > li');
+      if (li && e.offsetX < 26) {
+        li.toggleAttribute('data-checked');
+        b.html = el.innerHTML;
+        this.save();
+      }
+    });
+    if (removable) {
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !el.textContent && this.note.blocks.length > 1 && !el.querySelector('img,table')) {
+          e.preventDefault();
+          this.removeBlock(b.id, { confirm: false });
+        }
+      });
+    }
+  }
+
+  // Capa de texto de una hoja de papel: lo tipeado va sobre los renglones y lo dibujado, encima.
+  pageText(sheet) {
+    const b = sheet.block;
+    const first = store.isPlainSheet(b) && this.note.blocks.find(store.isPlainSheet) === b && !this.note.blocks.some((x) => x.type === 'text');
+    const el = h('div.text-block.page-text', {
+      contentEditable: 'true',
+      spellcheck: true,
+      dataset: { blockId: b.id, ...(first ? { placeholder: 'Escribí con el teclado o dibujá con el lápiz…' } : {}) },
+      html: b.html || '',
+    });
+    this._bindText(el, b, { onInput: () => { sheet.fitText({ persist: true }); this._dropMergeUndo(); } });
+    // Con el lápiz elegido, el dedo desplaza (y el doble toque cambia de herramienta): no abre el teclado.
+    // Para escribir con el teclado se elige "Texto"; ya en modo texto, tocar pone el cursor.
+    el.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch' && tools.tool !== 'none') e.preventDefault(); });
+    return el;
+  }
+
+  // La hoja creció porque el texto llegó abajo.
+  onSheetGrow() { this.save(); }
 
   renderBlock(b) {
     if (b.type === 'text') {
@@ -455,34 +546,7 @@ class Editor {
         dataset: { blockId: b.id, placeholder: this.note.blocks[0] === b ? 'Escribí con el teclado o con el lápiz (Scribble lo pasa a texto)…' : 'Texto' },
         html: b.html,
       });
-      el.addEventListener('input', () => { b.html = el.innerHTML; this.save(); this._hideSidebarOnWrite(); });
-      // Tocar el texto para escribir con el teclado pasa la barra a "Texto" (negrita, listas…).
-      el.addEventListener('focus', () => { if (tools.tool !== 'none') this.setTool('none'); });
-      el.addEventListener('paste', (e) => {
-        const text = e.clipboardData?.getData('text/plain');
-        if (text == null) return;
-        e.preventDefault();
-        document.execCommand('insertText', false, text);
-      });
-      el.addEventListener('click', (e) => {
-        const ts = e.target.closest('.ts');
-        if (ts) { e.preventDefault(); this.jumpTo(Number(ts.dataset.t)); return; }
-        // Links (Zoom, videos, campus): se abren en otra pestaña con un toque.
-        const a = e.target.closest('a[href]');
-        if (a && /^https?:/i.test(a.getAttribute('href'))) { e.preventDefault(); window.open(a.href, '_blank', 'noopener'); return; }
-        const li = e.target.closest('ul.checklist > li');
-        if (li && e.offsetX < 26) {
-          li.toggleAttribute('data-checked');
-          b.html = el.innerHTML;
-          this.save();
-        }
-      });
-      el.addEventListener('keydown', (e) => {
-        if (e.key === 'Backspace' && !el.textContent && this.note.blocks.length > 1 && !el.querySelector('img,table')) {
-          e.preventDefault();
-          this.removeBlock(b.id, { confirm: false });
-        }
-      });
+      this._bindText(el, b, { removable: true });
       return h(`div.block.text.paper-${this._textPaper()}`, { dataset: { blockId: b.id } }, el);
     }
     const sheet = new InkSheet(b, this);
@@ -522,14 +586,15 @@ class Editor {
     this._blocksOp(() => { this.note.blocks = [...this.note.blocks, block]; });
     const el = this.blocksEl.querySelector(`[data-block-id="${block.id}"]`);
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    if (type === 'text') setTimeout(() => el?.querySelector('.text-block')?.focus(), 250);
+    if (type === 'text' || (tools.tool === 'none' && store.isPlainSheet(block))) setTimeout(() => el?.querySelector('.text-block')?.focus(), 250); // sigue escribiendo
     else if (tools.tool === 'none') this.setTool(this.lastInkTool || 'pen');
     return block;
   }
 
   async removeBlock(id, { confirm = true } = {}) {
     const b = this.note.blocks.find((x) => x.id === id);
-    if (confirm && b?.type === 'ink' && b.strokes.length && !(await confirmDialog('Eliminar hoja', 'Se borra la hoja con todo lo escrito. Podés deshacerlo.', { ok: 'Eliminar', danger: true }))) return;
+    const hasContent = b?.type === 'ink' && (b.strokes.length || b.photos?.length || (b.html || '').replace(/<[^>]+>/g, '').trim());
+    if (confirm && hasContent && !(await confirmDialog('Eliminar hoja', 'Se borra la hoja con todo lo escrito. Podés deshacerlo.', { ok: 'Eliminar', danger: true }))) return;
     this._blocksOp(() => { this.note.blocks = this.note.blocks.filter((x) => x.id !== id); });
   }
 
@@ -542,7 +607,7 @@ class Editor {
       this.note.blocks = arr;
     });
     popover(anchor, [
-      ...(b.pdf || b.image ? [] : PAPERS.map(([k, label]) => ({ label, icon: 'sheet', active: b.paper === k, onClick: () => { b.paper = k; this.sheets.get(b.id).bgDirty = true; this.sheets.get(b.id).render(); this._refreshTextPaper(); this.save(); } }))),
+      ...(b.pdf || b.image ? [] : PAPERS.map(([k, label]) => ({ label, icon: 'sheet', active: b.paper === k, onClick: () => { b.paper = k; this.sheets.get(b.id).applyPaper(); this._refreshTextPaper(); this.save(); } }))),
       !b.pdf && !b.image && { label: 'Alargar hoja', icon: 'plus', onClick: () => { b.height += 700; this.sheets.get(b.id).layout(); this.save(); } },
       '-',
       idx > 0 && { label: 'Subir', onClick: () => move(-1) },
@@ -607,7 +672,7 @@ class Editor {
 
   // ---------- Fotos dentro de la hoja (GoodNotes) ----------
   // La foto se pega en la hoja que se está viendo y se puede escribir encima.
-  async addPhoto(file, { block: target = null, y = null } = {}) {
+  async addPhoto(file, { block: target = null, y = null, select = true } = {}) {
     let blob;
     try {
       blob = await downscale(file, 1600);
@@ -638,7 +703,181 @@ class Editor {
     sheet?.fitHeight(ph.y + ph.h);
     if (sheet) { sheet.bgDirty = true; sheet.render(); }
     this.onPhotosChange(block, before);
+    // Queda seleccionada: se mueve, se cambia de tamaño, se recorta o se gira enseguida.
+    if (sheet && select) {
+      const was = this.lastInkTool; // "Lápiz" sigue volviendo a la herramienta de antes
+      this.setTool('lasso');
+      this.lastInkTool = was || 'pen';
+      this.onActivate(sheet); // suelta lo que estuviera seleccionado en otras hojas
+      sheet.clearSelection();
+      sheet.selectPhoto(ph);
+    }
     return ph;
+  }
+
+  // Cambiar una foto = reemplazarla por una copia nueva (así el deshacer funciona).
+  _updatePhoto(sheet, ph, patch) {
+    const before = sheet.block.photos || [];
+    const next = { ...ph, ...patch };
+    sheet.block.photos = before.map((x) => (x === ph ? next : x));
+    sheet.fitHeight(next.y + next.h);
+    sheet.photoSel = next;
+    sheet.bgDirty = true;
+    sheet.render();
+    this.onPhotosChange(sheet.block, before);
+    this._renderSelectionBar();
+    return next;
+  }
+
+  async rotatePhoto(sheet) {
+    const ph = sheet.photoSel;
+    if (!ph) return;
+    // Un cuarto de vuelta: el marco se da vuelta alrededor de su centro (mismo tamaño en la hoja).
+    const w = Math.min(ph.h, store.PAPER_W * 1.2);
+    const h2 = (w * ph.w) / ph.h;
+    const cx = ph.x + ph.w / 2;
+    const cy = ph.y + ph.h / 2;
+    this._updatePhoto(sheet, ph, { rot: ((ph.rot || 0) + 1) % 4, w: Math.round(w), h: Math.round(h2), x: Math.round(cx - w / 2), y: Math.max(0, Math.round(cy - h2 / 2)) });
+  }
+
+  // Recortar: se ve la foto entera con un marco que se arrastra de las esquinas y los lados.
+  // El recorte no destruye la foto: se puede volver a abrir y agrandar.
+  async cropPhoto(sheet) {
+    const ph = sheet.photoSel;
+    const bmp = ph && (await imageBitmap(ph.blobId));
+    if (!bmp) { toast('No se pudo abrir la foto', { error: true }); return; }
+    const rot = ((ph.rot || 0) % 4 + 4) % 4;
+    const swap = rot % 2 === 1;
+    const imgW = swap ? bmp.height : bmp.width; // la foto como se ve (girada)
+    const imgH = swap ? bmp.width : bmp.height;
+    const maxW = Math.min(560, window.innerWidth - 120);
+    const k = Math.min(maxW / imgW, 380 / imgH);
+    const cw = Math.max(40, Math.round(imgW * k));
+    const ch = Math.max(40, Math.round(imgH * k));
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const canvas = h('canvas.crop-canvas', { width: Math.round(cw * dpr), height: Math.round(ch * dpr), style: { width: `${cw}px`, height: `${ch}px` } });
+    const ctx = canvas.getContext('2d');
+    const full = { x: 0, y: 0, w: 1, h: 1 };
+    // Marco en coordenadas de lo que se ve (0 a 1), a partir del recorte actual.
+    let r = fromSource(ph.crop || full, rot);
+    const MIN = 0.04;
+
+    const draw = () => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.save();
+      ctx.translate(cw / 2, ch / 2);
+      ctx.rotate((rot * Math.PI) / 2);
+      const dw = swap ? ch : cw;
+      const dh = swap ? cw : ch;
+      ctx.drawImage(bmp, -dw / 2, -dh / 2, dw, dh);
+      ctx.restore();
+      const x = r.x * cw; const y = r.y * ch; const w = r.w * cw; const hh = r.h * ch;
+      ctx.fillStyle = 'rgba(0,0,0,.5)';
+      ctx.fillRect(0, 0, cw, y);
+      ctx.fillRect(0, y + hh, cw, ch - y - hh);
+      ctx.fillRect(0, y, x, hh);
+      ctx.fillRect(x + w, y, cw - x - w, hh);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x, y, w, hh);
+      ctx.lineWidth = 0.6;
+      for (const f of [1 / 3, 2 / 3]) { // tercios, como guía
+        ctx.beginPath(); ctx.moveTo(x + w * f, y); ctx.lineTo(x + w * f, y + hh); ctx.moveTo(x, y + hh * f); ctx.lineTo(x + w, y + hh * f); ctx.stroke();
+      }
+      ctx.fillStyle = '#fff';
+      ctx.strokeStyle = '#0a84ff';
+      ctx.lineWidth = 2;
+      for (const [hx, hy] of handlePoints(r)) {
+        ctx.beginPath(); ctx.arc(hx * cw, hy * ch, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      }
+    };
+
+    let drag = null;
+    // Los toques se escuchan en un marco más grande que la imagen: así las manijas de las
+    // esquinas (que quedan medio afuera) se pueden agarrar bien, también con el dedo.
+    const stage = h('div.crop-stage', canvas);
+    const pos = (e) => { const b = canvas.getBoundingClientRect(); return [(e.clientX - b.left) / b.width, (e.clientY - b.top) / b.height]; };
+    stage.addEventListener('pointerdown', (e) => {
+      const [u, v] = pos(e);
+      // Radio de agarre de 18 px por eje (no en proporciones: en una imagen larga y finita sería enorme),
+      // y menor si el marco es chico, para que el centro se pueda agarrar para moverlo.
+      const rx = Math.min(18, (r.w * cw) / 3) / cw;
+      const ry = Math.min(18, (r.h * ch) / 3) / ch;
+      let hit = null;
+      let best = 1;
+      for (const [name, hx, hy] of handlePoints(r, true)) {
+        const d = ((hx - u) / rx) ** 2 + ((hy - v) / ry) ** 2;
+        if (d <= best) { best = d; hit = name; }
+      }
+      if (!hit && u > r.x && u < r.x + r.w && v > r.y && v < r.y + r.h) hit = 'move';
+      if (!hit) return;
+      drag = { hit, u, v, r: { ...r } };
+      stage.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    stage.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const [u, v] = pos(e);
+      const du = u - drag.u;
+      const dv = v - drag.v;
+      const o = drag.r;
+      let x0 = o.x; let y0 = o.y; let x1 = o.x + o.w; let y1 = o.y + o.h;
+      if (drag.hit === 'move') {
+        const nx = Math.min(1 - o.w, Math.max(0, o.x + du));
+        const ny = Math.min(1 - o.h, Math.max(0, o.y + dv));
+        x0 = nx; x1 = nx + o.w; y0 = ny; y1 = ny + o.h;
+      } else {
+        if (drag.hit.includes('w')) x0 = Math.min(x1 - MIN, Math.max(0, o.x + du));
+        if (drag.hit.includes('e')) x1 = Math.max(x0 + MIN, Math.min(1, o.x + o.w + du));
+        if (drag.hit.includes('n')) y0 = Math.min(y1 - MIN, Math.max(0, o.y + dv));
+        if (drag.hit.includes('s')) y1 = Math.max(y0 + MIN, Math.min(1, o.y + o.h + dv));
+      }
+      r = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+      draw();
+    });
+    const end = () => { drag = null; };
+    stage.addEventListener('pointerup', end);
+    stage.addEventListener('pointercancel', end);
+    draw();
+
+    const m = modal('Recortar foto', h('div.crop-box', stage, h('p.muted.crop-hint', 'Arrastrá las esquinas y los lados; el marco se mueve desde adentro.')), {
+      actions: [
+        { label: 'Cancelar', value: null },
+        { label: 'Restablecer', onClick: () => { r = { ...full }; draw(); return false; } },
+        { label: 'Recortar', primary: true, value: 'ok' },
+      ],
+      wide: true,
+    });
+    if ((await m.done) !== 'ok') return;
+    const src = toSource(r, rot);
+    const cur = ph.crop || full;
+    if (Math.abs(src.x - cur.x) + Math.abs(src.y - cur.y) + Math.abs(src.w - cur.w) + Math.abs(src.h - cur.h) < 1e-4) return;
+    // La parte que queda se ve a la misma escala que antes y en el mismo lugar de la hoja: recortar
+    // achica el marco (agrandar el recorte lo agranda), nunca estira la foto ni la hoja.
+    const R0 = fromSource(cur, rot);
+    const R1 = fromSource(src, rot);
+    const fullW = swap ? bmp.height : bmp.width; // tamaño de la foto entera, como se ve
+    const fullH = swap ? bmp.width : bmp.height;
+    const sx = ph.w / (R0.w * fullW); // unidades de la hoja por píxel de la foto
+    const sy = ph.h / (R0.h * fullH);
+    let w = Math.min(R1.w * fullW * sx, store.PAPER_W * 1.2);
+    let h2 = (w * R1.h * fullH * sy) / (R1.w * fullW * sx);
+    const grow = Math.max(1, 24 / Math.min(w, h2)); // un mínimo parejo: una franja finita no se estira
+    w *= grow;
+    h2 *= grow;
+    // Mientras estaba el diálogo pudo cambiar la nota (otro dispositivo, deshacer): se busca de nuevo la foto.
+    const liveSheet = this.sheets.get(sheet.block.id);
+    const livePh = liveSheet?.block.photos?.find((x) => x.id === ph.id);
+    if (!livePh) { toast('La foto cambió mientras la recortabas: volvé a abrir Recortar', { error: true }); return; }
+    liveSheet.photoSel = livePh;
+    this._updatePhoto(liveSheet, livePh, {
+      crop: src,
+      w: Math.round(w),
+      h: Math.round(h2),
+      x: Math.round(livePh.x + (R1.x - R0.x) * fullW * sx),
+      y: Math.max(0, Math.round(livePh.y + (R1.y - R0.y) * fullH * sy)),
+    });
   }
 
   // La hoja que más se ve en pantalla.
@@ -653,6 +892,54 @@ class Editor {
       if (area > bestArea) { bestArea = area; best = s; }
     }
     return best;
+  }
+
+  // Las notas hechas con el formato anterior tenían el texto arriba y una hoja aparte debajo.
+  // Si la hoja todavía está vacía, el texto pasa a la hoja: una sola página para escribir y dibujar.
+  _mergeTextIntoEmptySheet() {
+    const [a, b] = this.note.blocks;
+    if (this.note.blocks.length !== 2 || a?.type !== 'text' || !store.isPlainSheet(b)) return false;
+    if (b.strokes?.length || b.photos?.length || (b.html || '').trim()) return false;
+    const merged = { ...b, html: a.html || '' };
+    this.note.blocks = [merged];
+    this.renderBlocks();
+    this.sheets.get(merged.id)?.fitText({ persist: true });
+    this.save();
+    return true;
+  }
+
+  // Mismo cambio, a pedido, para cualquier nota: cada texto suelto pasa a la hoja que le sigue
+  // (o a la anterior, si no hay otra). No se toca lo dibujado.
+  mergeTextIntoSheets() {
+    const blocks = this.note.blocks;
+    const sheets = blocks.filter(store.isPlainSheet);
+    if (!sheets.length || !blocks.some((x) => x.type === 'text')) { toast('No hay texto suelto para pasar a una hoja'); return; }
+    const parts = new Map(sheets.map((x) => [x.id, { before: [], after: [] }]));
+    blocks.forEach((x, i) => {
+      if (x.type !== 'text') return;
+      const next = blocks.slice(i + 1).find(store.isPlainSheet);
+      const prev = [...blocks.slice(0, i)].reverse().find(store.isPlainSheet);
+      if (next) parts.get(next.id).before.push(x.html || '');
+      else parts.get(prev.id).after.push(x.html || '');
+    });
+    this._blocksOp(() => {
+      this.note.blocks = blocks.filter((x) => x.type !== 'text').map((x) => {
+        const p = parts.get(x.id);
+        if (!p || (!p.before.length && !p.after.length)) return x;
+        return { ...x, html: [...p.before, x.html || '', ...p.after].join('') };
+      });
+    });
+    this.undoStack.at(-1).merge = true;
+    for (const sh of this.sheets.values()) sh.fitText({ persist: true });
+    toast('El texto pasó a la hoja');
+  }
+
+  // Deshacer la unión devolvería las hojas de antes y perdería lo escrito después: al escribir deja de ofrecerse.
+  _dropMergeUndo() {
+    if (!this.undoStack.some((o) => o.merge) && !this.redoStack.some((o) => o.merge)) return;
+    this.undoStack = this.undoStack.filter((o) => !o.merge);
+    this.redoStack = this.redoStack.filter((o) => !o.merge);
+    this._syncUndo();
   }
 
   // Fotos que quedaron pegadas en el texto (versiones anteriores): pasan a la hoja.
@@ -673,7 +960,7 @@ class Editor {
       for (const img of imgs) {
         const file = await (await fetch(img.src)).blob();
         const bottom = Math.max(0, ...(target.strokes || []).flatMap((st) => st.points.map((q) => q[1])), ...(target.photos || []).map((p) => p.y + p.h));
-        await this.addPhoto(file, { block: target, y: bottom + 50 });
+        await this.addPhoto(file, { block: target, y: bottom + 50, select: false });
         const p = img.closest('p');
         if (p && !p.textContent.trim() && p.querySelectorAll('img').length === 1) p.remove(); else img.remove();
         moved++;
@@ -717,7 +1004,9 @@ class Editor {
       const ps = this.activePhoto;
       this.selectionBar.hidden = false;
       this.selectionBar.replaceChildren(
-        h('span', 'Foto: arrastrala para moverla; el punto azul de la esquina cambia el tamaño'),
+        h('span', 'Foto: arrastrala para moverla; el punto azul cambia el tamaño'),
+        h('button.btn.small', { type: 'button', onclick: () => this.cropPhoto(ps) }, icon('crop'), 'Recortar'),
+        h('button.btn.small', { type: 'button', onclick: () => this.rotatePhoto(ps) }, icon('rotate'), 'Girar'),
         h('button.btn.small.danger', { type: 'button', onclick: () => ps.deletePhoto() }, icon('trash'), 'Borrar foto'),
         h('button.btn.small', { type: 'button', onclick: () => ps.selectPhoto(null) }, 'Listo'));
       return;
@@ -883,8 +1172,9 @@ class Editor {
       document.execCommand('insertHTML', false, chip);
       return;
     }
-    let block = [...this.note.blocks].reverse().find((b) => b.type === 'text');
-    if (!block || this.note.blocks[this.note.blocks.length - 1] !== block) {
+    // Al final de la última hoja de papel (el texto va ahí) o, si no hay, de un texto suelto.
+    let block = [...this.note.blocks].reverse().find((b) => b.type === 'text' || store.isPlainSheet(b));
+    if (!block || (block.type === 'text' && this.note.blocks[this.note.blocks.length - 1] !== block)) {
       block = store.newTextBlock();
       this.note.blocks.push(block);
       this.blocksEl.append(this.renderBlock(block));
@@ -893,6 +1183,7 @@ class Editor {
     const el = this.blocksEl.querySelector(`.text-block[data-block-id="${block.id}"]`);
     if (el) {
       el.innerHTML = block.html;
+      this.sheets.get(block.id)?.fitText({ persist: true });
       el.focus();
       const r = document.createRange();
       r.selectNodeContents(el.lastElementChild || el);
@@ -908,9 +1199,28 @@ class Editor {
     const printable = h('div.print-root',
       h('h1.print-title', this.note.title || (this.personal ? store.noteTitle(this.note, this.notebook) : this.titleInput.placeholder)),
       h('p.print-meta', `${this.notebook?.name || ''} · ${store.fmtDate(this.note.classDate)}`),
-      this.note.blocks.map((b) => (b.type === 'text'
-        ? h('div.print-text', { html: b.html })
-        : h('img.print-sheet', { src: this.sheets.get(b.id).toDataURL() }))));
+      this.note.blocks.map((b) => {
+        if (b.type === 'text') return h('div.print-text', { html: b.html });
+        const sheet = this.sheets.get(b.id);
+        if (!(store.isPlainSheet(b) && (b.html || '').replace(/<[^>]+>/g, '').trim())) return h('img.print-sheet', { src: sheet.toDataURL() });
+        // Hoja con texto tipeado: papel, texto y tinta en capas, como en pantalla. Se parte en tiras
+        // del alto de una página: cada una lleva su pedazo de las tres capas (una imagen más alta
+        // que la página se corta distinto que el texto y se desfasan).
+        const H = sheet.effectiveHeight();
+        const bg = sheet.bgDataURL();
+        const ink = sheet.inkDataURL();
+        const strips = [];
+        for (let top = 0; top < H; top += PRINT_STRIP) {
+          const hh = Math.min(PRINT_STRIP, H - top);
+          const layer = (url) => h('div.print-layer', { style: { backgroundImage: `url(${url})`, backgroundSize: `100% ${H / 10}cqw`, backgroundPosition: `0 -${top / 10}cqw` } });
+          const strip = h('div.print-strip', { dataset: { paper: b.paper || 'lined' }, style: { aspectRatio: `1000 / ${hh}` } },
+            layer(bg),
+            h('div.text-block.page-text', { html: b.html, style: { top: `-${top / 10}cqw`, bottom: 'auto', height: `${H / 10}cqw` } }),
+            layer(ink));
+          strips.push(strip);
+        }
+        return strips;
+      }));
     document.body.append(printable);
     document.body.classList.add('printing');
     const done = () => { printable.remove(); document.body.classList.remove('printing'); window.removeEventListener('afterprint', done); };
@@ -927,6 +1237,7 @@ class Editor {
     const texts = [];
     for (const b of this.note.blocks) {
       if (b.type === 'text') { if (b.html?.replace(/<[^>]+>/g, '').trim()) texts.push(b.html); continue; }
+      if (store.isPlainSheet(b) && b.html?.replace(/<[^>]+>/g, '').trim()) texts.push(b.html);
       const sheet = this.sheets.get(b.id);
       if (!sheet) continue;
       const blob = await sheet.toJpeg();
@@ -972,6 +1283,8 @@ class Editor {
     popover(anchor, [
       { label: n.pinned ? 'Desfijar' : 'Fijar arriba', icon: 'pin', onClick: () => { n.pinned = !n.pinned; this.save(); } },
       { label: 'Exportar PDF / imprimir', icon: 'share', onClick: () => this.exportPdf() },
+      this.note.blocks.some((x) => x.type === 'text') && this.note.blocks.some(store.isPlainSheet)
+        ? { label: 'Pasar el texto a la hoja', icon: 'sheet', onClick: () => this.mergeTextIntoSheets() } : null,
       { label: this.personal ? 'Mover a otra carpeta o materia' : 'Mover a otra materia o a Personal', icon: 'notes', onClick: () => this.moveTo() },
       this.personal ? null : { label: 'Enviar a corregir', icon: 'check', onClick: () => this.sendForCorrection() },
       '-',
@@ -999,14 +1312,37 @@ async function downscale(file, max) {
   const c = document.createElement('canvas');
   c.width = Math.round(bmp.width * k);
   c.height = Math.round(bmp.height * k);
-  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff'; // el JPEG no tiene transparencia: sin esto los bordes transparentes (capturas de ventanas) salen negros
+  g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(bmp, 0, 0, c.width, c.height);
   return new Promise((resolve) => c.toBlob(resolve, 'image/jpeg', 0.85));
+}
+
+// Geometría de una foto: recorte (proporciones de la original) y giro (cuartos de vuelta).
+function photoGeom(ph, bmp) {
+  const c = ph.crop || { x: 0, y: 0, w: 1, h: 1 };
+  return { sx: c.x * bmp.width, sy: c.y * bmp.height, sw: c.w * bmp.width, sh: c.h * bmp.height, rot: (((ph.rot || 0) % 4) + 4) % 4 };
+}
+// Un rectángulo de la foto original (0 a 1) a lo que se ve una vez girada, y de vuelta.
+function mapPoint(x, y, rot) { return [[x, y], [1 - y, x], [1 - x, 1 - y], [y, 1 - x]][rot]; }
+function unmapPoint(u, v, rot) { return [[u, v], [v, 1 - u], [1 - u, 1 - v], [1 - v, u]][rot]; }
+function boxOf(a, b) { return { x: Math.min(a[0], b[0]), y: Math.min(a[1], b[1]), w: Math.abs(a[0] - b[0]), h: Math.abs(a[1] - b[1]) }; }
+function fromSource(c, rot) { return boxOf(mapPoint(c.x, c.y, rot), mapPoint(c.x + c.w, c.y + c.h, rot)); }
+function toSource(r, rot) { return boxOf(unmapPoint(r.x, r.y, rot), unmapPoint(r.x + r.w, r.y + r.h, rot)); }
+// Las 8 manijas del marco de recorte (esquinas y puntos medios de los lados).
+function handlePoints(r, named = false) {
+  const xs = [r.x, r.x + r.w / 2, r.x + r.w];
+  const ys = [r.y, r.y + r.h / 2, r.y + r.h];
+  const names = [['nw', 0, 0], ['n', 1, 0], ['ne', 2, 0], ['w', 0, 1], ['e', 2, 1], ['sw', 0, 2], ['s', 1, 2], ['se', 2, 2]];
+  return names.map(([n, i, j]) => (named ? [n, xs[i], ys[j]] : [xs[i], ys[j]]));
 }
 
 const bitmaps = new Map();
 function imageBitmap(blobId) {
   if (!bitmaps.has(blobId)) {
-    bitmaps.set(blobId, db.get('blobs', blobId).then((row) => (row?.blob ? createImageBitmap(row.blob) : null)).catch(() => null));
+    // Si la imagen todavía no llegó (se sincroniza aparte), no se recuerda la falta: la próxima vez se vuelve a buscar.
+    bitmaps.set(blobId, db.get('blobs', blobId).then((row) => (row?.blob ? createImageBitmap(row.blob) : (bitmaps.delete(blobId), null))).catch(() => { bitmaps.delete(blobId); return null; }));
   }
   return bitmaps.get(blobId);
 }

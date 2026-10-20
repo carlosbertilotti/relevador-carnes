@@ -128,7 +128,7 @@ try {
   await page.waitForTimeout(800);
   await shot('5-texto');
   notes = await idb('notes');
-  if (!notes.some((n) => n.blocks.some((b) => b.type === 'text' && /<h1>Costos marginales<\/h1>/.test(b.html)))) throw new Error('No se guardó el título con formato');
+  if (!notes.some((n) => n.blocks.some((b) => (b.type === 'text' || b.type === 'ink') && /<h1>Costos marginales<\/h1>/.test(b.html || '')))) throw new Error('No se guardó el título con formato');
   step('Texto con formato estilo Notas de Apple');
 
   // Búsqueda.
