@@ -1,6 +1,7 @@
 // Modelo de datos de Cuaderno.
 //
-// Cuaderno (= materia): { id, name, color, courseId, shortname, schedule[], sections[], createdAt }
+// Cuaderno (= materia): { id, name, color, courseId, shortname, schedule[], sections[], createdAt, kind? }
+//   kind 'personal': carpeta de notas que no son de la facultad (sección "Personal")
 //   schedule: [{ day: 0-6 (0=domingo), start: 'HH:MM', end: 'HH:MM', room }]
 // Nota (= clase):       { id, notebookId, title, classDate: 'YYYY-MM-DD', blocks[], pinned, createdAt, updatedAt, recordings[] }
 //   bloque de texto:    { id, type: 'text', html }
@@ -33,8 +34,9 @@ export async function createNotebook(data = {}) {
   const existing = await db.all('notebooks');
   const nb = {
     // Las materias del campus tienen el mismo id en todos los dispositivos.
-    id: data.courseId != null ? campusNotebookId(data.courseId) : db.uid('nb_'),
-    name: data.name || 'Nueva materia',
+    id: data.id || (data.courseId != null ? campusNotebookId(data.courseId) : db.uid('nb_')),
+    name: data.name || (data.kind === 'personal' ? 'Notas' : 'Nueva materia'),
+    ...(data.kind ? { kind: data.kind } : {}),
     color: data.color || COLORS[existing.length % COLORS.length],
     courseId: data.courseId ?? null,
     shortname: data.shortname || '',
@@ -48,6 +50,21 @@ export async function createNotebook(data = {}) {
   return nb;
 }
 export const campusNotebookId = (courseId) => `nb_c${courseId}`;
+
+// ---------- Personal ----------
+// Notas que no son de la facultad (ideas, trabajo, listas…), en carpetas propias.
+// Son cuadernos con kind 'personal': usan el mismo editor y se sincronizan igual,
+// pero no figuran entre las materias, en Mi día ni en el calendario.
+export const isPersonal = (nb) => nb?.kind === 'personal';
+export const PERSONAL_DEFAULT_ID = 'nb_personal'; // mismo id en todos los dispositivos
+export async function personalFolders() {
+  return (await listNotebooks()).filter(isPersonal);
+}
+// La carpeta donde va una nota nueva si no se eligió otra ("Notas"; se crea la primera vez).
+export async function defaultPersonalFolder() {
+  const list = await personalFolders();
+  return list.find((f) => f.id === PERSONAL_DEFAULT_ID) || list[0] || createNotebook({ id: PERSONAL_DEFAULT_ID, name: 'Notas', kind: 'personal' });
+}
 
 // Si la misma materia del campus quedó dos veces (por ejemplo, se conectó el
 // campus en dos dispositivos antes de sincronizar), se juntan en una sola:
@@ -166,7 +183,7 @@ export function noteTitle(note, notebook) {
   if (note.title) return note.title;
   const first = noteText(note).split('\n').find((l) => l.trim());
   if (first) return first.slice(0, 80);
-  return `Clase del ${fmtDate(note.classDate)}${notebook ? '' : ''}`;
+  return `${isPersonal(notebook) ? 'Nota' : 'Clase'} del ${fmtDate(note.classDate)}`;
 }
 
 // Abre (o crea) la nota de una materia para un día: "una nota por clase".
@@ -268,6 +285,7 @@ export function matchNotebook(notebooks, text) {
   let best = null;
   let bestScore = 0;
   for (const nb of notebooks) {
+    if (isPersonal(nb)) continue; // una carpeta personal nunca es la materia de una clase o entrega
     if (nb.shortname && hay.includes(normalize(nb.shortname))) return nb;
     const words = normalize(nb.name).split(/[^a-z0-9]+/).filter((w) => w.length > 3);
     if (!words.length) continue;

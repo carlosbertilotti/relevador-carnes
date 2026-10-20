@@ -477,3 +477,14 @@ body.in-editor #main { overflow: hidden; }
 .cal-allday .cal-chip { box-sizing: border-box; height: 20px; line-height: 16px; }
 .cal-chip.task { display: block; text-decoration: none; color: inherit; border-left: 3px solid var(--c, var(--accent)); }
 .cal-chip.task.done { text-decoration: line-through; opacity: .6; }
+/* Personal: notas que no son de la facultad */
+.folder-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 14px; }
+.folder-bar .chip { display: inline-flex; align-items: center; gap: 6px; color: inherit; max-width: 100%; }
+.folder-bar .chip.on { background: var(--c, var(--accent)); color: #fff; }
+.chip-count { font-size: 12px; font-weight: 600; opacity: .7; }
+.folder-bar .chip.add { background: transparent; border: 1px dashed var(--line, rgba(0,0,0,.2)); color: var(--muted); }
+.folder-bar .chip.add .icon { width: 15px; height: 15px; }
+.personal-empty .row { margin-top: 10px; }
+.picker-title { margin: 10px 4px 2px; font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.picker-title:first-child { margin-top: 0; }
+.picker-item:disabled { opacity: .55; cursor: default; }

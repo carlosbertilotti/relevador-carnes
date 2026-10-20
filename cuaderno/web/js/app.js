@@ -9,6 +9,7 @@ import { renderCalendar } from './views/calendar.js';
 import { renderNotebook } from './views/notebook.js';
 import { renderCampus, renderSettings } from './views/settings.js';
 import { renderTasks } from './views/tasks.js';
+import { renderPersonal } from './views/personal.js';
 import { listTodos } from './todos.js';
 import { openEditor } from './editor/editor.js';
 
@@ -21,7 +22,7 @@ const openGroups = new Set();
 
 async function renderSidebar() {
   const { name, params } = current();
-  const notebooks = await store.listNotebooks();
+  const notebooks = (await store.listNotebooks()).filter((nb) => !store.isPersonal(nb)); // las carpetas personales van en "Personal"
   const files = await db.all('files');
   const unseen = new Map();
   for (const f of files) if (!f.seen && !f.local) unseen.set(f.notebookId, (unseen.get(f.notebookId) || 0) + 1);
@@ -44,7 +45,8 @@ async function renderSidebar() {
     h('nav.nav',
       link('/hoy', 'today', 'Mi día', name === 'hoy'),
       link('/calendario', 'calendar', 'Calendario', name === 'calendario'),
-      link('/tareas', 'checklist', 'Tareas', name === 'tareas', pendingToday ? h('span.count', pendingToday) : null)),
+      link('/tareas', 'checklist', 'Tareas', name === 'tareas', pendingToday ? h('span.count', pendingToday) : null),
+      link('/personal', 'notes', 'Personal', name === 'personal' || (name === 'nota' && sidebar.dataset.notePersonal === '1'))),
     h('div.nav-title', h('span', 'Materias'), h('button.icon-btn.small', { type: 'button', 'aria-label': 'Nueva materia', onclick: async () => {
       const v = await prompt('Nueva materia', { placeholder: 'Ej. Macroeconomía II', ok: 'Crear' });
       if (v) { const nb = await store.createNotebook({ name: v }); go(`/cuaderno/${nb.id}/horario`); }
@@ -80,7 +82,7 @@ async function renderSearch(root, q) {
     results.length || files.length ? null : h('p.muted', 'Sin resultados.'),
     results.length ? h('section', h('h2.section-title', 'Notas'), h('ul.result-list', results.map(({ note, notebook, snippet }) => h('li', { onclick: () => go(`/nota/${note.id}`) },
       h('span.dot', { style: { background: notebook?.color } }),
-      h('div', h('strong', store.noteTitle(note)), h('small', `${notebook?.name || ''} · ${store.fmtDate(note.classDate)}`), h('p', highlight(snippet, q))))))) : null,
+      h('div', h('strong', store.noteTitle(note, notebook)), h('small', `${notebook?.name || ''} · ${store.fmtDate(note.classDate)}`), h('p', highlight(snippet, q))))))) : null,
     files.length ? h('section', h('h2.section-title', 'Material'), h('ul.result-list', files.map((f) => h('li', { onclick: () => go(`/cuaderno/${f.notebookId}/material`) }, icon('file'), h('div', h('strong', f.name), h('small', f.section || '')))))) : null));
 }
 
@@ -138,13 +140,16 @@ async function doRoute() {
       case 'hoy': await renderToday(main, { date: params[0] }); break;
       case 'calendario': await renderCalendar(main, { date: params[0] }); break;
       case 'tareas': await renderTasks(main); break;
+      case 'personal': await renderPersonal(main, { folder: params[0] }); break;
       case 'cuaderno': await renderNotebook(main, { id: params[0], tab: params[1] }); break;
       case 'nota': {
         const note = await db.get('notes', params[0]);
+        const personal = store.isPersonal(note && (await db.get('notebooks', note.notebookId)));
         sidebar.dataset.noteNotebook = note?.notebookId || '';
+        sidebar.dataset.notePersonal = personal ? '1' : '';
         const watch = liveWatch === params[0];
         liveWatch = null;
-        cleanup = await openEditor(main, params[0], { watch, back: () => (history.length > 1 ? history.back() : go(note ? `/cuaderno/${note.notebookId}` : '/hoy')) });
+        cleanup = await openEditor(main, params[0], { watch, back: () => (history.length > 1 ? history.back() : go(!note ? '/hoy' : personal ? `/personal/${note.notebookId}` : `/cuaderno/${note.notebookId}`)) });
         break;
       }
       case 'campus': await renderCampus(main); break;
@@ -172,7 +177,7 @@ store.bus.addEventListener('change', (e) => {
     const { name } = current();
     if (e.detail?.type === 'campus' && (name === 'hoy' || name === 'cuaderno')) route();
     // Llegaron cambios de otro dispositivo: refrescar la vista (el editor se actualiza solo).
-    if (e.detail?.type === 'sync' && ['hoy', 'calendario', 'cuaderno', 'buscar', 'tareas'].includes(name)) route();
+    if (e.detail?.type === 'sync' && ['hoy', 'calendario', 'cuaderno', 'buscar', 'tareas', 'personal'].includes(name)) route();
   }, 150);
 });
 

@@ -11,6 +11,8 @@ import { updateNotebookSummary, renderMarkdown, noteNeedsSummary, aiAvailable } 
 export async function renderNotebook(root, { id, tab = 'notas' }) {
   const nb = await db.get('notebooks', id);
   if (!nb) { root.replaceChildren(h('div.empty', 'Esta materia no existe.')); return; }
+  // Una carpeta personal se ve en "Personal" (replace: que "Atrás" no vuelva acá).
+  if (store.isPersonal(nb)) { location.replace(`#/personal/${encodeURIComponent(nb.id)}`); return; }
   const tabs = [['notas', 'Notas'], ['resumen', 'Resumen'], ['material', 'Material'], ['examenes', 'Preparación de exámenes'], ['horario', 'Horario']];
   const body = h('div.tab-body');
 

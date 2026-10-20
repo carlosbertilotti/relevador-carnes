@@ -2,7 +2,7 @@
 // servidor de Cuaderno. Cada materia del campus se convierte en un cuaderno y
 // su material (PDFs, presentaciones, etc.) se descarga al dispositivo.
 import * as db from './db.js';
-import { createNotebook, saveNotebook, emit, normalize, mergeDuplicateNotebooks } from './store.js';
+import { createNotebook, saveNotebook, emit, normalize, mergeDuplicateNotebooks, isPersonal } from './store.js';
 
 export const DEFAULT_URL = 'https://campusvirtual.utdt.edu';
 const AUTO_SYNC_MS = 60 * 60 * 1000;
@@ -124,7 +124,7 @@ async function doSync({ onProgress = () => {} } = {}) {
     if (!nb) {
       // ¿Ya existía una materia creada a mano con la misma sigla o nombre? La vinculamos.
       const pretty = normalize(prettyCourseName(course.name));
-      nb = notebooks.find((n) => n.courseId == null && ((n.shortname && normalize(n.shortname) === normalize(course.shortname)) || normalize(n.name) === pretty));
+      nb = notebooks.find((n) => n.courseId == null && !isPersonal(n) && ((n.shortname && normalize(n.shortname) === normalize(course.shortname)) || normalize(n.name) === pretty));
       if (nb) { nb.courseId = course.id; byCourse.set(course.id, nb); }
     }
     if (!nb) {

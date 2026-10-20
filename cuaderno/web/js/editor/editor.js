@@ -97,27 +97,30 @@ class Editor {
     this._renderSelectionBar();
   }
 
+  get personal() { return store.isPersonal(this.notebook); }
+
   async mount() {
     const n = this.note;
+    const personal = this.personal; // nota de "Personal": sin grabación de clase, material ni corrección
     this.titleInput = h('input.note-title', {
       value: n.title,
-      placeholder: `${this.notebook?.name || 'Clase'} — ${store.fmtDate(n.classDate)}`,
+      placeholder: personal ? 'Título' : `${this.notebook?.name || 'Clase'} — ${store.fmtDate(n.classDate)}`,
       oninput: () => { n.title = this.titleInput.value; this.save(); },
     });
     this.dateInput = h('input.note-date', { type: 'date', value: n.classDate || '', onchange: () => { n.classDate = this.dateInput.value; this.save(); } });
-    this.recBtn = h('button.icon-btn.rec', { type: 'button', title: 'Grabar la clase', onclick: () => this.toggleRecording() }, icon('mic'));
+    this.recBtn = h('button.icon-btn.rec', { type: 'button', title: personal ? 'Grabar audio' : 'Grabar la clase', onclick: () => this.toggleRecording() }, icon('mic'));
     this.recTime = h('span.rec-time');
     const header = h('header.editor-head',
       h('button.icon-btn', { type: 'button', title: 'Mostrar / esconder las materias', 'aria-label': 'Mostrar u ocultar materias', onclick: () => { this._autoHid = true; document.body.classList.toggle('sidebar-hidden'); } }, icon('sidebar')),
       h('button.icon-btn', { type: 'button', 'aria-label': 'Volver', onclick: () => this.back() }, icon('back')),
       h('div.editor-titles',
-        h('div.crumb', { style: { color: this.notebook?.color } }, this.notebook?.name || ''),
+        this.crumbEl = h('div.crumb', { style: { color: this.notebook?.color } }, this.notebook?.name || ''),
         this.titleInput),
       this.dateInput,
       h('div.spacer'),
       this.recTime,
       this.recBtn,
-      h('button.btn.small.watch-btn', { type: 'button', title: 'Ver la grabación de la clase y tomar notas', onclick: () => this.openVideo() }, icon('video'), h('span', 'Ver clase')),
+      personal ? null : h('button.btn.small.watch-btn', { type: 'button', title: 'Ver la grabación de la clase y tomar notas', onclick: () => this.openVideo() }, icon('video'), h('span', 'Ver clase')),
       h('button.icon-btn', { type: 'button', title: 'Grabaciones de audio', onclick: (e) => this.showRecordings(e.currentTarget) }, icon('list')),
       h('button.icon-btn', { type: 'button', title: 'Exportar / imprimir', onclick: () => this.exportPdf() }, icon('share')),
       h('button.icon-btn', { type: 'button', title: 'Más', onclick: (e) => this.moreMenu(e.currentTarget) }, icon('more')));
@@ -131,7 +134,7 @@ class Editor {
       h('div.add-row',
         h('button.btn.ghost', { type: 'button', onclick: () => this.addBlock('text') }, icon('text'), 'Texto'),
         h('button.btn.ghost', { type: 'button', onclick: () => this.addBlock('ink') }, icon('sheet'), 'Hoja'),
-        h('button.btn.ghost', { type: 'button', onclick: () => this.insertMaterial() }, icon('pdf'), 'Material'),
+        personal ? null : h('button.btn.ghost', { type: 'button', onclick: () => this.insertMaterial() }, icon('pdf'), 'Material'),
         h('button.btn.ghost', { type: 'button', onclick: () => this.insertImage() }, icon('image'), 'Foto')));
     this.root.replaceChildren(h('div.editor', header, this.videoBar, this.toolbar, this.selectionBar, this.scroller, this.playerBar));
     this.renderToolbar();
@@ -214,8 +217,9 @@ class Editor {
 
   destroy() {
     this.save.flush();
-    // Si la nota cambió, se re-resume en segundo plano para la pestaña Resumen.
-    if (this.dirty) {
+    // Si la nota cambió, se re-resume en segundo plano para la pestaña Resumen
+    // (las notas personales no tienen resumen: no se mandan a la IA).
+    if (this.dirty && !this.personal) {
       const id = this.note.id;
       const materia = this.notebook?.name || '';
       setTimeout(async () => {
@@ -893,12 +897,41 @@ class Editor {
     if (await db.getSetting('appKey', '')) import('../sync.js').then((s) => s.syncNow()).catch(() => {});
   }
 
+  // Mover la nota a una carpeta personal o a una materia (lo de la nota viaja con ella).
+  async moveTo() {
+    const all = await store.listNotebooks();
+    let folders = all.filter(store.isPersonal);
+    // Sin carpetas todavía: se ofrece "Notas", que se crea recién si se elige.
+    if (!folders.length) folders = [{ id: store.PERSONAL_DEFAULT_ID, name: 'Notas', color: '#8a8f98', kind: 'personal', create: true }];
+    const subjects = all.filter((nb) => !store.isPersonal(nb) && (nb.status || 'cursando') !== 'pasada');
+    const pick = async (nb) => {
+      m.close();
+      const target = nb.create ? await store.defaultPersonalFolder() : nb;
+      this.note.notebookId = target.id;
+      this.notebook = target;
+      this.crumbEl.textContent = target.name;
+      this.crumbEl.style.color = target.color || '';
+      this.save();
+      await this.save.flush();
+      const sb = document.getElementById('sidebar');
+      if (sb) { sb.dataset.noteNotebook = target.id; sb.dataset.notePersonal = store.isPersonal(target) ? '1' : ''; }
+      store.emit('change', { type: 'note', id: this.note.id });
+      toast(`Movida a ${store.isPersonal(target) ? 'Personal › ' : ''}${target.name}`);
+    };
+    const item = (nb) => h('button.picker-item', { type: 'button', disabled: nb.id === this.note.notebookId, onclick: () => pick(nb) },
+      h('span.dot', { style: { background: nb.color || '#8a8f98' } }), h('div', h('div', nb.name), nb.id === this.note.notebookId ? h('small', 'está acá') : null));
+    const m = modal('Mover a…', h('div.picker',
+      h('h3.picker-title', 'Personal'), folders.map(item),
+      subjects.length ? [h('h3.picker-title', 'Materias'), subjects.map(item)] : null));
+  }
+
   moreMenu(anchor) {
     const n = this.note;
     popover(anchor, [
       { label: n.pinned ? 'Desfijar' : 'Fijar arriba', icon: 'pin', onClick: () => { n.pinned = !n.pinned; this.save(); } },
       { label: 'Exportar PDF / imprimir', icon: 'share', onClick: () => this.exportPdf() },
-      { label: 'Enviar a corregir', icon: 'check', onClick: () => this.sendForCorrection() },
+      { label: this.personal ? 'Mover a otra carpeta o materia' : 'Mover a otra materia o a Personal', icon: 'notes', onClick: () => this.moveTo() },
+      this.personal ? null : { label: 'Enviar a corregir', icon: 'check', onClick: () => this.sendForCorrection() },
       '-',
       { label: 'Eliminar nota', icon: 'trash', danger: true, onClick: async () => {
         if (!(await confirmDialog('Eliminar nota', 'Se borra la nota, sus hojas y grabaciones.', { ok: 'Eliminar', danger: true }))) return;
