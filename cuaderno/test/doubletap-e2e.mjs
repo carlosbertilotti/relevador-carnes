@@ -30,9 +30,9 @@ try {
   const sheet = page.locator('.sheet').first();
   await sheet.waitFor();
   await sheet.scrollIntoViewIfNeeded();
-  const box = await sheet.boundingBox();
-  const x = box.x + 200;
-  const y = box.y + 150;
+  let box = await sheet.boundingBox();
+  let x = box.x + 200;
+  let y = box.y + 150;
   const active = () => page.locator('.tool-group .tbtn.active').first().getAttribute('title');
   const strokes = () => page.evaluate(async (id) => { const db = await import('/js/db.js'); const n = await db.get('notes', id); return n.blocks.flatMap((b) => b.strokes || []).length; }, noteId);
   const doubleTap = async () => { await page.touchscreen.tap(x, y); await page.touchscreen.tap(x, y); await page.waitForTimeout(150); };
@@ -57,6 +57,10 @@ try {
   await page.reload();
   await page.locator('.sheet').first().waitFor();
   await page.waitForTimeout(300);
+  await page.locator('.sheet').first().scrollIntoViewIfNeeded();
+  box = await page.locator('.sheet').first().boundingBox();
+  x = box.x + 200;
+  y = box.y + 150;
   await doubleTap();
   if ((await active()) !== 'Lapicera') throw new Error(`Después de recargar: ${await active()}`);
   step('La herramienta anterior se recuerda al cerrar y volver a abrir la nota');

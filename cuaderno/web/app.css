@@ -302,6 +302,44 @@ body.in-editor #main { overflow: hidden; }
 
 .text-block { outline: none; min-height: 1.6em; font-size: 17px; line-height: 1.55; padding: 2px 4px; word-wrap: break-word; }
 .text-block:empty::before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
+/* Lo que se escribe con el teclado va sobre papel, como lo escrito a mano: mismo color,
+   rayado y margen que la hoja de la nota (y, en modo oscuro, el mismo filtro). */
+.blocks { container-type: inline-size; }
+.block.text .text-block {
+  --text: #1c1c1e; --muted: #8a8a8e; --line: #e4e0d8;
+  color: var(--text); background-color: #fffdf8; filter: var(--sheet-filter); color-scheme: light;
+  border-radius: 6px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .06), 0 6px 24px rgba(0, 0, 0, .08);
+  padding: 18px 22px; min-height: 96px;
+}
+.block.text:not(.paper-doc) .text-block {
+  --rule: 34px; /* = el renglón de la hoja (42 de 1000 de ancho) */
+  line-height: var(--rule);
+  padding: var(--rule) 22px var(--rule) 22px;
+  min-height: calc(var(--rule) * 5);
+}
+@supports (width: 1cqw) { .block.text .text-block { --rule: max(26px, 4.2cqw); } }
+.block.text:not(.paper-doc) .text-block :is(p, div, ul, ol, li, blockquote, h1, h2, h3) { margin-top: 0; margin-bottom: 0; }
+.block.text:not(.paper-doc) .text-block :is(h1, h2, h3) { line-height: var(--rule); }
+.block.text:not(.paper-doc) .text-block h1 { font-size: 24px; }
+.block.text.paper-lined .text-block {
+  padding-left: calc(9% + 16px);
+  background-image:
+    linear-gradient(90deg, transparent calc(9% - 1px), #f2b8b5 calc(9% - 1px), #f2b8b5 calc(9% + .5px), transparent calc(9% + .5px)),
+    linear-gradient(180deg, transparent calc(var(--rule) - 1.2px), #d7dde6 calc(var(--rule) - 1.2px));
+  background-size: 100% 100%, 100% var(--rule);
+  /* renglón justo debajo de cada línea de texto, de borde a borde como en la hoja */
+  background-position: 0 0, 0 calc(var(--rule) / 2 + 12px);
+  background-repeat: no-repeat, repeat-y;
+}
+.block.text.paper-grid .text-block {
+  background-image: linear-gradient(90deg, #d7dde6 .9px, transparent .9px), linear-gradient(180deg, #d7dde6 .9px, transparent .9px);
+  background-size: var(--rule) var(--rule);
+}
+.block.text.paper-dots .text-block {
+  background-image: radial-gradient(circle, #b9c1cc 1.4px, transparent 1.8px);
+  background-size: var(--rule) var(--rule);
+  background-position: calc(var(--rule) / -2) calc(var(--rule) / -2);
+}
 .text-block h1 { font-size: 28px; margin: .3em 0 .2em; line-height: 1.2; }
 .text-block h2 { font-size: 22px; margin: .6em 0 .2em; }
 .text-block h3 { font-size: 18px; margin: .6em 0 .2em; }

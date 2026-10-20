@@ -483,13 +483,27 @@ class Editor {
           this.removeBlock(b.id, { confirm: false });
         }
       });
-      return h('div.block', { dataset: { blockId: b.id } }, el);
+      return h(`div.block.text.paper-${this._textPaper()}`, { dataset: { blockId: b.id } }, el);
     }
     const sheet = new InkSheet(b, this);
     this.sheets.set(b.id, sheet);
     const label = b.pdf ? `${b.pdf.name || 'PDF'} · pág. ${b.pdf.page}` : b.image ? (b.image.name || 'Imagen') : (PAPERS.find(([k]) => k === b.paper)?.[1] || 'Hoja');
     const menuBtn = h('button.block-menu', { type: 'button', onclick: (e) => this.blockMenu(e.currentTarget, b) }, label, icon('more'));
     return h('div.block.ink', { dataset: { blockId: b.id } }, menuBtn, sheet.el);
+  }
+
+  // El texto va sobre papel, con el mismo rayado que la hoja de la nota (o como una
+  // página lisa, de documento, si la nota es sólo texto).
+  _textPaper() {
+    const sheet = this.note.blocks.find((x) => x.type === 'ink' && !x.pdf && !x.image);
+    if (!sheet) return 'doc';
+    return sheet.paper === 'cornell' || !sheet.paper ? 'lined' : sheet.paper;
+  }
+  _refreshTextPaper() {
+    const cls = `paper-${this._textPaper()}`;
+    for (const el of this.blocksEl.querySelectorAll('.block.text')) {
+      el.className = `block text ${cls}`;
+    }
   }
 
   _blocksOp(mutate) {
@@ -528,7 +542,7 @@ class Editor {
       this.note.blocks = arr;
     });
     popover(anchor, [
-      ...(b.pdf || b.image ? [] : PAPERS.map(([k, label]) => ({ label, icon: 'sheet', active: b.paper === k, onClick: () => { b.paper = k; this.sheets.get(b.id).bgDirty = true; this.sheets.get(b.id).render(); this.save(); } }))),
+      ...(b.pdf || b.image ? [] : PAPERS.map(([k, label]) => ({ label, icon: 'sheet', active: b.paper === k, onClick: () => { b.paper = k; this.sheets.get(b.id).bgDirty = true; this.sheets.get(b.id).render(); this._refreshTextPaper(); this.save(); } }))),
       !b.pdf && !b.image && { label: 'Alargar hoja', icon: 'plus', onClick: () => { b.height += 700; this.sheets.get(b.id).layout(); this.save(); } },
       '-',
       idx > 0 && { label: 'Subir', onClick: () => move(-1) },
