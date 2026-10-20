@@ -9,12 +9,14 @@ import { loadPdf } from './editor/pdf.js';
 import { docxText } from './editor/office.js';
 
 const KEY_DOC = /(programa|syllabus|cronograma|plan de clases|trading game|consigna|reglas|tp final|trabajo final|examen final)/i;
+// Por el nombre de la sección sólo se toman las de TP/examen final (no "Programación lineal", etc.).
+const KEY_SECTION = /\b(tp final|trabajo final|examen final)\b/i;
 const DAY = 86400000;
 const VERSION = 2;
 const MAX_SIZE = 15 * 1024 * 1024;
 const MAX_CHARS = 120000;
 
-export const isKeyDoc = (f) => !f.local && KEY_DOC.test(`${f.name} ${f.module || ''} ${f.section || ''}`)
+export const isKeyDoc = (f) => !f.local && (KEY_DOC.test(`${f.name} ${f.module || ''}`) || KEY_SECTION.test(f.section || ''))
   && /\.(pdf|docx|doc)$/i.test(f.name) && (f.size || 0) <= MAX_SIZE;
 
 // Materias con clases, ayudantías, exámenes o entregas cerca (las que se están cursando).

@@ -155,6 +155,28 @@ try {
   supa2.server.close();
   step(`Campus y calendario guardados antes de sincronizar llegan igual al otro navegador (${fromSafari.campus})`);
 
+  // 6b) La carpeta "Notas" de Personal (id fijo) borrada y vuelta a crear antes de
+  // sincronizar: el lote no lleva el mismo documento dos veces (el servidor lo rechaza).
+  await ipad.run(async () => {
+    const store = await import('/js/store.js');
+    await store.defaultPersonalFolder();
+  });
+  await ipad.sync();
+  await ipad.run(async () => {
+    const store = await import('/js/store.js');
+    await store.deleteNotebook('nb_personal');
+    // Recrearla sin pasar por la nube (como sin conexión): el borrado y la carpeta nueva van juntos.
+    await store.createNotebook({ id: 'nb_personal', name: 'Ideas', kind: 'personal' });
+  });
+  const ok = await ipad.run(async () => (await import('/js/sync.js')).syncNow().then(() => true, (e) => e.message));
+  if (ok !== true) throw new Error(`Sincronizar después de borrar y recrear "Notas" falló: ${ok}`);
+  const srv = supa.docs.get('notebooks|nb_personal');
+  if (!srv || srv.deleted || srv.data?.name !== 'Ideas') throw new Error(`En la nube: ${JSON.stringify(srv)}`);
+  await mac.sync();
+  const onMac = await mac.run(async () => (await (await import('/js/db.js')).get('notebooks', 'nb_personal'))?.name);
+  if (onMac !== 'Ideas') throw new Error(`En la compu: ${onMac}`);
+  step('Borrar y volver a crear la carpeta "Notas" antes de sincronizar no traba la sincronización');
+
   // 7) Sin la clave correcta no se accede.
   const bad = await device('intruso');
   await bad.run(async () => (await import('/js/db.js')).setSetting('appKey', 'otra'));

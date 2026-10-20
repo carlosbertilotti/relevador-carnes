@@ -85,8 +85,9 @@ export function todoSection(day = store.ymd()) {
   const lists = h('div.todo-lists');
   let form = null;
   const draw = async () => {
-    const [list, notebooks] = await Promise.all([listTodos(), store.listNotebooks()]);
-    const nbById = new Map(notebooks.map((n) => [n.id, n]));
+    const [list, all] = await Promise.all([listTodos(), store.listNotebooks()]);
+    const nbById = new Map(all.map((n) => [n.id, n]));
+    const notebooks = all.filter((nb) => !store.isPersonal(nb)); // materias (sin las carpetas de Personal)
     const b = bucketsFor(list, day);
     // En el día: lo pendiente y, tachado, lo que ya se hizo (de ese día o hecho hoy).
     const dayDone = sortTodos(list.filter((t) => t.done && (t.due === day || (day === today && b.doneToday.some((x) => x.id === t.id)))));
@@ -130,8 +131,9 @@ export async function renderTasks(root) {
   root.replaceChildren(page);
 
   const draw = async () => {
-    const [all, notebooks] = await Promise.all([listTodos(), store.listNotebooks()]);
-    const nbById = new Map(notebooks.map((n) => [n.id, n]));
+    const [all, everyNb] = await Promise.all([listTodos(), store.listNotebooks()]);
+    const nbById = new Map(everyNb.map((n) => [n.id, n]));
+    const notebooks = everyNb.filter((nb) => !store.isPersonal(nb)); // materias (sin las carpetas de Personal)
     const usedNbs = notebooks.filter((nb) => all.some((t) => t.notebookId === nb.id));
     if (onlyNb && !usedNbs.some((nb) => nb.id === onlyNb)) setFilter(''); // filtro viejo: se vuelve a "Todas"
     if (!form) { form = addForm(notebooks, { day: store.ymd(), notebookId: onlyNb, onAdded: redraw }); formCard.replaceChildren(form.el); }

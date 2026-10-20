@@ -40,8 +40,8 @@ try {
   await page.locator('.page.personal .head-actions button', { hasText: 'Nueva nota' }).click();
   await page.waitForURL(/#\/nota\//);
   await page.locator('.editor-head .crumb', { hasText: 'Notas' }).waitFor();
-  if (await page.locator('.watch-btn').count()) throw new Error('Una nota personal no debería tener "Ver clase"');
-  if (await page.locator('.add-row button', { hasText: 'Material' }).count()) throw new Error('Una nota personal no debería tener "Material"');
+  if (await page.locator('.watch-btn').isVisible()) throw new Error('Una nota personal no debería tener "Ver clase"');
+  if (await page.locator('.add-row button', { hasText: 'Material' }).isVisible()) throw new Error('Una nota personal no debería tener "Material"');
   if ((await page.locator('input.note-title').getAttribute('placeholder')) !== 'Título') throw new Error('Placeholder del título');
   if (!(await nav.getAttribute('class')).includes('active')) throw new Error('Dentro de la nota, "Personal" debería quedar marcado');
   await page.locator('input.note-title').fill('Lista del súper');
@@ -85,7 +85,9 @@ try {
   await page.getByRole('heading', { name: 'Notas recientes' }).waitFor();
   const recent = await page.locator('.note-grid').last().innerText();
   if (!recent.includes('Clase 3') || recent.includes('Lista del súper') || recent.includes('Ideas para el proyecto')) throw new Error(`Mi día mezcla notas personales: ${recent}`);
-  step('Las carpetas personales no aparecen entre las materias, en Mi día ni se llevan las entregas del calendario');
+  const opts = await page.locator('.todo-add select.todo-nb option').allInnerTexts();
+  if (opts.some((o) => /Notas|Trabajo Final/.test(o)) || !opts.some((o) => o.includes('Finanzas'))) throw new Error(`Materias para las tareas: ${opts}`);
+  step('Las carpetas personales no aparecen entre las materias (barra, Mi día, tareas) ni se llevan las entregas del calendario');
 
   await page.goto(`${base}/#/buscar/${encodeURIComponent('café')}`);
   const res = page.locator('.result-list li', { hasText: 'Lista del súper' });
@@ -105,12 +107,15 @@ try {
   await page.locator('.editor-head .crumb', { hasText: 'Finanzas Corporativas' }).waitFor();
   const moved = await idb(async () => (await (await import('/js/db.js')).all('notes')).find((n) => n.title === 'Ideas para el proyecto'));
   if (moved.notebookId !== fin) throw new Error('No se movió');
+  if (!(await page.locator('.watch-btn').isVisible()) || !(await page.locator('.add-row button', { hasText: 'Material' }).isVisible())) throw new Error('Movida a una materia, debería tener "Ver clase" y "Material"');
+  if ((await page.locator('input.note-title').getAttribute('placeholder')) === 'Título') throw new Error('El título sugerido debería ser el de la materia');
   await page.locator('.editor-head button[title="Más"]').click();
   await page.locator('.popover .menu-item', { hasText: 'Mover a otra materia o a Personal' }).click();
   await page.locator('.modal .picker-item', { hasText: 'Notas' }).click();
   await page.locator('.editor-head .crumb', { hasText: 'Notas' }).waitFor();
   const back = await idb(async () => (await (await import('/js/db.js')).all('notes')).find((n) => n.title === 'Ideas para el proyecto'));
   if (back.notebookId !== 'nb_personal') throw new Error('No volvió a Personal');
+  if (await page.locator('.watch-btn').isVisible()) throw new Error('De vuelta en Personal, "Ver clase" debería esconderse');
   step('Una nota se mueve de una carpeta personal a una materia y de vuelta');
 
   await page.goto(`${base}/#/cuaderno/nb_personal`);

@@ -62,7 +62,16 @@ export async function personalFolders() {
 }
 // La carpeta donde va una nota nueva si no se eligió otra ("Notas"; se crea la primera vez).
 export async function defaultPersonalFolder() {
-  const list = await personalFolders();
+  let list = await personalFolders();
+  if (!list.length) {
+    // Antes de crearla, traer lo de la nube: si ya existe (quizás renombrada en otro
+    // dispositivo), una copia nueva con el mismo id la pisaría.
+    try {
+      const sync = await import('./sync.js');
+      if (sync.state.lastOk && navigator.onLine) await Promise.race([sync.syncNow(), new Promise((r) => setTimeout(r, 4000))]);
+    } catch { /* sin conexión: se crea igual */ }
+    list = await personalFolders();
+  }
   return list.find((f) => f.id === PERSONAL_DEFAULT_ID) || list[0] || createNotebook({ id: PERSONAL_DEFAULT_ID, name: 'Notas', kind: 'personal' });
 }
 

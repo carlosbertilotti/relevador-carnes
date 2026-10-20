@@ -17,6 +17,9 @@ export function createMockSupabase({ key = 'clave-test' } = {}) {
       return { now: Date.now(), state: live };
     },
     cuaderno_push({ docs: list }) {
+      // Como Postgres: un INSERT … ON CONFLICT DO UPDATE no puede tocar dos veces la misma fila.
+      const keys = list.map((d) => `${d.store}|${d.id}`);
+      if (new Set(keys).size !== keys.length) throw Object.assign(new Error('ON CONFLICT DO UPDATE command cannot affect row a second time'), { code: '21000' });
       for (const d of list) {
         const k = `${d.store}|${d.id}`;
         const cur = docs.get(k);
@@ -55,7 +58,11 @@ export function createMockSupabase({ key = 'clave-test' } = {}) {
       res.writeHead(400, { ...cors, 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ code: '28000', message: 'Clave de Cuaderno incorrecta' }));
     }
-    const out = fn(args);
+    let out;
+    try { out = fn(args); } catch (err) {
+      res.writeHead(400, { ...cors, 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ code: err.code || 'P0001', message: err.message }));
+    }
     res.writeHead(200, { ...cors, 'Content-Type': 'application/json' });
     res.end(JSON.stringify(out));
   });
