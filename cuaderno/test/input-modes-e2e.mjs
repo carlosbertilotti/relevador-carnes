@@ -50,6 +50,19 @@ try {
   await pc.waitForTimeout(700);
   if ((await note(pc, pcId)).blocks[1].strokes.length) throw new Error('En modo texto el mouse no debería dibujar');
   step('En la compu la nota abre en "Texto" con el cursor listo: se escribe con el teclado y el mouse no raya la hoja');
+  const paper = await pc.evaluate(() => {
+    const blk = document.querySelector('.block.text');
+    const tb = blk.querySelector('.text-block');
+    const cs = getComputedStyle(tb);
+    return { cls: blk.className, bg: cs.backgroundColor, img: cs.backgroundImage, lh: parseFloat(cs.lineHeight) };
+  });
+  if (!paper.cls.includes('paper-lined') || paper.bg !== 'rgb(255, 253, 248)' || !paper.img.includes('gradient') || paper.lh < 26) throw new Error(`El texto no va sobre la hoja rayada: ${JSON.stringify(paper)}`);
+  await pc.locator('.block.ink .block-menu').first().click();
+  await pc.locator('.popover .menu-item', { hasText: 'Cuadriculada' }).click();
+  if (!(await pc.locator('.block.text').getAttribute('class')).includes('paper-grid')) throw new Error('El texto no sigue el papel de la hoja');
+  await pc.locator('.block.ink .block-menu').first().click();
+  await pc.locator('.popover .menu-item', { hasText: 'Rayada' }).click();
+  step('Lo tipeado va sobre papel rayado como la hoja (y sigue el papel si se cambia)');
   await pc.locator('.segmented button', { hasText: 'Lápiz' }).click();
   await pc.mouse.move(box.x + 100, box.y + 100);
   await pc.mouse.down();
