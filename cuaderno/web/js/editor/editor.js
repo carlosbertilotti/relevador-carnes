@@ -26,6 +26,8 @@ export async function openEditor(root, noteId, { back, watch = false } = {}) {
   const notebook = await db.get('notebooks', note.notebookId);
   const saved = await db.getSetting('tools', null);
   if (saved) Object.assign(tools, saved, { tool: saved.tool === 'none' ? 'none' : saved.tool });
+  // En la compu (sin pantalla táctil) la nota se abre para escribir con el teclado.
+  if (!navigator.maxTouchPoints) tools.tool = 'none';
   const ed = new Editor(root, note, notebook, back);
   await ed.mount();
   if (watch || note.video?.open) ed.openVideo({ quiet: true });
@@ -99,28 +101,42 @@ class Editor {
 
   get personal() { return store.isPersonal(this.notebook); }
 
+  // Lo que depende de dónde está la nota (materia o carpeta de "Personal"): se
+  // vuelve a aplicar al moverla, acá o desde otro dispositivo.
+  _applyNotebookUi() {
+    const personal = this.personal; // nota de "Personal": sin grabación de clase, material ni corrección
+    this.crumbEl.textContent = this.notebook?.name || '';
+    this.crumbEl.style.color = this.notebook?.color || '';
+    this.titleInput.placeholder = personal ? 'Título' : `${this.notebook?.name || 'Clase'} — ${store.fmtDate(this.note.classDate)}`;
+    this.recBtn.title = personal ? 'Grabar audio' : 'Grabar la clase';
+    this.watchBtn.hidden = personal;
+    this.materialBtn.hidden = personal;
+    const sb = document.getElementById('sidebar');
+    if (sb) { sb.dataset.noteNotebook = this.note.notebookId || ''; sb.dataset.notePersonal = personal ? '1' : ''; }
+  }
+
   async mount() {
     const n = this.note;
-    const personal = this.personal; // nota de "Personal": sin grabación de clase, material ni corrección
     this.titleInput = h('input.note-title', {
       value: n.title,
-      placeholder: personal ? 'Título' : `${this.notebook?.name || 'Clase'} — ${store.fmtDate(n.classDate)}`,
       oninput: () => { n.title = this.titleInput.value; this.save(); },
     });
     this.dateInput = h('input.note-date', { type: 'date', value: n.classDate || '', onchange: () => { n.classDate = this.dateInput.value; this.save(); } });
-    this.recBtn = h('button.icon-btn.rec', { type: 'button', title: personal ? 'Grabar audio' : 'Grabar la clase', onclick: () => this.toggleRecording() }, icon('mic'));
+    this.recBtn = h('button.icon-btn.rec', { type: 'button', onclick: () => this.toggleRecording() }, icon('mic'));
+    this.watchBtn = h('button.btn.small.watch-btn', { type: 'button', title: 'Ver la grabación de la clase y tomar notas', onclick: () => this.openVideo() }, icon('video'), h('span', 'Ver clase'));
+    this.materialBtn = h('button.btn.ghost', { type: 'button', onclick: () => this.insertMaterial() }, icon('pdf'), 'Material');
     this.recTime = h('span.rec-time');
     const header = h('header.editor-head',
       h('button.icon-btn', { type: 'button', title: 'Mostrar / esconder las materias', 'aria-label': 'Mostrar u ocultar materias', onclick: () => { this._autoHid = true; document.body.classList.toggle('sidebar-hidden'); } }, icon('sidebar')),
       h('button.icon-btn', { type: 'button', 'aria-label': 'Volver', onclick: () => this.back() }, icon('back')),
       h('div.editor-titles',
-        this.crumbEl = h('div.crumb', { style: { color: this.notebook?.color } }, this.notebook?.name || ''),
+        this.crumbEl = h('div.crumb'),
         this.titleInput),
       this.dateInput,
       h('div.spacer'),
       this.recTime,
       this.recBtn,
-      personal ? null : h('button.btn.small.watch-btn', { type: 'button', title: 'Ver la grabación de la clase y tomar notas', onclick: () => this.openVideo() }, icon('video'), h('span', 'Ver clase')),
+      this.watchBtn,
       h('button.icon-btn', { type: 'button', title: 'Grabaciones de audio', onclick: (e) => this.showRecordings(e.currentTarget) }, icon('list')),
       h('button.icon-btn', { type: 'button', title: 'Exportar / imprimir', onclick: () => this.exportPdf() }, icon('share')),
       h('button.icon-btn', { type: 'button', title: 'Más', onclick: (e) => this.moreMenu(e.currentTarget) }, icon('more')));
@@ -134,9 +150,10 @@ class Editor {
       h('div.add-row',
         h('button.btn.ghost', { type: 'button', onclick: () => this.addBlock('text') }, icon('text'), 'Texto'),
         h('button.btn.ghost', { type: 'button', onclick: () => this.addBlock('ink') }, icon('sheet'), 'Hoja'),
-        personal ? null : h('button.btn.ghost', { type: 'button', onclick: () => this.insertMaterial() }, icon('pdf'), 'Material'),
+        this.materialBtn,
         h('button.btn.ghost', { type: 'button', onclick: () => this.insertImage() }, icon('image'), 'Foto')));
     this.root.replaceChildren(h('div.editor', header, this.videoBar, this.toolbar, this.selectionBar, this.scroller, this.playerBar));
+    this._applyNotebookUi();
     this.renderToolbar();
     this.renderBlocks();
 
@@ -150,15 +167,19 @@ class Editor {
     document.addEventListener('keydown', this._onKey);
     this._onVis = () => { if (document.hidden) this.save.flush(); };
     document.addEventListener('visibilitychange', this._onVis);
-    // Primer contacto con el Apple Pencil: activar "sólo lápiz" automáticamente.
     this._onPen = (e) => {
-      if (e.pointerType === 'pen' && !tools.penOnly && !this._penAuto) {
+      if (e.pointerType !== 'pen') return;
+      // Primer contacto con el Apple Pencil: activar "sólo lápiz" automáticamente.
+      if (!tools.penOnly && !this._penAuto) {
         this._penAuto = true;
         tools.penOnly = true;
         this.persistTools();
         this.renderToolbar();
         toast('Lápiz detectado: el dedo desplaza y el lápiz escribe. Dos toques con el dedo: herramienta anterior', { ms: 5000 });
       }
+      // Como en Notas de Apple: escribiendo con el teclado, apoyar el lápiz en una hoja
+      // pasa solo a dibujar (este aviso llega antes que el de la hoja, así el trazo arranca).
+      if (tools.tool === 'none' && e.target.closest?.('.sheet') && !(this.seekMode && this.playback)) this.setTool(this.lastInkTool || 'pen');
     };
     document.addEventListener('pointerdown', this._onPen, true);
     this._bindDoubleTap();
@@ -195,6 +216,10 @@ class Editor {
       const fresh = await db.get('notes', this.note.id);
       if (!fresh || (fresh._mod || 0) <= (this.note._mod || 0)) return;
       Object.assign(this.note, fresh);
+      if (fresh.notebookId !== this.notebook?.id) { // la movieron a otra carpeta o materia desde otro dispositivo
+        this.notebook = (await db.get('notebooks', fresh.notebookId)) || null;
+        this._applyNotebookUi();
+      }
       this.titleInput.value = fresh.title || '';
       this.undoStack = [];
       this.redoStack = [];
@@ -213,6 +238,10 @@ class Editor {
     store.bus.addEventListener('live', this._onLive);
     if (!this.note.blocks.length) this.addBlock('text');
     await this._moveTextImagesToSheets();
+    // Nota vacía en la compu: el cursor queda en el texto, listo para escribir.
+    if (!navigator.maxTouchPoints && tools.tool === 'none' && this.note.blocks[0]?.type === 'text' && !store.noteText(this.note)) {
+      this.blocksEl.querySelector('.text-block')?.focus();
+    }
   }
 
   destroy() {
@@ -423,10 +452,12 @@ class Editor {
       const el = h('div.text-block', {
         contentEditable: 'true',
         spellcheck: true,
-        dataset: { blockId: b.id, placeholder: this.note.blocks[0] === b ? 'Empezá a escribir… (con el lápiz también: Scribble lo pasa a texto)' : 'Texto' },
+        dataset: { blockId: b.id, placeholder: this.note.blocks[0] === b ? 'Escribí con el teclado o con el lápiz (Scribble lo pasa a texto)…' : 'Texto' },
         html: b.html,
       });
       el.addEventListener('input', () => { b.html = el.innerHTML; this.save(); this._hideSidebarOnWrite(); });
+      // Tocar el texto para escribir con el teclado pasa la barra a "Texto" (negrita, listas…).
+      el.addEventListener('focus', () => { if (tools.tool !== 'none') this.setTool('none'); });
       el.addEventListener('paste', (e) => {
         const text = e.clipboardData?.getData('text/plain');
         if (text == null) return;
@@ -861,7 +892,7 @@ class Editor {
   // ---------- Exportar ----------
   exportPdf() {
     const printable = h('div.print-root',
-      h('h1.print-title', this.note.title || this.titleInput.placeholder),
+      h('h1.print-title', this.note.title || (this.personal ? store.noteTitle(this.note, this.notebook) : this.titleInput.placeholder)),
       h('p.print-meta', `${this.notebook?.name || ''} · ${store.fmtDate(this.note.classDate)}`),
       this.note.blocks.map((b) => (b.type === 'text'
         ? h('div.print-text', { html: b.html })
@@ -909,12 +940,9 @@ class Editor {
       const target = nb.create ? await store.defaultPersonalFolder() : nb;
       this.note.notebookId = target.id;
       this.notebook = target;
-      this.crumbEl.textContent = target.name;
-      this.crumbEl.style.color = target.color || '';
+      this._applyNotebookUi();
       this.save();
       await this.save.flush();
-      const sb = document.getElementById('sidebar');
-      if (sb) { sb.dataset.noteNotebook = target.id; sb.dataset.notePersonal = store.isPersonal(target) ? '1' : ''; }
       store.emit('change', { type: 'note', id: this.note.id });
       toast(`Movida a ${store.isPersonal(target) ? 'Personal › ' : ''}${target.name}`);
     };

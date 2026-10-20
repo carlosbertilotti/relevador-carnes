@@ -86,7 +86,7 @@ function folderMenu(anchor, f, n) {
       if (!(await confirmDialog('Eliminar carpeta', msg, { ok: 'Eliminar', danger: true }))) return;
       await store.deleteNotebook(f.id);
       toast('Carpeta eliminada');
-      go('/personal');
+      location.replace('#/personal'); // "Atrás" no vuelve a la carpeta borrada
     } },
   ]);
 }

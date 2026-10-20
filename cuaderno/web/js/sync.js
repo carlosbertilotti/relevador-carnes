@@ -99,6 +99,16 @@ async function push(k) {
   for (const t of tomb) docs.push({ store: t.store, id: t.id, data: null, mod: t.mod, deleted: true });
   if (!docs.length) return 0;
 
+  // Un documento borrado y vuelto a crear antes de subir (p. ej. la carpeta "Notas")
+  // viene dos veces: va sólo la versión más nueva (el servidor rechaza un lote con repetidos).
+  const latest = new Map();
+  for (const d of docs) {
+    const k2 = `${d.store}|${d.id}`;
+    const prev = latest.get(k2);
+    if (!prev || d.mod > prev.mod || (d.mod === prev.mod && prev.deleted && !d.deleted)) latest.set(k2, d);
+  }
+  docs.length = 0;
+  docs.push(...latest.values());
   docs.sort((a, b) => a.mod - b.mod);
   let batch = [];
   let size = 0;

@@ -76,14 +76,23 @@ async function renderSidebar() {
 
 async function renderSearch(root, q) {
   const results = await store.searchNotes(q);
-  const files = (await db.all('files')).filter((f) => store.normalize(f.name).includes(store.normalize(q)));
+  const personalIds = new Set((await store.personalFolders()).map((f) => f.id));
+  const allNotes = personalIds.size ? await db.all('notes') : [];
+  const files = (await db.all('files')).filter((f) => store.normalize(f.name).includes(store.normalize(q)))
+    .map((f) => {
+      if (!personalIds.has(f.notebookId)) return { ...f, path: `/cuaderno/${f.notebookId}/material` };
+      // Un PDF importado en una nota personal: se abre la nota que lo tiene.
+      const n = allNotes.find((x) => x.blocks.some((b) => b.pdf?.fileId === f.id));
+      return n ? { ...f, path: `/nota/${n.id}` } : null;
+    })
+    .filter(Boolean);
   root.replaceChildren(h('div.page.search-page',
     h('header.page-head', h('div', h('p.eyebrow', 'Buscar'), h('h1', `“${q}”`))),
     results.length || files.length ? null : h('p.muted', 'Sin resultados.'),
     results.length ? h('section', h('h2.section-title', 'Notas'), h('ul.result-list', results.map(({ note, notebook, snippet }) => h('li', { onclick: () => go(`/nota/${note.id}`) },
       h('span.dot', { style: { background: notebook?.color } }),
       h('div', h('strong', store.noteTitle(note, notebook)), h('small', `${notebook?.name || ''} · ${store.fmtDate(note.classDate)}`), h('p', highlight(snippet, q))))))) : null,
-    files.length ? h('section', h('h2.section-title', 'Material'), h('ul.result-list', files.map((f) => h('li', { onclick: () => go(`/cuaderno/${f.notebookId}/material`) }, icon('file'), h('div', h('strong', f.name), h('small', f.section || '')))))) : null));
+    files.length ? h('section', h('h2.section-title', 'Material'), h('ul.result-list', files.map((f) => h('li', { onclick: () => go(f.path) }, icon('file'), h('div', h('strong', f.name), h('small', f.section || '')))))) : null));
 }
 
 function highlight(text, q) {
