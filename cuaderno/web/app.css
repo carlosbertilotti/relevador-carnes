@@ -512,6 +512,30 @@ body.in-editor #main { overflow: hidden; }
 .tasks-toggle { font-size: 14px; color: var(--muted); white-space: nowrap; }
 .tasks-summary { margin: 4px 0 10px; }
 .todo-day { margin-top: 14px; }
+
+/* Para leer: lecturas del día, con el archivo a un toque, y la semana para saltar de día */
+.read-today { margin-bottom: 8px; }
+.todo-kind { display: inline-flex; vertical-align: -2px; margin-right: 6px; color: var(--c, var(--accent)); }
+.todo-kind .icon { width: 14px; height: 14px; }
+.todo-open { flex: none; }
+.todo-add [hidden] { display: none; }
+.todo-add .todo-file { flex: 1 1 200px; min-width: 0; }
+.todo-readbox { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 13px; color: var(--muted); }
+.todo-readbox .icon { width: 14px; height: 14px; }
+.read-download { margin-top: 10px; }
+.tasks-toggles { gap: 16px; }
+.week-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 2px 0 6px; }
+.week-strip .wk { border: 0; border-radius: 12px; padding: 6px 2px 4px; background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 1px; color: inherit; font: inherit; min-width: 0; }
+.week-strip .wk small { color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: .03em; }
+.week-strip .wk strong { font-size: 16px; line-height: 1.25; }
+.week-strip .wk.today strong { color: var(--accent); }
+.week-strip .wk.sel { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.week-strip .wk-count { display: inline-flex; align-items: center; gap: 2px; min-height: 16px; font-size: 11px; color: var(--muted); }
+.week-strip .wk-count.has { color: var(--accent); font-weight: 600; }
+.week-strip .wk-count .icon { width: 11px; height: 11px; }
+.week-strip .wk-dot { width: 5px; height: 5px; border-radius: 50%; background: transparent; }
+.week-strip .wk-dot.on { background: var(--muted); }
+.cal-chip.task.read { border-left-style: dashed; }
 .cal-allday .cal-chip { box-sizing: border-box; height: 20px; line-height: 16px; }
 .cal-chip.task { display: block; text-decoration: none; color: inherit; border-left: 3px solid var(--c, var(--accent)); }
 .cal-chip.task.done { text-decoration: line-through; opacity: .6; }

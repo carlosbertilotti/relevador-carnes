@@ -90,7 +90,7 @@ try {
   await page.locator('.page.tasks .todo', { hasText: 'Repaso integral' }).waitFor();
   const t = await page.locator('.page.tasks').innerText();
   if (t.includes('Leer Growth Outside the Core')) throw new Error('Muestra hechas sin pedirlo');
-  await page.locator('.tasks-toggle input').check();
+  await page.locator('.tasks-toggle', { hasText: 'Mostrar hechas' }).locator('input').check();
   await page.locator('.page.tasks .todo.done', { hasText: 'Leer Growth Outside the Core' }).waitFor();
   await page.locator('.tasks-tools .chip', { hasText: 'Dirección de Marketing' }).click();
   await page.waitForTimeout(300);

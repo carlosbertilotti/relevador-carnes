@@ -4,7 +4,7 @@ import * as store from '../store.js';
 import { h, icon } from '../ui.js';
 import { go } from '../router.js';
 import { showClassPlan } from './classplan.js';
-import { listTodos } from '../todos.js';
+import { listTodos, isReading } from '../todos.js';
 
 const HOUR_PX = 56;
 
@@ -35,7 +35,7 @@ export async function renderCalendar(root, { date } = {}) {
       h('div.cal-day', { onclick: () => go(`/hoy/${key}`) }, h('span', store.DAYS[d.getDay()].slice(0, 3)), h('strong', d.getDate())),
       h('div.cal-allday', { style: allDayStyle },
         allDay.map((e) => h('div.cal-chip', { title: e.title }, e.title)),
-        todos.filter((t) => t.due === key).map((t) => h(`a.cal-chip.task${t.done ? '.done' : ''}`, { href: '#/tareas', title: t.title, style: { '--c': nbById.get(t.notebookId)?.color || '#8a8f98' } }, `${t.done ? '☑' : '☐'} ${t.title}`))),
+        todos.filter((t) => t.due === key).map((t) => h(`a.cal-chip.task${isReading(t) ? '.read' : ''}${t.done ? '.done' : ''}`, { href: `#/hoy/${t.due}`, title: t.title, style: { '--c': nbById.get(t.notebookId)?.color || '#8a8f98' } }, `${t.done ? '☑' : isReading(t) ? '📖' : '☐'} ${t.title}`))),
       h('div.cal-body', { style: { height: `${(maxH - minH) * HOUR_PX}px` } },
         layout(dayItems).map(({ ev, lane, lanes }) => {
           const nb = nbById.get(ev.notebookId);
