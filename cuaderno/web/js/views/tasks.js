@@ -5,8 +5,8 @@
 import * as db from '../db.js';
 import * as store from '../store.js';
 import * as campus from '../campus.js';
-import { listTodos, addTodo, setDone, deleteTodo, sortTodos, bucketsFor, isReading } from '../todos.js';
-import { canOpen } from '../editor/office.js';
+import { listTodos, addTodo, saveTodo, setDone, deleteTodo, sortTodos, bucketsFor, isReading } from '../todos.js';
+import { canOpen, openMaterial as openInNote } from '../editor/office.js';
 import { h, icon, confirmDialog, toast } from '../ui.js';
 import { go } from '../router.js';
 
@@ -24,11 +24,47 @@ const refreshMounted = () => {
 const mount = (sec, redraw) => { mounted.add({ sec, redraw, seen: false, at: Date.now() }); };
 const fmtMinutes = (m) => { const hs = Math.floor(m / 60); const r = m % 60; return hs ? (r ? `${hs} h ${r} min` : `${hs} h`) : `${r} min`; };
 
-// Abre el archivo de una lectura: los que se pueden anotar, en una nota; el resto, el original.
-async function openMaterial(btn, f) {
-  const nb = await import('./notebook.js');
-  if (canOpen(f)) await nb.openInCuaderno(btn, f);
-  else await nb.openFile(f);
+// Palabras de un título o de un nombre de archivo que sirven para emparejarlos
+// (sin acentos, sin las cortas ni las que aparecen en cualquier lectura).
+const STOP = new Set(['para', 'leer', 'repasar', 'clase', 'slides', 'caso', 'capitulo', 'sesion', 'lectura', 'mirar', 'con', 'del', 'las', 'los', 'una', 'por', 'que', 'the', 'and', 'pdf']);
+const words = (s) => [...new Set(String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z0-9]+/).filter((w) => w.length >= 4 && !STOP.has(w)))];
+
+// El archivo del campus que corresponde a una lectura que no tiene uno asignado, por las
+// palabras del título ("Repasar slides Evaluación de Proyectos" → "Clase 1 - Evaluación de Proyectos.pdf").
+// Pide al menos dos palabras en común y que no haya empate entre archivos distintos.
+export function guessFile(t, files) {
+  if (!t.notebookId) return null;
+  const tw = words(t.title);
+  if (tw.length < 2) return null;
+  const scored = files
+    .filter((f) => f.notebookId === t.notebookId && !f.exam)
+    .map((f) => { const fw = words(f.name); return { f, score: tw.filter((w) => fw.some((x) => x.startsWith(w) || w.startsWith(x))).length }; })
+    .filter((x) => x.score >= 2)
+    .sort((a, b) => b.score - a.score || (b.f.addedAt || 0) - (a.f.addedAt || 0));
+  if (!scored.length) return null;
+  const [best, second] = scored;
+  if (second && second.score === best.score && second.f.name !== best.f.name) return null;
+  return best.f;
+}
+
+// Tocar una lectura la abre acá mismo: el archivo en una nota de Cuaderno para leerlo y anotarlo
+// (o el original, si no se puede anotar). Si no tiene archivo, se lo busca por el nombre y queda
+// asignado; si no aparece, va al material de la materia.
+async function openReading(t, file, files, progress) {
+  let f = file;
+  if (!f && !t.fileId) {
+    f = guessFile(t, files);
+    if (f) await saveTodo({ ...t, fileId: f.id });
+  }
+  if (!f) {
+    if (!t.notebookId) { toast('Esta lectura no tiene archivo ni materia.'); return; }
+    toast(t.fileId ? 'El archivo de esta lectura todavía no está en este dispositivo: sincronizá el campus.' : 'No encontré el archivo de esta lectura: elegilo en el material de la materia.', { ms: 5000 });
+    go(`/cuaderno/${t.notebookId}/material`);
+    return;
+  }
+  if (!canOpen(f)) { await (await import('./notebook.js')).openFile(f); return; }
+  const note = await openInNote(f.id, progress);
+  go(`/nota/${note.id}`);
 }
 
 export function dueLabel(due, today = store.ymd()) {
@@ -43,6 +79,7 @@ export function dueLabel(due, today = store.ymd()) {
 function todoRow(t, nbById, { onChange, showDate = true, filesById } = {}) {
   const nb = nbById.get(t.notebookId);
   const reading = isReading(t);
+  const files = filesById ? [...filesById.values()] : [];
   const file = reading && t.fileId ? filesById?.get(t.fileId) : null;
   const meta = [nb ? shortName(nb.name) : null, showDate && t.due ? dueLabel(t.due) : null, t.minutes ? `${t.minutes} min` : null,
     file ? (file.downloaded ? 'en el dispositivo' : 'sin descargar') : null].filter(Boolean);
@@ -59,12 +96,30 @@ function todoRow(t, nbById, { onChange, showDate = true, filesById } = {}) {
       setTimeout(() => onChange?.(), 350); // que se vea el tachado antes de reordenar
     },
   }, icon('check'));
+  const metaEl = h('small.todo-meta', meta.join(' · '));
+  const text = h('div.todo-text', h('div.todo-title', reading ? h('span.todo-kind', { title: 'Lectura' }, icon('book')) : null, t.title), metaEl);
+  // Una lectura es un botón entero: se toca y se abre para leer (ver openReading).
+  const main = reading
+    ? h('button.todo-main.todo-go', {
+      type: 'button',
+      title: file ? `Abrir ${file.name}` : 'Abrir la lectura',
+      onclick: async () => {
+        main.disabled = true;
+        const prev = metaEl.textContent;
+        try {
+          await openReading(t, file, files, (msg) => { metaEl.textContent = msg; });
+        } catch (err) {
+          toast(err.message, { error: true, ms: 6000 });
+        } finally {
+          main.disabled = false;
+          metaEl.textContent = prev;
+        }
+      },
+    }, text, h(`span.todo-arrow${file ? '' : '.fwd'}`, { 'aria-hidden': 'true' }, icon(file ? (campus.isPdf(file) ? 'pdf' : 'file') : 'back')))
+    : h('div.todo-main', text);
   const li = h(`li.todo${reading ? '.read' : ''}${t.done ? '.done' : ''}`, { style: { '--c': nb?.color || '#8a8f98' }, 'data-id': t.id },
     check,
-    h('div.todo-main',
-      h('div.todo-title', reading ? h('span.todo-kind', { title: 'Lectura' }, icon('book')) : null, t.title),
-      meta.length ? h('small.todo-meta', meta.join(' · ')) : null),
-    file ? h('button.btn.small.todo-open', { type: 'button', 'aria-label': `Abrir ${file.name}`, onclick: (e) => openMaterial(e.currentTarget, file) }, icon(campus.isPdf(file) ? 'pdf' : 'file'), 'Abrir') : null,
+    main,
     h('button.icon-btn.todo-del', {
       type: 'button',
       'aria-label': `Borrar "${t.title}"`,

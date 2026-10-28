@@ -26,14 +26,16 @@ try {
     await db.put('notebooks', { id: 'nb_mkt', name: 'Dirección de Marketing [C. Del Hoyo]', color: '#c2410c', schedule: [], sections: [], createdAt: 1 });
     await db.put('notebooks', { id: 'nb_fin', name: 'Finanzas Corporativas [M. Machinea]', color: '#9b6cd6', schedule: [], sections: [], createdAt: 2 });
     await db.put('files', { id: 'f_pre', courseId: 7703, notebookId: 'nb_mkt', name: 'PRE READ CLASE MEDIOS UTDT.pdf', size: 40, mimetype: 'application/pdf', section: 'Clase 4', downloaded: false, srcUrl: '/lectura-prueba.pdf', addedAt: 20 });
-    await db.put('files', { id: 'f_dove', courseId: 7703, notebookId: 'nb_mkt', name: 'DOVE EVOLUTION OF A BRAND.pdf', size: 40, mimetype: 'application/pdf', section: 'CLASE 3', downloaded: true, addedAt: 10 });
+    await db.put('files', { id: 'f_dove', courseId: 7703, notebookId: 'nb_mkt', name: 'DOVE EVOLUTION OF A BRAND.pdf', size: 40, mimetype: 'application/pdf', section: 'CLASE 3', downloaded: true, srcUrl: '/exams/simulacro-dop-2026-10.pdf', addedAt: 10 });
     await db.put('files', { id: 'f_fin', courseId: 7706, notebookId: 'nb_fin', name: 'Clase 2 - Tasa de Descuento.pdf', size: 40, mimetype: 'application/pdf', section: 'CLASE 2', downloaded: true, addedAt: 5 });
+    await db.put('files', { id: 'f_eval', courseId: 7706, notebookId: 'nb_fin', name: 'Clase 1 - Evaluación de Proyectos.pdf', size: 40, mimetype: 'application/pdf', section: 'CLASE 1', downloaded: true, srcUrl: '/exams/simulacro-dop-2026-10.pdf', addedAt: 4 });
     const t = (o) => todos.saveTodo({ done: false, createdAt: 1, ...o });
     await t({ id: 'r1', title: 'Pre-read de medios', due: '2026-10-28', notebookId: 'nb_mkt', minutes: 30, read: true, fileId: 'f_pre', order: 1 });
     await t({ id: 'r2', title: 'BMA cap. 17', due: '2026-10-28', notebookId: 'nb_fin', minutes: 60, read: true, order: 2 });
     await t({ id: 'r3', title: 'Caso Dove', due: '2026-10-29', notebookId: 'nb_mkt', minutes: 45, read: true, fileId: 'f_dove', order: 3 });
     await t({ id: 'r4', title: 'Slides de la clase 2', due: '2026-10-27', notebookId: 'nb_fin', read: true, fileId: 'f_fin', order: 4 });
     await t({ id: 'r5', title: 'Lectura sin archivo en este equipo', due: '2026-10-28', notebookId: 'nb_fin', read: true, fileId: 'no_esta', order: 5 });
+    await t({ id: 'r6', title: 'Repasar slides "Evaluación de Proyectos" y la fórmula del FCF', due: '2026-10-28', notebookId: 'nb_fin', read: true, order: 8 });
     await t({ id: 't1', title: 'Guía U1', due: '2026-10-28', notebookId: 'nb_fin', order: 6 });
     await t({ id: 't2', title: 'Subir TP', due: '2026-10-30', notebookId: 'nb_mkt', order: 7 });
   });
@@ -46,7 +48,7 @@ try {
   let txt = await read.innerText();
   if (!/Para leer/i.test(txt)) throw new Error('Falta el título "Para leer"');
   if (!txt.includes('Pre-read de medios') || !txt.includes('BMA cap. 17')) throw new Error(`Faltan las lecturas de hoy: ${txt}`);
-  if (!/0 de 3 · 1 h 30 min/.test(txt)) throw new Error(`Progreso y tiempo del día: ${txt}`);
+  if (!/0 de 4 · 1 h 30 min/.test(txt)) throw new Error(`Progreso y tiempo del día: ${txt}`);
   if (!/Atrasadas · 1/i.test(txt) || !txt.includes('Slides de la clase 2')) throw new Error('Falta lo atrasado');
   if (!/Próximos días/i.test(txt) || !txt.includes('Caso Dove')) throw new Error('Faltan los próximos días');
   if (txt.includes('Guía U1') || txt.includes('Subir TP')) throw new Error('Las tareas comunes no van en "Para leer"');
@@ -69,10 +71,42 @@ try {
   const pre = read.locator('.todo', { hasText: 'Pre-read de medios' });
   if (!(await pre.innerText()).includes('sin descargar')) throw new Error('No avisa que falta bajar el archivo');
   if (!(await read.locator('.todo', { hasText: 'Caso Dove' }).innerText()).includes('en el dispositivo')) throw new Error('No avisa que ya está en el dispositivo');
-  if (!(await pre.locator('.todo-open').count()) || !(await read.locator('.todo', { hasText: 'Caso Dove' }).locator('.todo-open').count())) throw new Error('Falta el botón "Abrir" del archivo');
-  const orphan = read.locator('.todo', { hasText: 'Lectura sin archivo en este equipo' });
-  if (await orphan.locator('.todo-open').count()) throw new Error('Un archivo que no está en este equipo no debería tener "Abrir"');
-  step('Cada lectura con archivo tiene "Abrir" y dice si está en el dispositivo; si el archivo no está, no rompe');
+  const readRows = await read.locator('.todo.read').count();
+  if (!readRows || (await read.locator('.todo.read button.todo-main').count()) !== readRows) throw new Error('Cada lectura debería ser un botón entero para abrirla');
+  if (await tasks.locator('button.todo-main').count()) throw new Error('Las tareas comunes no son botones');
+  step('Cada lectura es tocable entera y dice si su archivo está en el dispositivo; si el archivo no está, no rompe');
+
+  // Tocar la lectura la abre acá mismo, en una nota de Cuaderno con el PDF
+  await read.locator('.todo', { hasText: 'Caso Dove' }).locator('.todo-main').click();
+  await page.waitForFunction(() => location.hash.startsWith('#/nota/'), null, { timeout: 20000 });
+  await page.locator('.sheet').first().waitFor({ timeout: 20000 });
+  let opened = await page.evaluate(async () => { const db = await import('/js/db.js'); const n = await db.get('notes', location.hash.split('/')[2]); return { src: n?.sourceFileId, sheets: n?.blocks.filter((b) => b.pdf).length }; });
+  if (opened.src !== 'f_dove' || !opened.sheets) throw new Error(`La nota abierta: ${JSON.stringify(opened)}`);
+  step('Tocar una lectura con archivo abre el PDF en una nota de Cuaderno, para leerlo y anotarlo ahí');
+
+  // Sin archivo asignado: se lo busca por el nombre, queda asignado y se abre
+  await page.goto(`${base}/#/hoy`);
+  await page.locator('.read-today .todo', { hasText: 'Evaluación de Proyectos' }).locator('.todo-main').click();
+  await page.waitForFunction(() => location.hash.startsWith('#/nota/'), null, { timeout: 20000 });
+  opened = await page.evaluate(async () => { const db = await import('/js/db.js'); const n = await db.get('notes', location.hash.split('/')[2]); const t = await db.getSetting('todo:r6', null); return { src: n?.sourceFileId, fileId: t?.fileId }; });
+  if (opened.src !== 'f_eval' || opened.fileId !== 'f_eval') throw new Error(`Adivinar el archivo: ${JSON.stringify(opened)}`);
+  step('Una lectura sin archivo lo encuentra por el nombre entre el material de la materia, lo deja asignado y lo abre');
+
+  // Sin archivo y sin nada parecido: va al material de la materia, con un aviso
+  await page.goto(`${base}/#/hoy`);
+  await page.locator('.read-today .todo', { hasText: 'BMA cap. 17' }).locator('.todo-main').click();
+  await page.waitForFunction(() => location.hash === '#/cuaderno/nb_fin/material', null, { timeout: 5000 });
+  await page.locator('.toast', { hasText: 'No encontré el archivo' }).waitFor();
+  const stillNoFile = await page.evaluate(async () => (await (await import('/js/db.js')).getSetting('todo:r2', null))?.fileId ?? null);
+  if (stillNoFile) throw new Error(`No debería asignar un archivo a ciegas: ${stillNoFile}`);
+  await page.goto(`${base}/#/hoy`);
+  await page.locator('.read-today .todo', { hasText: 'Lectura sin archivo en este equipo' }).locator('.todo-main').click();
+  await page.waitForFunction(() => location.hash === '#/cuaderno/nb_fin/material', null, { timeout: 5000 });
+  await page.locator('.toast', { hasText: 'sincronizá el campus' }).waitFor();
+  step('Sin archivo parecido, o con un archivo que no está en este equipo, lleva al material de la materia y avisa');
+
+  await page.goto(`${base}/#/hoy`);
+  await read.locator('.todo', { hasText: 'Pre-read de medios' }).waitFor();
 
   const bajar = read.locator('.read-download button');
   if (!/\(1\)/.test(await bajar.innerText())) throw new Error(`Botón de bajar: ${await bajar.innerText()}`);
@@ -86,7 +120,7 @@ try {
 
   await read.locator('.todo', { hasText: 'BMA cap. 17' }).locator('.todo-check').click();
   await page.waitForTimeout(700);
-  if (!/1 de 3/.test(await read.innerText())) throw new Error('El progreso de lecturas no avanzó');
+  if (!/1 de 4/.test(await read.innerText())) throw new Error('El progreso de lecturas no avanzó');
   const stored = await page.evaluate(async () => { const db = await import('/js/db.js'); const r = await db.get('kv', 'todo:r2'); return { done: r.value.done, read: r.value.read, synced: db.isSyncedKey('todo:r2') }; });
   if (!stored.done || stored.read !== true || !stored.synced) throw new Error(`Guardado: ${JSON.stringify(stored)}`);
   step('Tachar una lectura la marca hecha (sigue siendo lectura) y se sincroniza como cualquier tarea');
@@ -118,7 +152,7 @@ try {
   await rd.locator('.todo-new').press('Enter');
   const added = rd.locator('.todo.read', { hasText: 'Repasar el caso Dove' });
   await added.waitFor();
-  if (!(await added.locator('.todo-open').count())) throw new Error('La lectura agregada no tiene su archivo');
+  if (!(await added.locator('.todo-arrow .icon').count()) || (await added.locator('.todo-arrow.fwd').count())) throw new Error('La lectura agregada no muestra su archivo');
   const rec = await page.evaluate(async () => { const todos = await import('/js/todos.js'); return (await todos.listTodos()).find((t) => t.title === 'Repasar el caso Dove'); });
   if (rec.read !== true || rec.fileId !== 'f_dove' || rec.due !== '2026-10-29') throw new Error(`Lectura nueva: ${JSON.stringify(rec)}`);
   step('Se agregan lecturas desde Mi día eligiendo el archivo de la materia');
