@@ -1,9 +1,9 @@
 name: Cuaderno · Mi día por Telegram
 
-# Todas las mañanas manda al Telegram de Carlos lo que dice "Mi día" de Cuaderno: qué leer,
-# qué hacer y qué hay en el campus hoy, lo atrasado y un adelanto de mañana. Lee la nube de
-# Cuaderno (Supabase) con la clave de servicio que ya usa el relevamiento y manda con el mismo bot,
-# a un grupo propio de Telegram que se llame "Cuaderno" (el bot lo descubre solo cuando lo agregan).
+# Todas las mañanas manda al Telegram de Carlos, como imagen, lo que dice "Mi día" de Cuaderno:
+# la agenda (campus y tareas con hora), qué leer, qué hacer, lo atrasado y un adelanto de mañana.
+# Lee la nube de Cuaderno (Supabase) con la clave de servicio que ya usa el relevamiento y manda con
+# el mismo bot, a un tema propio "Cuaderno" que el bot crea solo dentro de su grupo.
 on:
   schedule:
     - cron: '30 10 * * *'   # 07:30 de Buenos Aires / Montevideo (UTC-3). GitHub puede atrasarlo unos minutos.
@@ -30,13 +30,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Instalar el dibujante de la imagen (usa el Chrome que ya trae el runner)
+        run: npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/pw" playwright-core@1.49.1
       - name: Mandar Mi día
         env:
+          PLAYWRIGHT_MODULE:    ${{ runner.temp }}/pw/node_modules/playwright-core/index.mjs
           SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           TELEGRAM_BOT_TOKEN:   ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:     ${{ secrets.TELEGRAM_CHAT_ID }}
-          # Opcional: fija el grupo a mano. Si no está, el bot usa el grupo "Cuaderno" que descubre solo.
+          # Opcional: fija a mano a dónde manda. Si no está, el bot crea (una vez) el tema "Cuaderno" en su grupo.
           TELEGRAM_CUADERNO_CHAT_ID: ${{ secrets.TELEGRAM_CUADERNO_CHAT_ID }}
           DIA:                  ${{ inputs.dia }}
         run: node cuaderno/scripts/mi-dia-telegram.mjs
