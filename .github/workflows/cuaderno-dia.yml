@@ -1,0 +1,39 @@
+name: Cuaderno · Mi día por Telegram
+
+# Todas las mañanas manda al Telegram de Carlos lo que dice "Mi día" de Cuaderno: qué leer,
+# qué hacer y qué hay en el campus hoy, lo atrasado y un adelanto de mañana. Lee la nube de
+# Cuaderno (Supabase) con la clave de servicio que ya usa el relevamiento y manda con el mismo bot.
+on:
+  schedule:
+    - cron: '30 10 * * *'   # 07:30 de Buenos Aires / Montevideo (UTC-3). GitHub puede atrasarlo unos minutos.
+  workflow_dispatch:        # a mano desde Actions, o cuando Carlos pide "mandame mi día"
+    inputs:
+      dia:
+        description: Día a mandar (AAAA-MM-DD; vacío = hoy)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cuaderno-dia
+  cancel-in-progress: false
+
+jobs:
+  mandar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Mandar Mi día
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          TELEGRAM_BOT_TOKEN:   ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:     ${{ secrets.TELEGRAM_CHAT_ID }}
+          DIA:                  ${{ inputs.dia }}
+        run: node cuaderno/scripts/mi-dia-telegram.mjs
