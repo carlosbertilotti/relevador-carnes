@@ -17,7 +17,8 @@ const sidebar = document.getElementById('sidebar');
 const main = document.getElementById('main');
 let cleanup = null;
 let searchInput;
-const NB_GROUPS = [['cursando', 'Cursando'], ['proxima', 'Próximas'], ['pasada', 'Materias pasadas']];
+// Cursando según el calendario del campus (ver store.refreshStatuses); el resto, plegado.
+const NB_GROUPS = [['cursando', 'Cursando'], ['proxima', 'Materias futuras'], ['pasada', 'Materias pasadas']];
 const openGroups = new Set();
 
 async function renderSidebar() {
@@ -55,7 +56,7 @@ async function renderSidebar() {
       ? h('div.nb-groups', NB_GROUPS.map(([status, label]) => {
         const list = notebooks.filter((nb) => (nb.status || 'cursando') === status);
         if (!list.length) return null;
-        const open = status !== 'pasada' || openGroups.has(status) || list.some((nb) => nb.id === activeNb);
+        const open = status === 'cursando' || openGroups.has(status) || list.some((nb) => nb.id === activeNb);
         return h('div.nb-group',
           status === 'cursando' && list.length === notebooks.length ? null : h('button.nb-group-title', {
             type: 'button',
@@ -231,6 +232,8 @@ async function start() {
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     navigator.serviceWorker.register('/sw.js').then(watchUpdates).catch(() => {});
   }
+  // Cursando / pasada / próxima con la fecha de hoy (sin esperar a sincronizar el campus).
+  store.refreshStatuses().catch((err) => console.warn('estado de las materias:', err));
   // Sincronizaciones de fondo al abrir.
   campus.maybeAutoSync();
   const cals = (await db.getSetting('icsCalendars', [])) || [];

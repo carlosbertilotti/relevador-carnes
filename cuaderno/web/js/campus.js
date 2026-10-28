@@ -2,7 +2,7 @@
 // servidor de Cuaderno. Cada materia del campus se convierte en un cuaderno y
 // su material (PDFs, presentaciones, etc.) se descarga al dispositivo.
 import * as db from './db.js';
-import { createNotebook, saveNotebook, emit, normalize, mergeDuplicateNotebooks, isPersonal } from './store.js';
+import { createNotebook, saveNotebook, emit, normalize, mergeDuplicateNotebooks, isPersonal, refreshStatuses } from './store.js';
 
 export const DEFAULT_URL = 'https://campusvirtual.utdt.edu';
 const AUTO_SYNC_MS = 60 * 60 * 1000;
@@ -137,7 +137,7 @@ async function doSync({ onProgress = () => {} } = {}) {
     nb.startdate = course.startdate;
     nb.enddate = course.enddate;
     nb.campusStatus = course.status || 'cursando';
-    nb.status = nb.statusManual || nb.campusStatus;
+    nb.status = nb.statusManual || nb.calendarStatus || nb.campusStatus;
     nb.syncError = course.error || null;
     nb.sections = course.sections;
     nb.syncedAt = snap.syncedAt;
@@ -156,6 +156,7 @@ async function doSync({ onProgress = () => {} } = {}) {
   }
 
   await db.setSetting('campusEvents', snap.events);
+  await refreshStatuses(); // cursando / pasada / próxima según el calendario recién bajado
   acc.lastSync = snap.syncedAt;
   acc.site = snap.site;
   acc.error = null;

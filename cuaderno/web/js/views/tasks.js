@@ -7,7 +7,7 @@ import * as store from '../store.js';
 import * as campus from '../campus.js';
 import { listTodos, addTodo, saveTodo, setDone, deleteTodo, sortTodos, bucketsFor, isReading } from '../todos.js';
 import { canOpen, openMaterial as openInNote } from '../editor/office.js';
-import { h, icon, confirmDialog, toast } from '../ui.js';
+import { h, icon, confirmDialog, toast, modal } from '../ui.js';
 import { go } from '../router.js';
 
 const shortName = (name) => String(name || '').replace(/\s*\[.*\]\s*$/, '');
@@ -32,39 +32,69 @@ const words = (s) => [...new Set(String(s || '').toLowerCase().normalize('NFD').
 // El archivo del campus que corresponde a una lectura que no tiene uno asignado, por las
 // palabras del título ("Repasar slides Evaluación de Proyectos" → "Clase 1 - Evaluación de Proyectos.pdf").
 // Pide al menos dos palabras en común y que no haya empate entre archivos distintos.
-export function guessFile(t, files) {
-  if (!t.notebookId) return null;
+// Los archivos de la materia que pueden ser esta lectura, de más a menos parecidos.
+export function fileCandidates(t, files) {
+  if (!t.notebookId) return [];
   const tw = words(t.title);
-  if (tw.length < 2) return null;
-  const scored = files
+  if (tw.length < 2) return [];
+  const seen = new Set();
+  return files
     .filter((f) => f.notebookId === t.notebookId && !f.exam)
     .map((f) => { const fw = words(f.name); return { f, score: tw.filter((w) => fw.some((x) => x.startsWith(w) || w.startsWith(x))).length }; })
     .filter((x) => x.score >= 2)
-    .sort((a, b) => b.score - a.score || (b.f.addedAt || 0) - (a.f.addedAt || 0));
-  if (!scored.length) return null;
-  const [best, second] = scored;
-  if (second && second.score === best.score && second.f.name !== best.f.name) return null;
-  return best.f;
+    .sort((a, b) => b.score - a.score || (b.f.addedAt || 0) - (a.f.addedAt || 0))
+    .filter((x) => (seen.has(x.f.name) ? false : seen.add(x.f.name))) // el mismo PDF en dos secciones cuenta una vez
+    .map((x) => x.f);
 }
 
-// Tocar una lectura la abre acá mismo: el archivo en una nota de Cuaderno para leerlo y anotarlo
-// (o el original, si no se puede anotar). Si no tiene archivo, se lo busca por el nombre y queda
-// asignado; si no aparece, va al material de la materia.
-async function openReading(t, file, files, progress) {
-  let f = file;
-  if (!f && !t.fileId) {
-    f = guessFile(t, files);
-    if (f) await saveTodo({ ...t, fileId: f.id });
-  }
-  if (!f) {
-    if (!t.notebookId) { toast('Esta lectura no tiene archivo ni materia.'); return; }
-    toast(t.fileId ? 'El archivo de esta lectura todavía no está en este dispositivo: sincronizá el campus.' : 'No encontré el archivo de esta lectura: elegilo en el material de la materia.', { ms: 5000 });
-    go(`/cuaderno/${t.notebookId}/material`);
-    return;
-  }
+// El archivo de una lectura que no tiene uno asignado, si hay uno solo que encaja.
+export function guessFile(t, files) {
+  const c = fileCandidates(t, files);
+  return c.length === 1 ? c[0] : null;
+}
+
+async function openFileOf(f, progress) {
   if (!canOpen(f)) { await (await import('./notebook.js')).openFile(f); return; }
   const note = await openInNote(f.id, progress);
   go(`/nota/${note.id}`);
+}
+
+// Tocar una lectura la abre acá mismo: el archivo en una nota de Cuaderno para leerlo y anotarlo
+// (o el original, si no se puede anotar), o el enlace (un video, una charla). Si no tiene archivo,
+// se busca por el nombre: si hay uno, queda asignado; si hay varios, se elige; si no hay ninguno,
+// se explica que todavía no está en el campus.
+async function openReading(t, file, files, progress) {
+  if (t.url) { window.open(t.url, '_blank', 'noopener'); return; }
+  if (file) { await openFileOf(file, progress); return; }
+  const nbName = (await store.listNotebooks()).find((n) => n.id === t.notebookId)?.name;
+  const candidates = t.fileId ? [] : fileCandidates(t, files);
+  if (candidates.length === 1) {
+    await saveTodo({ ...t, fileId: candidates[0].id });
+    await openFileOf(candidates[0], progress);
+    return;
+  }
+  if (candidates.length > 1) {
+    const m = modal('¿Cuál querés leer?', h('div.picker', candidates.map((f) => h('button.picker-item', {
+      type: 'button',
+      onclick: async () => { m.close(); await saveTodo({ ...t, fileId: f.id }); await openFileOf(f, () => {}).catch((err) => toast(err.message, { error: true })); },
+    }, icon(campus.isPdf(f) ? 'pdf' : 'file'), h('div', h('div', f.name), f.section ? h('small', f.section) : null)))));
+    return;
+  }
+  // Ni archivo ni nada parecido en el material de la materia.
+  const where = nbName ? shortName(nbName) : 'la materia';
+  const msg = t.fileId
+    ? `El archivo de esta lectura todavía no llegó a este dispositivo. Sincronizá el campus y probá de nuevo.`
+    : `No está en el material de ${where} del campus. Puede ser del libro (por ejemplo, un capítulo del BMA) o que el profesor todavía no lo haya subido: cuando aparezca después de sincronizar, tocás de nuevo y se abre.`;
+  const m = modal('Esta lectura no está en el campus', h('p', msg), {
+    actions: [
+      ...(t.notebookId ? [{ label: 'Ver el material', onClick: () => { go(`/cuaderno/${t.notebookId}/material`); return true; } }] : []),
+      { label: 'Sincronizar el campus', primary: true, onClick: async () => {
+        try { const r = await campus.sync(); toast(`Campus sincronizado: ${r.newFiles} archivo(s) nuevo(s)`); } catch (err) { toast(err.message, { error: true }); }
+        return true;
+      } },
+    ],
+  });
+  return m;
 }
 
 export function dueLabel(due, today = store.ymd()) {
@@ -81,8 +111,14 @@ function todoRow(t, nbById, { onChange, showDate = true, filesById } = {}) {
   const reading = isReading(t);
   const files = filesById ? [...filesById.values()] : [];
   const file = reading && t.fileId ? filesById?.get(t.fileId) : null;
-  const meta = [nb ? shortName(nb.name) : null, showDate && t.due ? dueLabel(t.due) : null, t.minutes ? `${t.minutes} min` : null,
-    file ? (file.downloaded ? 'en el dispositivo' : 'sin descargar') : null].filter(Boolean);
+  const options = reading && !file && !t.url && !t.fileId ? fileCandidates(t, files).length : 0;
+  const where = !reading ? null
+    : t.url ? 'video'
+      : file ? (file.downloaded ? 'en el dispositivo' : 'sin descargar')
+        : t.fileId ? 'sin sincronizar'
+          : options > 1 ? `${options} archivos posibles`
+            : options === 1 ? null : 'no está en el campus';
+  const meta = [nb ? shortName(nb.name) : null, showDate && t.due ? dueLabel(t.due) : null, t.minutes ? `${t.minutes} min` : null, where].filter(Boolean);
   const check = h('button.todo-check', {
     type: 'button',
     'aria-label': t.title,
@@ -102,7 +138,7 @@ function todoRow(t, nbById, { onChange, showDate = true, filesById } = {}) {
   const main = reading
     ? h('button.todo-main.todo-go', {
       type: 'button',
-      title: file ? `Abrir ${file.name}` : 'Abrir la lectura',
+      title: t.url ? 'Abrir el enlace' : file ? `Abrir ${file.name}` : 'Abrir la lectura',
       onclick: async () => {
         main.disabled = true;
         const prev = metaEl.textContent;
@@ -115,7 +151,7 @@ function todoRow(t, nbById, { onChange, showDate = true, filesById } = {}) {
           metaEl.textContent = prev;
         }
       },
-    }, text, h(`span.todo-arrow${file ? '' : '.fwd'}`, { 'aria-hidden': 'true' }, icon(file ? (campus.isPdf(file) ? 'pdf' : 'file') : 'back')))
+    }, text, h(`span.todo-arrow${file || t.url ? '' : '.fwd'}`, { 'aria-hidden': 'true' }, icon(t.url ? 'video' : file ? (campus.isPdf(file) ? 'pdf' : 'file') : 'back')))
     : h('div.todo-main', text);
   const li = h(`li.todo${reading ? '.read' : ''}${t.done ? '.done' : ''}`, { style: { '--c': nb?.color || '#8a8f98' }, 'data-id': t.id },
     check,
