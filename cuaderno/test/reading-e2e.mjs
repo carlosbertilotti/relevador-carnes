@@ -53,7 +53,18 @@ try {
   const tt = await tasks.innerText();
   if (tt.includes('Pre-read') || tt.includes('BMA cap. 17') || tt.includes('Caso Dove') || tt.includes('Slides de la clase 2')) throw new Error(`Las lecturas no deberían estar en "Para hacer": ${tt}`);
   if (!tt.includes('Guía U1') || !tt.includes('Subir TP')) throw new Error('Se perdieron las tareas comunes');
+  if (/\bnull\b/.test(txt)) throw new Error('Quedó un "null" suelto en "Para leer"');
+  if (await tasks.locator('.todo-readbox').count()) throw new Error('"Para hacer" no debería tener la casilla "Lectura": lo que se agrega ahí no se vería');
   step('"Para leer" muestra las lecturas de hoy (con minutos), lo atrasado y lo que viene; "Para hacer" queda sólo con las tareas');
+
+  // Los puntos de la semana siguen a "Para hacer" (se redibujan las dos secciones juntas)
+  const todayDot = '.week-strip .wk.today .wk-dot.on';
+  if ((await page.locator(todayDot).count()) !== 1) throw new Error('Falta el punto de tareas comunes en hoy');
+  await tasks.locator('.todo', { hasText: 'Guía U1' }).locator('.todo-check').click();
+  await page.waitForFunction((q) => !document.querySelector(q), todayDot, { timeout: 4000 });
+  await tasks.locator('.todo', { hasText: 'Guía U1' }).locator('.todo-check').click(); // otra vez pendiente
+  await page.waitForFunction((q) => !!document.querySelector(q), todayDot, { timeout: 4000 });
+  step('Tachar una tarea común en "Para hacer" actualiza el punto de ese día en la semana de "Para leer"');
 
   const pre = read.locator('.todo', { hasText: 'Pre-read de medios' });
   if (!(await pre.innerText()).includes('sin descargar')) throw new Error('No avisa que falta bajar el archivo');
@@ -68,6 +79,7 @@ try {
   await bajar.click();
   await read.locator('.todo', { hasText: 'Pre-read de medios' }).locator('small', { hasText: 'en el dispositivo' }).waitFor({ timeout: 5000 });
   if (await read.locator('.read-download').count()) throw new Error('El botón de bajar sigue después de bajar todo');
+  if (/\bnull\b/.test(await read.innerText())) throw new Error('Quedó un "null" suelto después de bajar todo');
   const got = await page.evaluate(async () => { const db = await import('/js/db.js'); const f = await db.get('files', 'f_pre'); const b = await db.get('blobs', 'file:f_pre'); return { downloaded: f.downloaded, size: b?.blob?.size || 0 }; });
   if (!got.downloaded || !got.size) throw new Error(`No quedó guardado: ${JSON.stringify(got)}`);
   step('"Bajar lo que falta" guarda las lecturas para leer sin conexión y el botón desaparece');
@@ -87,6 +99,7 @@ try {
   if (!/1 lectura pendiente/.test(await jue.getAttribute('aria-label'))) throw new Error(`Jueves: ${await jue.getAttribute('aria-label')}`);
   await jue.click();
   await page.waitForFunction(() => location.hash === '#/hoy/2026-10-29');
+  await page.locator('.page-head h1', { hasText: 'Jueves 29' }).waitFor(); // la vista nueva, no la anterior
   await page.locator('.read-today .todo', { hasText: 'Caso Dove' }).waitFor();
   txt = await page.locator('.read-today').innerText();
   if (!/Mañana/i.test(txt) || txt.includes('BMA cap. 17') || /Atrasadas/i.test(txt)) throw new Error(`Jueves 29: ${txt}`);
@@ -119,7 +132,12 @@ try {
   await page.waitForTimeout(300);
   txt = await tp.innerText();
   if (txt.includes('Guía U1') || txt.includes('Subir TP') || !txt.includes('Caso Dove')) throw new Error(`Solo lecturas: ${txt}`);
+  if (!(await tp.locator('.todo-readbox input').isChecked())) throw new Error('Con "Solo lecturas" la casilla "Lectura" debería arrancar tildada');
+  await tp.locator('.todo-new').fill('Capítulo 7 con el filtro puesto');
+  await tp.locator('.todo-new').press('Enter');
+  await tp.locator('.todo.read', { hasText: 'Capítulo 7 con el filtro puesto' }).waitFor({ timeout: 3000 }); // no desaparece
   await tp.locator('.tasks-toggle', { hasText: 'Solo lecturas' }).locator('input').uncheck();
+  if (await tp.locator('.todo-readbox input').isChecked()) throw new Error('Sin el filtro la casilla vuelve a empezar destildada');
   await tp.locator('.todo-new').fill('Leer el capítulo 5');
   await tp.locator('.todo-readbox input').check();
   await tp.locator('.todo-new').press('Enter');
@@ -146,6 +164,17 @@ try {
   step('El calendario muestra las lecturas con un 📖, lleva a ese día de Mi día y "Para leer" vuelve a la semana del calendario');
 
   // Celular
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.evaluate(async () => {
+    const db = await import('/js/db.js');
+    const todos = await import('/js/todos.js');
+    await db.put('files', { id: 'f_big', courseId: 7703, notebookId: 'nb_mkt', name: 'Un archivo con un nombre bastante largo para la lectura.pdf', size: 40, mimetype: 'application/pdf', downloaded: false, srcUrl: '/lectura-prueba.pdf', addedAt: 30 });
+    await todos.saveTodo({ id: 'r9', title: 'Otra lectura por bajar', due: '2026-10-28', notebookId: 'nb_mkt', read: true, fileId: 'f_big', done: false, createdAt: 9, order: 9 });
+  });
+  await page.goto(`${base}/#/hoy`);
+  await page.locator('.read-today .read-download .btn').waitFor();
+  const btnBox = await page.evaluate(() => { const r = document.querySelector('.read-download .btn').getBoundingClientRect(); return { right: Math.round(r.right), vw: document.documentElement.clientWidth }; });
+  if (btnBox.right > btnBox.vw) throw new Error(`El botón de bajar se sale de la pantalla a 320px: ${JSON.stringify(btnBox)}`);
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto(`${base}/#/hoy`);
   await page.locator('.read-today .todo').first().waitFor();

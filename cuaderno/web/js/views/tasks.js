@@ -12,6 +12,16 @@ import { go } from '../router.js';
 
 const shortName = (name) => String(name || '').replace(/\s*\[.*\]\s*$/, '');
 const plusDays = (day, n) => { const d = new Date(`${day}T12:00:00`); d.setDate(d.getDate() + n); return store.ymd(d); };
+// "Para leer", "Para hacer" y la semana comparten las tareas: si cambia una (se tacha, se agrega),
+// se redibujan las secciones que están en pantalla. Las que ya no están se sueltan solas.
+const mounted = new Set();
+const refreshMounted = () => {
+  for (const m of [...mounted]) {
+    if (m.sec.isConnected) { m.seen = true; m.redraw(); }
+    else if (m.seen || Date.now() - m.at > 10000) mounted.delete(m);
+  }
+};
+const mount = (sec, redraw) => { mounted.add({ sec, redraw, seen: false, at: Date.now() }); };
 const fmtMinutes = (m) => { const hs = Math.floor(m / 60); const r = m % 60; return hs ? (r ? `${hs} h ${r} min` : `${hs} h`) : `${r} min`; };
 
 // Abre el archivo de una lectura: los que se pueden anotar, en una nota; el resto, el original.
@@ -79,7 +89,7 @@ function keepFocus(container, redraw) {
 // Formulario para agregar: se arma una sola vez (no se pierde lo que se está
 // escribiendo cuando la lista se redibuja) y mantiene materia y fecha elegidas.
 // kind 'read': todo lo que se agrega es una lectura (con el archivo del campus, si hay);
-// kind 'any': una casilla "Lectura" decide.
+// kind 'task': todo lo que se agrega es una tarea común; kind 'any': una casilla "Lectura" decide.
 function addForm(notebooks, { day, notebookId = '', onAdded, kind = 'any', getFiles = async () => [] }) {
   const alwaysRead = kind === 'read';
   const title = h('input.input.todo-new', { placeholder: alwaysRead ? 'Agregar una lectura…' : 'Agregar una tarea…', 'aria-label': alwaysRead ? 'Nueva lectura' : 'Nueva tarea' });
@@ -88,7 +98,8 @@ function addForm(notebooks, { day, notebookId = '', onAdded, kind = 'any', getFi
     h('option', { value: '' }, 'Sin materia'),
     notebooks.map((nb) => h('option', { value: nb.id }, shortName(nb.name))));
   nbSel.value = notebookId || '';
-  const readInput = alwaysRead ? null : h('input', { type: 'checkbox', 'aria-label': 'Es una lectura' });
+  const readInput = kind === 'any' ? h('input', { type: 'checkbox', 'aria-label': 'Es una lectura' }) : null;
+  let readDefault = false; // con "Solo lecturas" prendido, la casilla arranca tildada para que lo agregado no desaparezca
   const readBox = readInput ? h('label.todo-readbox', readInput, icon('book'), ' Lectura') : null;
   const fileSel = h('select.input.todo-file', { 'aria-label': 'Archivo del campus', hidden: true });
   const isRead = () => alwaysRead || !!readInput?.checked;
@@ -108,7 +119,7 @@ function addForm(notebooks, { day, notebookId = '', onAdded, kind = 'any', getFi
     const read = isRead();
     const fileId = read && fileSel.value ? fileSel.value : null;
     fileSel.value = '';
-    if (readInput) { readInput.checked = false; fileSel.hidden = true; } // la casilla vale para una sola: la siguiente tarea no sale lectura por error
+    if (readInput) { readInput.checked = readDefault; fileSel.hidden = !readDefault; } // la casilla vale para una sola: la siguiente tarea no sale lectura por error
     await addTodo({ title: text, due: due.value || null, notebookId: nbSel.value || null, read, fileId });
     await onAdded?.();
     title.focus();
@@ -116,7 +127,11 @@ function addForm(notebooks, { day, notebookId = '', onAdded, kind = 'any', getFi
   title.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
   const el = h('div.todo-add', title, nbSel, readBox, fileSel, due, h('button.btn.small.primary', { type: 'button', onclick: add }, icon('plus'), 'Agregar'));
   fillFiles();
-  return { el, setNotebook: (id) => { nbSel.value = id || ''; fillFiles(); } };
+  return {
+    el,
+    setNotebook: (id) => { nbSel.value = id || ''; fillFiles(); },
+    setRead: (on) => { readDefault = !!on; if (readInput) { readInput.checked = readDefault; fillFiles(); } },
+  };
 }
 
 // Bloque de "Mi día".
@@ -136,7 +151,7 @@ export function todoSection(day = store.ymd()) {
     const dayList = [...b.today, ...dayDone];
     const total = dayList.length;
     const done = dayDone.length;
-    const rows = (arr, opts) => h('ul.todo-list', arr.map((t) => todoRow(t, nbById, { onChange: redraw, ...opts })));
+    const rows = (arr, opts) => h('ul.todo-list', arr.map((t) => todoRow(t, nbById, { onChange: refreshMounted, ...opts })));
     lists.replaceChildren(
       ...(b.overdue.length && day === today ? [h('h3.todo-group.late', `Atrasadas · ${b.overdue.length}`), rows(b.overdue)] : []),
       h('div.todo-group-head',
@@ -145,13 +160,14 @@ export function todoSection(day = store.ymd()) {
       dayList.length ? rows(dayList, { showDate: false }) : h('p.muted', day === today ? 'Nada pendiente para hoy.' : 'Nada para este día.'),
       ...(b.next.length && day === today ? [h('h3.todo-group', 'Próximos días'), rows(b.next)] : []));
     if (!form) {
-      form = addForm(notebooks, { day, onAdded: redraw, getFiles: () => db.all('files') });
+      form = addForm(notebooks, { day, kind: 'task', onAdded: refreshMounted, getFiles: () => db.all('files') });
       sec.replaceChildren(
         h('div.row.space', h('h2.section-title', 'Para hacer'), h('a.btn.small.ghost', { href: '#/tareas' }, icon('checklist'), 'Ver todas')),
         h('div.card.todo-card', lists, form.el));
     }
   };
   const redraw = keepFocus(sec, draw);
+  mount(sec, redraw);
   draw();
   return sec;
 }
@@ -200,7 +216,7 @@ export function readSection(day = store.ymd()) {
     const dayDone = sortTodos(reads.filter((t) => t.done && (t.due === day || (day === today && b.doneToday.some((x) => x.id === t.id)))));
     const dayList = [...b.today, ...dayDone];
     const mins = b.today.reduce((n, t) => n + (t.minutes || 0), 0);
-    const rows = (arr, opts) => h('ul.todo-list', arr.map((t) => todoRow(t, nbById, { onChange: redraw, filesById, ...opts })));
+    const rows = (arr, opts) => h('ul.todo-list', arr.map((t) => todoRow(t, nbById, { onChange: refreshMounted, filesById, ...opts })));
     // Lo que todavía no está en este dispositivo (de lo atrasado, de hoy y de los próximos días).
     const need = [];
     for (const t of [...(day === today ? b.overdue : []), ...b.today, ...(day === today ? b.next : [])]) {
@@ -227,15 +243,16 @@ export function readSection(day = store.ymd()) {
         dayList.length ? h('span.todo-progress', `${dayDone.length} de ${dayList.length}${mins ? ` · ${fmtMinutes(mins)}` : ''}`) : null),
       dayList.length ? rows(dayList, { showDate: false }) : h('p.muted', day === today ? 'No hay lecturas para hoy.' : 'No hay lecturas para este día.'),
       ...(b.next.length && day === today ? [h('h3.todo-group', 'Próximos días'), rows(b.next)] : []),
-      need.length ? h('div.read-download', h('button.btn.small', { type: 'button', onclick: downloadAll }, icon('download'), ` Bajar lo que falta para leer sin conexión (${need.length})`)) : null);
+      ...(need.length ? [h('div.read-download', h('button.btn.small', { type: 'button', onclick: downloadAll }, icon('download'), ` Bajar lo que falta para leer sin conexión (${need.length})`))] : []));
     if (!form) {
-      form = addForm(notebooks, { day, kind: 'read', onAdded: redraw, getFiles: () => db.all('files') });
+      form = addForm(notebooks, { day, kind: 'read', onAdded: refreshMounted, getFiles: () => db.all('files') });
       sec.replaceChildren(
         h('div.row.space', h('h2.section-title', 'Para leer'), h('a.btn.small.ghost', { href: `#/calendario/${day}` }, icon('calendar'), 'Calendario')),
         h('div.card.todo-card', strip, lists, form.el));
     }
   };
   const redraw = keepFocus(sec, draw);
+  mount(sec, redraw);
   draw();
   return sec;
 }
@@ -264,7 +281,7 @@ export async function renderTasks(root) {
     const notebooks = everyNb.filter((nb) => !store.isPersonal(nb)); // materias (sin las carpetas de Personal)
     const usedNbs = notebooks.filter((nb) => all.some((t) => t.notebookId === nb.id));
     if (onlyNb && !usedNbs.some((nb) => nb.id === onlyNb)) setFilter(''); // filtro viejo: se vuelve a "Todas"
-    if (!form) { form = addForm(notebooks, { day: store.ymd(), notebookId: onlyNb, onAdded: redraw, getFiles: () => db.all('files') }); formCard.replaceChildren(form.el); }
+    if (!form) { form = addForm(notebooks, { day: store.ymd(), notebookId: onlyNb, onAdded: redraw, getFiles: () => db.all('files') }); form.setRead(onlyRead); formCard.replaceChildren(form.el); }
     const today = store.ymd();
     const list = sortTodos(all.filter((t) => (!onlyNb || t.notebookId === onlyNb) && (!onlyRead || isReading(t))));
     const pending = list.filter((t) => !t.done);
@@ -286,7 +303,7 @@ export async function renderTasks(root) {
       h('div.row', chip('', 'Todas', '#8a8f98'), ...usedNbs.map((nb) => chip(nb.id, shortName(nb.name), nb.color || '#8a8f98'))),
       h('div.row.tasks-toggles',
         h('label.tasks-toggle', h('input', { type: 'checkbox', checked: showDone, onchange: (e) => { showDone = e.target.checked; try { localStorage.setItem('tasksShowDone', showDone ? '1' : '0'); } catch { /* */ } draw(); } }), ` Mostrar hechas (${doneCount})`),
-        h('label.tasks-toggle', h('input', { type: 'checkbox', checked: onlyRead, onchange: (e) => { onlyRead = e.target.checked; try { localStorage.setItem('tasksOnlyRead', onlyRead ? '1' : '0'); } catch { /* */ } draw(); } }), ' Solo lecturas')));
+        h('label.tasks-toggle', h('input', { type: 'checkbox', checked: onlyRead, onchange: (e) => { onlyRead = e.target.checked; try { localStorage.setItem('tasksOnlyRead', onlyRead ? '1' : '0'); } catch { /* */ } form?.setRead(onlyRead); draw(); } }), ' Solo lecturas')));
     summary.textContent = pending.length ? `${pending.length} pendiente${pending.length === 1 ? '' : 's'} · ${doneCount} hecha${doneCount === 1 ? '' : 's'}` : onlyRead ? 'No hay lecturas pendientes.' : 'No hay tareas pendientes.';
     groupsEl.replaceChildren(...[...groups.keys()].sort().map((key) => h('section.todo-day',
       h(`h3.todo-group${key === '000' ? '.late' : ''}`, key === '000' ? 'Atrasadas' : key === 'zzz' ? 'Sin fecha' : dueLabel(key, today)),

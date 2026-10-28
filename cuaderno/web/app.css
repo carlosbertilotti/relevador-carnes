@@ -523,15 +523,16 @@ body.in-editor #main { overflow: hidden; }
 .todo-readbox { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 13px; color: var(--muted); }
 .todo-readbox .icon { width: 14px; height: 14px; }
 .read-download { margin-top: 10px; }
+.read-download .btn { white-space: normal; text-align: left; max-width: 100%; }
 .tasks-toggles { gap: 16px; }
 .week-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 2px 0 6px; }
 .week-strip .wk { border: 0; border-radius: 12px; padding: 6px 2px 4px; background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 1px; color: inherit; font: inherit; min-width: 0; }
 .week-strip .wk small { color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: .03em; }
 .week-strip .wk strong { font-size: 16px; line-height: 1.25; }
-.week-strip .wk.today strong { color: var(--accent); }
+.week-strip .wk.today strong { color: var(--accent-ink); }
 .week-strip .wk.sel { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 .week-strip .wk-count { display: inline-flex; align-items: center; gap: 2px; min-height: 16px; font-size: 11px; color: var(--muted); }
-.week-strip .wk-count.has { color: var(--accent); font-weight: 600; }
+.week-strip .wk-count.has { color: var(--accent-ink); font-weight: 600; }
 .week-strip .wk-count .icon { width: 11px; height: 11px; }
 .week-strip .wk-dot { width: 5px; height: 5px; border-radius: 50%; background: transparent; }
 .week-strip .wk-dot.on { background: var(--muted); }
