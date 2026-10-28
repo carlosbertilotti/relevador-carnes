@@ -85,6 +85,25 @@ Variables de entorno:
 
 Después, en el iPad: Safari → abrir la URL → Compartir → **Agregar a pantalla de inicio**.
 
+## Mi día por Telegram
+
+Todas las mañanas (07:30 de Buenos Aires / Montevideo) el workflow
+`.github/workflows/cuaderno-dia.yml` manda al Telegram de Carlos lo que dice "Mi día":
+qué leer, qué hacer y qué hay en el campus hoy, lo atrasado y un adelanto de mañana.
+Lee la nube de Cuaderno (Supabase) con la clave de servicio que ya usa el relevamiento
+(`SUPABASE_URL` / `SUPABASE_SERVICE_KEY`) y manda con el mismo bot (`TELEGRAM_BOT_TOKEN`).
+Se puede disparar a mano desde Actions, con otro día si hace falta.
+
+Manda a un **grupo propio**: creá en Telegram un grupo que se llame "Cuaderno", agregá al bot
+y escribí algo ahí. La próxima corrida lo encuentra, lo guarda (tabla `cuaderno_bot`) y de ahí
+en más manda ahí. Mientras no haya grupo, manda al chat del relevamiento (`TELEGRAM_CHAT_ID`)
+con la explicación. `TELEGRAM_CUADERNO_CHAT_ID` lo fija a mano, si hace falta.
+
+```bash
+DRY_RUN=1 FIXTURE=datos.json node scripts/mi-dia-telegram.mjs   # imprime el mensaje con datos de prueba
+DIA=2026-10-29 node scripts/mi-dia-telegram.mjs                  # manda el de otro día (con las variables de arriba)
+```
+
 ## Tests
 
 ```bash
