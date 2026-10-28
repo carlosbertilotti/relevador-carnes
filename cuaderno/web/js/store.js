@@ -9,6 +9,7 @@
 //     html: el texto tipeado sobre la hoja (sólo en hojas de papel: no en PDFs ni diapositivas)
 import * as db from './db.js';
 import { parseICS, expandEvents } from './lib/ics.js';
+import { statusesFromCalendar } from './lib/status.js';
 
 export const COLORS = ['#e8a33d', '#d9534f', '#5b8def', '#3fb37f', '#9b6cd6', '#e56fa6', '#2bb3c0', '#8a8f98'];
 export const PAPER_W = 1000; // ancho lógico de una hoja; el alto va en las mismas unidades
@@ -114,6 +115,25 @@ export async function mergeDuplicateNotebooks() {
 export async function saveNotebook(nb) {
   await db.put('notebooks', nb);
   emit('change', { type: 'notebook', id: nb.id });
+}
+
+// Cursando, pasada o próxima: lo decide el calendario del campus (ver lib/status.js); lo que se
+// marca a mano manda. Se recalcula al sincronizar el campus y al abrir la app (el tiempo pasa).
+export async function refreshStatuses(now = Date.now()) {
+  const events = (await db.getSetting('campusEvents', [])) || [];
+  if (!events.length) return 0;
+  const notebooks = (await listNotebooks()).filter((nb) => !isPersonal(nb));
+  const cal = statusesFromCalendar(notebooks, events, classifyCampusEvent, now);
+  let changed = 0;
+  for (const nb of notebooks) {
+    const calendarStatus = cal.get(nb.id) || null;
+    const status = nb.statusManual || calendarStatus || nb.campusStatus || nb.status || 'cursando';
+    if ((nb.calendarStatus || null) === calendarStatus && nb.status === status) continue;
+    await db.put('notebooks', { ...nb, calendarStatus, status });
+    changed++;
+  }
+  if (changed) emit('change', { type: 'notebook' });
+  return changed;
 }
 export async function deleteNotebook(id) {
   for (const n of await db.byIndex('notes', 'notebookId', id)) await deleteNote(n.id);
@@ -292,6 +312,9 @@ export function classifyCampusEvent(ev, notebooks) {
   return { ...ev, notebookId: nb?.id || null, kind: isClass ? 'clase' : ev.kind };
 }
 
+// Palabras del nombre de una materia que no la identifican ("Programa de Leadership Lab" es "Leadership Lab").
+const GENERIC_WORDS = new Set(['programa', 'curso', 'materia']);
+
 export function matchNotebook(notebooks, text) {
   const hay = normalize(text);
   let best = null;
@@ -299,7 +322,7 @@ export function matchNotebook(notebooks, text) {
   for (const nb of notebooks) {
     if (isPersonal(nb)) continue; // una carpeta personal nunca es la materia de una clase o entrega
     if (nb.shortname && hay.includes(normalize(nb.shortname))) return nb;
-    const words = normalize(nb.name).split(/[^a-z0-9]+/).filter((w) => w.length > 3);
+    const words = normalize(nb.name).split(/[^a-z0-9]+/).filter((w) => w.length > 3 && !GENERIC_WORDS.has(w));
     if (!words.length) continue;
     const score = words.filter((w) => hay.includes(w)).length / words.length;
     if (score > bestScore) { bestScore = score; best = nb; }

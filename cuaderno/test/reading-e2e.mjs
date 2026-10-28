@@ -92,18 +92,60 @@ try {
   if (opened.src !== 'f_eval' || opened.fileId !== 'f_eval') throw new Error(`Adivinar el archivo: ${JSON.stringify(opened)}`);
   step('Una lectura sin archivo lo encuentra por el nombre entre el material de la materia, lo deja asignado y lo abre');
 
-  // Sin archivo y sin nada parecido: va al material de la materia, con un aviso
+  // Sin archivo y sin nada parecido: lo dice en la fila y, al tocar, explica y ofrece ir al material
   await page.goto(`${base}/#/hoy`);
-  await page.locator('.read-today .todo', { hasText: 'BMA cap. 17' }).locator('.todo-main').click();
-  await page.waitForFunction(() => location.hash === '#/cuaderno/nb_fin/material', null, { timeout: 5000 });
-  await page.locator('.toast', { hasText: 'No encontré el archivo' }).waitFor();
+  const bma = page.locator('.read-today .todo', { hasText: 'BMA cap. 17' });
+  if (!(await bma.innerText()).includes('no está en el campus')) throw new Error('La fila no avisa que la lectura no está en el campus');
+  await bma.locator('.todo-main').click();
+  const why = page.locator('.modal', { hasText: 'Esta lectura no está en el campus' });
+  await why.waitFor();
+  if (!(await why.innerText()).includes('Finanzas Corporativas')) throw new Error('No dice de qué materia');
   const stillNoFile = await page.evaluate(async () => (await (await import('/js/db.js')).getSetting('todo:r2', null))?.fileId ?? null);
   if (stillNoFile) throw new Error(`No debería asignar un archivo a ciegas: ${stillNoFile}`);
-  await page.goto(`${base}/#/hoy`);
-  await page.locator('.read-today .todo', { hasText: 'Lectura sin archivo en este equipo' }).locator('.todo-main').click();
+  await why.locator('button', { hasText: 'Ver el material' }).click();
   await page.waitForFunction(() => location.hash === '#/cuaderno/nb_fin/material', null, { timeout: 5000 });
-  await page.locator('.toast', { hasText: 'sincronizá el campus' }).waitFor();
-  step('Sin archivo parecido, o con un archivo que no está en este equipo, lleva al material de la materia y avisa');
+  await page.goto(`${base}/#/hoy`);
+  const orphanRow = page.locator('.read-today .todo', { hasText: 'Lectura sin archivo en este equipo' });
+  if (!(await orphanRow.innerText()).includes('sin sincronizar')) throw new Error('La fila no avisa que el archivo no llegó');
+  await orphanRow.locator('.todo-main').click();
+  await page.locator('.modal', { hasText: 'todavía no llegó a este dispositivo' }).waitFor();
+  await page.keyboard.press('Escape');
+  step('Sin archivo en el campus (o sin sincronizar) lo dice en la fila y, al tocar, lo explica y ofrece el material');
+
+  // Varios archivos posibles: se elige cuál
+  await page.evaluate(async () => {
+    const db = await import('/js/db.js');
+    const todos = await import('/js/todos.js');
+    await db.put('files', { id: 'f_v1', courseId: 7706, notebookId: 'nb_fin', name: 'Valuing the Early-Stage Company.pdf', size: 40, mimetype: 'application/pdf', section: 'CLASE 4', downloaded: true, srcUrl: '/exams/simulacro-dop-2026-10.pdf', addedAt: 40 });
+    await db.put('files', { id: 'f_v2', courseId: 7706, notebookId: 'nb_fin', name: 'Initial Public Offerings.pdf', size: 40, mimetype: 'application/pdf', section: 'CLASE 4', downloaded: true, srcUrl: '/exams/simulacro-dop-2026-10.pdf', addedAt: 41 });
+    await todos.saveTodo({ id: 'r7', title: 'Leer para la clase 4: Valuing the Early-Stage Company e Initial Public Offerings', due: '2026-10-28', notebookId: 'nb_fin', read: true, done: false, createdAt: 7, order: 7 });
+    await todos.saveTodo({ id: 'r8', title: 'Ver la TEDx "El poder de la disciplina"', due: '2026-10-28', notebookId: 'nb_fin', read: true, url: 'https://www.youtube.com/watch?v=swrSlAg4PFE', done: false, createdAt: 8, order: 8 });
+  });
+  await page.reload();
+  const two = page.locator('.read-today .todo', { hasText: 'Valuing the Early-Stage' });
+  await two.waitFor();
+  if (!(await two.innerText()).includes('2 archivos posibles')) throw new Error('No avisa que hay dos archivos posibles');
+  await two.locator('.todo-main').click();
+  const pick = page.locator('.modal', { hasText: '¿Cuál querés leer?' });
+  await pick.waitFor();
+  if ((await pick.locator('.picker-item').count()) !== 2) throw new Error('El selector debería mostrar los dos archivos');
+  await pick.locator('.picker-item', { hasText: 'Initial Public Offerings.pdf' }).click();
+  await page.waitForFunction(() => location.hash.startsWith('#/nota/'), null, { timeout: 20000 });
+  const chose = await page.evaluate(async () => { const db = await import('/js/db.js'); const n = await db.get('notes', location.hash.split('/')[2]); return { src: n?.sourceFileId, fileId: (await db.getSetting('todo:r7', null))?.fileId }; });
+  if (chose.src !== 'f_v2' || chose.fileId !== 'f_v2') throw new Error(`Elegir el archivo: ${JSON.stringify(chose)}`);
+  step('Con varios archivos posibles pregunta cuál, abre el elegido y lo deja asignado');
+
+  // Una lectura con enlace (un video) lo abre en otra pestaña
+  await page.goto(`${base}/#/hoy`);
+  const ted = page.locator('.read-today .todo', { hasText: 'El poder de la disciplina' });
+  await ted.waitFor();
+  if (!(await ted.innerText()).includes('video')) throw new Error('No dice que es un video');
+  await ctx.route('https://www.youtube.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<p>video</p>' })); // sin salir a internet
+  const [popup] = await Promise.all([page.waitForEvent('popup'), ted.locator('.todo-main').click()]);
+  if (!popup.url().includes('swrSlAg4PFE')) throw new Error(`Abrió: ${popup.url()}`);
+  await popup.close();
+  step('Una lectura con enlace (una charla TEDx) se abre directo en otra pestaña');
+
 
   await page.goto(`${base}/#/hoy`);
   await read.locator('.todo', { hasText: 'Pre-read de medios' }).waitFor();
@@ -120,7 +162,7 @@ try {
 
   await read.locator('.todo', { hasText: 'BMA cap. 17' }).locator('.todo-check').click();
   await page.waitForTimeout(700);
-  if (!/1 de 4/.test(await read.innerText())) throw new Error('El progreso de lecturas no avanzó');
+  if (!/1 de 6/.test(await read.innerText())) throw new Error(`El progreso de lecturas no avanzó: ${(await read.innerText()).match(/\d+ de \d+/)?.[0]}`); // 6 = las 4 del principio + las 2 agregadas arriba
   const stored = await page.evaluate(async () => { const db = await import('/js/db.js'); const r = await db.get('kv', 'todo:r2'); return { done: r.value.done, read: r.value.read, synced: db.isSyncedKey('todo:r2') }; });
   if (!stored.done || stored.read !== true || !stored.synced) throw new Error(`Guardado: ${JSON.stringify(stored)}`);
   step('Tachar una lectura la marca hecha (sigue siendo lectura) y se sincroniza como cualquier tarea');

@@ -220,13 +220,15 @@ function renderSchedule(body, nb) {
 function menu(anchor, nb) {
   popover(anchor, [
     { label: 'Renombrar', icon: 'compose', onClick: async () => { const v = await prompt('Nombre de la materia', { value: nb.name }); if (v) { nb.name = v; nb.nameManual = true; await store.saveNotebook(nb); go(`/cuaderno/${nb.id}`); } } },
-    ...[['cursando', 'Mover a Cursando'], ['pasada', 'Mover a Materias pasadas']]
+    ...[['cursando', 'Cursando'], ['proxima', 'Materias futuras'], ['pasada', 'Materias pasadas']]
       .filter(([st]) => (nb.status || 'cursando') !== st)
-      .map(([st, label]) => ({ label, icon: 'book', onClick: async () => {
+      .map(([st, group]) => ({ label: `Mover a ${group}`, icon: 'book', onClick: async () => {
+        // Si coincide con lo que dice el calendario (o el campus), deja de ser manual.
+        const auto = nb.calendarStatus || nb.campusStatus || 'cursando';
+        nb.statusManual = auto === st ? null : st;
         nb.status = st;
-        nb.statusManual = nb.campusStatus && nb.campusStatus === st ? null : st;
         await store.saveNotebook(nb);
-        toast(st === 'pasada' ? 'Movida a Materias pasadas' : 'Movida a Cursando');
+        toast(`Movida a ${group}`);
         go(`/cuaderno/${nb.id}`);
       } })),
     { label: 'Cambiar color', icon: 'sheet', onClick: () => {
