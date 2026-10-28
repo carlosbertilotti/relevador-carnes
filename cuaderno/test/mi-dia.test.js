@@ -3,7 +3,7 @@
 //   npm test
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildMessage, chunk, plusDays, ymd } from '../scripts/mi-dia-telegram.mjs';
+import { buildMessage, chunk, plusDays, ymd, pickGroup, GROUP_HINT } from '../scripts/mi-dia-telegram.mjs';
 
 const t = (id, v) => ({ id: `todo:${id}`, data: { value: { id, done: false, ...v } } });
 const DAY = '2026-10-29';
@@ -77,4 +77,25 @@ test('corta en mensajes de menos de 4096 caracteres sin partir líneas', () => {
   assert.ok(parts.every((p) => p.length <= 4000));
   assert.deepEqual(parts.join('\n').split('\n'), lines);
   assert.deepEqual(chunk('corto'), ['corto']);
+});
+
+test('encuentra el grupo "Cuaderno" entre las novedades del bot', () => {
+  const g = (id, title, type = 'group') => ({ id, title, type });
+  const updates = [
+    { update_id: 1, message: { date: 10, chat: { id: 55, type: 'private', first_name: 'Carlos' }, text: 'hola' } },
+    { update_id: 2, my_chat_member: { date: 20, chat: g(-100, 'Cuaderno'), new_chat_member: { status: 'member' } } },
+    { update_id: 3, message: { date: 30, chat: g(-200, 'Precios carne'), text: 'otro grupo' } },
+    { update_id: 4, message: { date: 40, chat: g(-300, 'MBA cuaderno 2026', 'supergroup'), text: 'hola bot' } },
+    { update_id: 5, my_chat_member: { date: 50, chat: g(-400, 'Cuaderno viejo'), new_chat_member: { status: 'left' } } },
+  ];
+  assert.deepEqual(pickGroup(updates), { id: '-300', title: 'MBA cuaderno 2026', date: 40 });
+  assert.equal(pickGroup(updates.slice(0, 3)).id, '-100');
+  assert.equal(pickGroup([updates[0], updates[2], updates[4]]), null, 'sin grupo Cuaderno (o del que lo echaron) no hay nada');
+  assert.equal(pickGroup(undefined), null);
+});
+
+test('mientras no hay grupo, el mensaje explica cómo armarlo', () => {
+  const raw = { notebooks: [], todos: [], events: null };
+  assert.match(buildMessage(raw, DAY, { groupHint: true }), new RegExp(GROUP_HINT.slice(0, 40)));
+  assert.doesNotMatch(buildMessage(raw, DAY), /grupo propio/);
 });

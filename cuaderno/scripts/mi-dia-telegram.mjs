@@ -1,11 +1,12 @@
-// Manda "Mi día" de Cuaderno al Telegram de Carlos: qué leer, qué hacer y qué hay en el
-// campus hoy, lo atrasado y un adelanto de mañana. Lo corre GitHub Actions todas las mañanas
+// Manda "Mi día" de Cuaderno por Telegram: la agenda del campus, qué leer, qué hacer, lo
+// atrasado y un adelanto de mañana. Lo corre GitHub Actions todas las mañanas
 // (.github/workflows/cuaderno-dia.yml): lee la nube de Cuaderno (Supabase) con la clave de
-// servicio que ya usa el relevamiento y manda con el mismo bot.
+// servicio que ya usa el relevamiento y manda con el mismo bot, a un grupo propio de Cuaderno.
 //
 //   SUPABASE_URL, SUPABASE_SERVICE_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+//   TELEGRAM_CUADERNO_CHAT_ID  fija a mano el grupo (si no, el bot lo descubre solo; ver abajo)
 //   DIA=AAAA-MM-DD   otro día en vez de hoy
-//   DRY_RUN=1        imprime el mensaje en vez de mandarlo
+//   DRY_RUN=1        imprime el mensaje en vez de mandarlo (sin tocar la red)
 //   FIXTURE=x.json   datos de prueba ({ todos, events, notebooks }) en vez de la nube
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -16,6 +17,8 @@ const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 
 const MAX_LATE = 5;
 const MAX_TOMORROW = 6;
 const TG_LIMIT = 4000; // Telegram corta en 4096
+export const GROUP_RE = /cuaderno/i; // cómo se tiene que llamar el grupo para que el bot lo reconozca
+export const GROUP_HINT = 'Para que esto llegue a un grupo propio: creá un grupo que se llame "Cuaderno" en Telegram, agregá al bot y escribí algo ahí. A la mañana siguiente empieza a mandar ahí.';
 
 // ---------- Fechas (AAAA-MM-DD en la zona de la facultad) ----------
 export const ymd = (ms) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(ms));
@@ -43,7 +46,7 @@ export function normalize({ todos, events, notebooks }) {
 }
 
 // ---------- Mensaje ----------
-export function buildMessage(raw, day) {
+export function buildMessage(raw, day, { groupHint = false } = {}) {
   const { todos, events, nbById } = normalize(raw);
   const tomorrow = plusDays(day, 1);
   const pending = todos.filter((t) => !t.done);
@@ -81,6 +84,7 @@ export function buildMessage(raw, day) {
     const extra = next.length > MAX_TOMORROW ? `\n<i>… y ${next.length - MAX_TOMORROW} más</i>` : '';
     parts.push(`➡️ <b>Mañana, ${shortDate(tomorrow)}</b>\n${[...nextEvents, ...next.slice(0, MAX_TOMORROW).map((t) => line(t))].join('\n')}${extra}`);
   }
+  if (groupHint) parts.push(`<i>${GROUP_HINT}</i>`);
   return parts.join('\n\n');
 }
 
@@ -96,44 +100,116 @@ export function chunk(text, limit = TG_LIMIT) {
   return out;
 }
 
+// ---------- A dónde manda: el grupo "Cuaderno" ----------
+// Un bot no puede crear grupos. Carlos crea uno que se llame "Cuaderno", agrega al bot y escribe
+// algo; la próxima corrida lo encuentra entre las novedades del bot (getUpdates), lo guarda en
+// Supabase (tabla cuaderno_bot) y de ahí en más manda ahí. Mientras no haya grupo, manda al chat
+// del relevamiento con la nota de cómo armarlo.
+
+// Entre las novedades del bot, el grupo "Cuaderno" más reciente al que lo agregaron o donde escribieron.
+export function pickGroup(updates) {
+  let best = null;
+  for (const u of updates || []) {
+    const chat = u.message?.chat || u.my_chat_member?.chat;
+    if (!chat || !['group', 'supergroup'].includes(chat.type) || !GROUP_RE.test(chat.title || '')) continue;
+    if (u.my_chat_member && ['left', 'kicked'].includes(u.my_chat_member.new_chat_member?.status)) continue;
+    const date = u.message?.date || u.my_chat_member?.date || 0;
+    if (!best || date >= best.date) best = { id: String(chat.id), title: chat.title, date };
+  }
+  return best;
+}
+
 // ---------- Nube y bot ----------
-async function fromCloud(env) {
+function supabase(env) {
   const url = String(env.SUPABASE_URL || '').replace(/\/$/, '');
   const key = env.SUPABASE_SERVICE_KEY;
   if (!url || !key) throw new Error('Faltan SUPABASE_URL o SUPABASE_SERVICE_KEY');
-  const get = async (q) => {
-    const r = await fetch(`${url}/rest/v1/cuaderno_docs?${q}`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+  const call = async (path, init = {}) => {
+    const r = await fetch(`${url}/rest/v1/${path}`, { ...init, headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', ...(init.headers || {}) } });
     if (!r.ok) throw new Error(`Supabase ${r.status}: ${(await r.text()).slice(0, 200)}`);
-    return r.json();
+    return r.status === 204 ? null : r.json();
   };
+  return {
+    docs: (q) => call(`cuaderno_docs?${q}`),
+    savedChat: async () => (await call('cuaderno_bot?id=eq.1&select=chat_id,title'))[0] || null,
+    saveChat: (g) => call('cuaderno_bot?on_conflict=id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify([{ id: 1, chat_id: g.id, title: g.title || null, updated_at: new Date().toISOString() }]) }),
+  };
+}
+
+async function fromCloud(sb) {
   const [kv, notebooks] = await Promise.all([
-    get('store=eq.kv&deleted=is.false&select=id,data'),
-    get('store=eq.notebooks&deleted=is.false&select=id,data'),
+    sb.docs('store=eq.kv&deleted=is.false&select=id,data'),
+    sb.docs('store=eq.notebooks&deleted=is.false&select=id,data'),
   ]);
   return { todos: kv.filter((r) => r.id.startsWith('todo:')), events: kv.find((r) => r.id === 'campusEvents')?.data || null, notebooks };
 }
 
-async function sendTelegram(env, text) {
-  const { TELEGRAM_BOT_TOKEN: token, TELEGRAM_CHAT_ID: chat } = env;
-  if (!token || !chat) throw new Error('Faltan TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID');
-  for (const part of chunk(text)) {
-    const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chat, text: part, parse_mode: 'HTML', disable_web_page_preview: true }),
-    });
+function telegram(env) {
+  const token = env.TELEGRAM_BOT_TOKEN;
+  if (!token) throw new Error('Falta TELEGRAM_BOT_TOKEN');
+  const call = async (method, body) => {
+    const r = await fetch(`https://api.telegram.org/bot${token}/${method}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const j = await r.json().catch(() => ({}));
-    if (!r.ok || !j.ok) throw new Error(`Telegram ${r.status}: ${j.description || 'sin detalle'}`);
+    if (!j.ok) { const e = new Error(`Telegram ${r.status}: ${j.description || 'sin detalle'}`); e.status = r.status; e.migrateTo = j.parameters?.migrate_to_chat_id; throw e; }
+    return j.result;
+  };
+  return {
+    updates: () => call('getUpdates', { allowed_updates: ['message', 'my_chat_member'], limit: 100 }),
+    send: async (chatId, text) => { for (const part of chunk(text)) await call('sendMessage', { chat_id: chatId, text: part, parse_mode: 'HTML', disable_web_page_preview: true }); },
+  };
+}
+
+// El grupo fijado a mano, el guardado, o el que aparece entre las novedades del bot.
+async function resolveChat(env, sb, tg) {
+  if (env.TELEGRAM_CUADERNO_CHAT_ID) return { id: env.TELEGRAM_CUADERNO_CHAT_ID, group: true };
+  const saved = await sb.savedChat().catch((err) => { console.warn(`No pude leer el grupo guardado: ${err.message}`); return null; });
+  const found = await tg.updates().then(pickGroup).catch((err) => { console.warn(`No pude revisar las novedades del bot: ${err.message}`); return null; });
+  if (found && found.id !== saved?.chat_id) {
+    await sb.saveChat(found).catch((err) => console.warn(`No pude guardar el grupo: ${err.message}`));
+    return { id: found.id, title: found.title, group: true, fresh: true };
   }
+  if (saved) return { id: saved.chat_id, title: saved.title, group: true };
+  if (!env.TELEGRAM_CHAT_ID) throw new Error('No hay grupo de Cuaderno ni TELEGRAM_CHAT_ID');
+  return { id: env.TELEGRAM_CHAT_ID, group: false };
 }
 
 export async function main(env = process.env) {
   const day = /^\d{4}-\d{2}-\d{2}$/.test(env.DIA || '') ? env.DIA : ymd(Date.now());
-  const raw = env.FIXTURE ? JSON.parse(fs.readFileSync(env.FIXTURE, 'utf8')) : await fromCloud(env);
-  const text = buildMessage(raw, day);
-  if (env.DRY_RUN) { console.log(text); return text; }
-  await sendTelegram(env, text);
-  console.log(`Mi día del ${day} mandado (${text.length} caracteres)`);
+  if (env.DRY_RUN) {
+    const raw = env.FIXTURE ? JSON.parse(fs.readFileSync(env.FIXTURE, 'utf8')) : await fromCloud(supabase(env));
+    const text = buildMessage(raw, day, { groupHint: !env.TELEGRAM_CUADERNO_CHAT_ID });
+    console.log(text);
+    return text;
+  }
+  const sb = supabase(env);
+  const tg = telegram(env);
+  const raw = env.FIXTURE ? JSON.parse(fs.readFileSync(env.FIXTURE, 'utf8')) : await fromCloud(sb);
+  let chat = await resolveChat(env, sb, tg);
+  const text = buildMessage(raw, day, { groupHint: !chat.group });
+  const sendTo = async (c) => {
+    try {
+      if (c.fresh) await tg.send(c.id, '👋 Soy el bot de Cuaderno. A partir de ahora mando acá "Mi día" cada mañana: la agenda del campus, qué leer y qué hacer.');
+      await tg.send(c.id, text);
+    } catch (err) {
+      if (err.migrateTo) { // el grupo pasó a supergrupo y cambió de id
+        const moved = { id: String(err.migrateTo), title: c.title };
+        await sb.saveChat(moved).catch(() => {});
+        await tg.send(moved.id, text);
+        return;
+      }
+      throw err;
+    }
+  };
+  try {
+    await sendTo(chat);
+  } catch (err) {
+    // Si el grupo ya no está (lo borraron o echaron al bot), que el mensaje igual llegue.
+    if (!chat.group || !env.TELEGRAM_CHAT_ID || ![400, 403].includes(err.status)) throw err;
+    console.warn(`No pude mandar al grupo (${err.message}); va al chat de siempre.`);
+    chat = { id: env.TELEGRAM_CHAT_ID, group: false };
+    await tg.send(chat.id, `${buildMessage(raw, day, { groupHint: true })}\n\n<i>(No pude mandar al grupo Cuaderno: ${esc(err.message)})</i>`);
+  }
+  console.log(`Mi día del ${day} mandado ${chat.group ? 'al grupo' : 'al chat de siempre'} (${text.length} caracteres)`);
   return text;
 }
 

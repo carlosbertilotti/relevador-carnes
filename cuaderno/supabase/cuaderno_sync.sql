@@ -151,3 +151,16 @@ end $$;
 
 revoke all on function public.cuaderno_live_set(text, jsonb), public.cuaderno_live_get(text) from public;
 grant execute on function public.cuaderno_live_set(text, jsonb), public.cuaderno_live_get(text) to anon, authenticated;
+
+-- ---------- Bot de Telegram ----------
+-- Dónde manda el bot lo de Cuaderno ("Mi día" cada mañana): el grupo "Cuaderno" que el bot
+-- descubre solo cuando lo agregan (ver scripts/mi-dia-telegram.mjs). Tabla cerrada: sólo la
+-- clave de servicio (GitHub Actions) la lee y la escribe.
+create table public.cuaderno_bot (
+  id int primary key default 1 check (id = 1),
+  chat_id text not null,
+  title text,
+  updated_at timestamptz not null default now()
+);
+alter table public.cuaderno_bot enable row level security;
+revoke all on public.cuaderno_bot from anon, authenticated;

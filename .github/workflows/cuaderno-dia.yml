@@ -2,7 +2,8 @@ name: Cuaderno · Mi día por Telegram
 
 # Todas las mañanas manda al Telegram de Carlos lo que dice "Mi día" de Cuaderno: qué leer,
 # qué hacer y qué hay en el campus hoy, lo atrasado y un adelanto de mañana. Lee la nube de
-# Cuaderno (Supabase) con la clave de servicio que ya usa el relevamiento y manda con el mismo bot.
+# Cuaderno (Supabase) con la clave de servicio que ya usa el relevamiento y manda con el mismo bot,
+# a un grupo propio de Telegram que se llame "Cuaderno" (el bot lo descubre solo cuando lo agregan).
 on:
   schedule:
     - cron: '30 10 * * *'   # 07:30 de Buenos Aires / Montevideo (UTC-3). GitHub puede atrasarlo unos minutos.
@@ -35,5 +36,7 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           TELEGRAM_BOT_TOKEN:   ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:     ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Opcional: fija el grupo a mano. Si no está, el bot usa el grupo "Cuaderno" que descubre solo.
+          TELEGRAM_CUADERNO_CHAT_ID: ${{ secrets.TELEGRAM_CUADERNO_CHAT_ID }}
           DIA:                  ${{ inputs.dia }}
         run: node cuaderno/scripts/mi-dia-telegram.mjs
