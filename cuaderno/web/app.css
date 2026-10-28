@@ -517,7 +517,16 @@ body.in-editor #main { overflow: hidden; }
 .read-today { margin-bottom: 8px; }
 .todo-kind { display: inline-flex; vertical-align: -2px; margin-right: 6px; color: var(--c, var(--accent)); }
 .todo-kind .icon { width: 14px; height: 14px; }
-.todo-open { flex: none; }
+.todo-text { flex: 1; min-width: 0; }
+.todo-meta:empty { display: none; }
+.todo.read .todo-main { display: flex; align-items: center; gap: 8px; text-align: left; background: none; border: 0; padding: 4px 6px 4px 0; margin: -4px 0; font: inherit; color: inherit; cursor: pointer; border-radius: 10px; }
+.todo.read .todo-main:hover .todo-title, .todo.read .todo-main:focus-visible .todo-title { color: var(--accent-ink); }
+.todo.read .todo-main:hover .todo-arrow { color: var(--accent-ink); }
+.todo.read .todo-main:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.todo.read .todo-main:disabled { cursor: progress; opacity: .7; }
+.todo-arrow { flex: none; color: var(--muted); display: inline-flex; }
+.todo-arrow .icon { width: 18px; height: 18px; }
+.todo-arrow.fwd .icon { transform: scaleX(-1); } /* la flecha "atrás" mirando adelante */
 .todo-add [hidden] { display: none; }
 .todo-add .todo-file { flex: 1 1 200px; min-width: 0; }
 .todo-readbox { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 13px; color: var(--muted); }
