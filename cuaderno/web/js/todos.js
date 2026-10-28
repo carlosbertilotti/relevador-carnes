@@ -20,8 +20,13 @@ export async function saveTodo(t) {
   return t;
 }
 
-export async function addTodo({ title, due = ymd(), notebookId = null, minutes = null }) {
+// Una lectura es una tarea más (misma lista, mismo calendario) marcada como "para leer"; puede
+// apuntar a un archivo del campus (fileId) para abrirlo o bajarlo desde "Mi día".
+export const isReading = (t) => t.read === true;
+
+export async function addTodo({ title, due = ymd(), notebookId = null, minutes = null, read = false, fileId = null }) {
   const t = { id: db.uid('t_'), title: title.trim(), due, notebookId, minutes, done: false, doneAt: null, createdAt: Date.now() };
+  if (read) { t.read = true; if (fileId) t.fileId = fileId; }
   return saveTodo(t);
 }
 
