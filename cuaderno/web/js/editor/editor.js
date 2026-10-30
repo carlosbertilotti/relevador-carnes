@@ -1176,7 +1176,7 @@ class Editor {
     const chip = `<span class="ts" contenteditable="false" data-t="${Math.round(ms)}">⏱ ${fmtClock(ms)}</span>&nbsp;`;
     const sel = document.getSelection();
     const inText = sel?.rangeCount && sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement)?.closest('.text-block');
-    if (inText) {
+    if (inText?.isContentEditable) { // con el lápiz, el texto de la hoja no es editable: la marca va al final
       document.execCommand('insertHTML', false, chip);
       return;
     }
@@ -1192,6 +1192,8 @@ class Editor {
     if (el) {
       el.innerHTML = block.html;
       this.sheets.get(block.id)?.fitText({ persist: true });
+    }
+    if (el?.isContentEditable) { // el cursor queda después de la marca, para seguir tipeando
       el.focus();
       const r = document.createRange();
       r.selectNodeContents(el.lastElementChild || el);
