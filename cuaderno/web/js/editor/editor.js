@@ -21,6 +21,10 @@ const TOOL_NAMES = { pen: 'Lapicera', highlighter: 'Resaltador', eraser: 'Goma',
 const PRINT_STRIP = 1050; // alto de una tira al imprimir, en unidades de la hoja (cabe en A4 y en carta)
 const PAPERS = [['lined', 'Rayada'], ['grid', 'Cuadriculada'], ['dots', 'Puntos'], ['blank', 'Lisa'], ['cornell', 'Cornell']];
 
+// El texto de la hoja sólo es editable en "Texto". Con el lápiz elegido no: si no, el Scribble del
+// iPad toma lo que se dibuja encima (una flecha, un número) y lo pasa a texto en vez de dejar el trazo.
+const pageTextEditable = () => (tools.tool === 'none' ? 'true' : 'false');
+
 export async function openEditor(root, noteId, { back, watch = false } = {}) {
   const note = await db.get('notes', noteId);
   if (!note) { root.replaceChildren(h('div.empty', 'La nota no existe.')); return () => {}; }
@@ -29,6 +33,9 @@ export async function openEditor(root, noteId, { back, watch = false } = {}) {
   if (saved) Object.assign(tools, saved, { tool: saved.tool === 'none' ? 'none' : saved.tool });
   // En la compu (sin pantalla táctil) la nota se abre para escribir con el teclado.
   if (!navigator.maxTouchPoints) tools.tool = 'none';
+  // En el iPad donde ya se usó el Apple Pencil, se abre para dibujar (si quedó en "Texto", lo primero
+  // que se dibuje podría pasarse a texto). Para tipear se toca "Texto".
+  else if (tools.penOnly && tools.tool === 'none') tools.tool = 'pen';
   const ed = new Editor(root, note, notebook, back);
   await ed.mount();
   if (watch || note.video?.open) ed.openVideo({ quiet: true });
@@ -392,6 +399,7 @@ class Editor {
     if (name !== 'lasso') for (const s of this.sheets.values()) s.clearSelection();
     tools.tool = name;
     if (name !== 'none' && document.activeElement?.isContentEditable) document.activeElement.blur();
+    for (const s of this.sheets.values()) if (s.text) s.text.contentEditable = pageTextEditable();
     this.persistTools();
     this.renderToolbar();
   }
@@ -523,7 +531,7 @@ class Editor {
     const b = sheet.block;
     const first = store.isPlainSheet(b) && this.note.blocks.find(store.isPlainSheet) === b && !this.note.blocks.some((x) => x.type === 'text');
     const el = h('div.text-block.page-text', {
-      contentEditable: 'true',
+      contentEditable: pageTextEditable(),
       spellcheck: true,
       dataset: { blockId: b.id, ...(first ? { placeholder: 'Escribí con el teclado o dibujá con el lápiz…' } : {}) },
       html: b.html || '',
@@ -1168,7 +1176,7 @@ class Editor {
     const chip = `<span class="ts" contenteditable="false" data-t="${Math.round(ms)}">⏱ ${fmtClock(ms)}</span>&nbsp;`;
     const sel = document.getSelection();
     const inText = sel?.rangeCount && sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement)?.closest('.text-block');
-    if (inText) {
+    if (inText?.isContentEditable) { // con el lápiz, el texto de la hoja no es editable: la marca va al final
       document.execCommand('insertHTML', false, chip);
       return;
     }
@@ -1184,6 +1192,8 @@ class Editor {
     if (el) {
       el.innerHTML = block.html;
       this.sheets.get(block.id)?.fitText({ persist: true });
+    }
+    if (el?.isContentEditable) { // el cursor queda después de la marca, para seguir tipeando
       el.focus();
       const r = document.createRange();
       r.selectNodeContents(el.lastElementChild || el);

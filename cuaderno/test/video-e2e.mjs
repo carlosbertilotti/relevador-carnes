@@ -76,6 +76,19 @@ try {
   if (!saved.html.includes('data-t="72')) throw new Error(`Marca no guardada: ${saved.html}`);
   step(`Trazo guardado en el minuto ${Math.round(saved.t / 1000)} s; nota "${saved.title}"`);
 
+  // Con el lápiz elegido, cada "Marcar" queda guardado (no sólo el primero) y no cambia a "Texto"
+  await page.locator('.video-bar button', { hasText: 'Marcar' }).click();
+  await page.locator('.video-bar button', { hasText: '+10 s' }).click();
+  await page.locator('.video-bar button', { hasText: 'Marcar' }).click();
+  await page.waitForTimeout(900);
+  const marks = await page.evaluate(async () => {
+    const n = (await (await import('/js/db.js')).all('notes')).find((x) => x.video?.url);
+    return (n.blocks.map((b) => b.html || '').join('').match(/class="ts"/g) || []).length;
+  });
+  const active = (await page.locator('.segmented button.active').innerText()).trim();
+  if (marks !== 3 || active !== 'Lápiz') throw new Error(`Marcas con el lápiz: ${marks} guardadas, modo ${active}`);
+  step('Con el lápiz elegido, cada "Marcar" se guarda y se sigue dibujando');
+
   // Tocar la marca vuelve a ese minuto
   await page.locator('.video-bar button', { hasText: '+10 s' }).click();
   await page.locator('.video-bar button', { hasText: '+10 s' }).click();

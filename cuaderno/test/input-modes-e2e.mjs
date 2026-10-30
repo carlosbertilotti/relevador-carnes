@@ -32,6 +32,8 @@ async function setup(ctx) {
 const mode = (page) => page.locator('.segmented button.active').innerText();
 const tool = (page) => page.evaluate(async () => (await import('/js/editor/ink.js')).tools.tool);
 const note = (page, id) => page.evaluate(async (nid) => (await import('/js/db.js')).get('notes', nid), id);
+// Con el lápiz, el texto de la hoja no es editable: así el Scribble del iPad no se queda con lo que se dibuja.
+const editable = (page) => page.evaluate(() => document.querySelector('.page-text').isContentEditable);
 const penStroke = (page, from, to) => page.evaluate(([f, t]) => {
   const sheet = document.querySelector('.sheet');
   const r = sheet.getBoundingClientRect();
@@ -68,6 +70,7 @@ try {
   await pc.waitForTimeout(700);
   n = await note(pc, pcId);
   if (n.blocks.length !== 1 || n.blocks[0].strokes.length !== 1 || !n.blocks[0].html.includes('Comprar entradas')) throw new Error('Texto y dibujo deberían quedar en la misma hoja');
+  if (await editable(pc)) throw new Error('Con "Lápiz" el texto de la hoja no debería quedar editable');
   step('Eligiendo "Lápiz", en la compu también se dibuja: texto y trazo quedan en la misma hoja');
   await desk.close();
 
@@ -75,13 +78,16 @@ try {
   const ipad = await browser.newContext({ viewport: { width: 1180, height: 820 }, hasTouch: true, serviceWorkers: 'block' });
   const { page, id } = await setup(ipad);
   if ((await mode(page)).trim() !== 'Lápiz') throw new Error(`En el iPad debería abrir con el lápiz: ${await mode(page)}`);
+  if (await editable(page)) throw new Error('Con el lápiz, el texto de la hoja no debería ser editable (el Scribble pasaría los dibujos a texto)');
   const sb = await page.locator('.sheet').first().boundingBox();
   await page.touchscreen.tap(sb.x + 200, sb.y + 150);
   await page.waitForTimeout(250);
   if ((await mode(page)).trim() !== 'Lápiz' || (await page.evaluate(() => document.activeElement?.classList.contains('page-text')))) throw new Error('Con el lápiz elegido, el dedo no debería abrir el teclado');
   step('En el iPad, con el lápiz elegido el dedo no abre el teclado (desplaza y hace el doble toque)');
+  step('Con el lápiz elegido el texto de la hoja no es editable: el Scribble no convierte lo dibujado (una flecha) en texto');
 
   await page.locator('.segmented button', { hasText: 'Texto' }).click();
+  if (!(await editable(page))) throw new Error('En "Texto" el texto de la hoja debería ser editable');
   await page.touchscreen.tap(sb.x + 200, sb.y + 150);
   await page.waitForTimeout(200);
   await page.keyboard.type('Idea: app para el súper');
@@ -96,7 +102,16 @@ try {
   n = await note(page, id);
   if (n.blocks[0].strokes.length !== 1 || !n.blocks[0].html.includes('Idea: app')) throw new Error('El trazo y el texto deberían estar en la misma hoja');
   if (await page.evaluate(() => document.activeElement?.classList.contains('page-text'))) throw new Error('El teclado debería cerrarse al dibujar');
+  if (await editable(page)) throw new Error('Al volver al lápiz, el texto de la hoja debería dejar de ser editable');
   step('Con el lápiz en la hoja vuelve solo a "Lápiz" y el primer trazo ya se dibuja, sin perder el texto');
+
+  // Si se dejó en "Texto", la próxima vez el iPad (que ya usó el lápiz) igual abre para dibujar.
+  await page.locator('.segmented button', { hasText: 'Texto' }).click();
+  await page.waitForTimeout(300);
+  await page.reload();
+  await page.locator('.sheet').first().waitFor();
+  if ((await mode(page)).trim() !== 'Lápiz' || (await editable(page))) throw new Error(`Al volver a abrir debería estar en "Lápiz": ${await mode(page)}`);
+  step('Aunque haya quedado en "Texto", en el iPad la nota vuelve a abrir con el lápiz');
 
   if (errors.length) throw new Error(`Errores en la página: ${errors.join(' | ')}`);
   console.log('\nTodo OK');

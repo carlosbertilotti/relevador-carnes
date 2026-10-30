@@ -597,7 +597,7 @@ body.in-editor #main { overflow: hidden; }
 .page-text .note-table { margin: 0; border-collapse: collapse; }
 .page-text .note-table :is(th, td) { padding: 0 8px; height: var(--rule); line-height: var(--rule); box-sizing: border-box; }
 .page-text[data-placeholder]:empty::before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
-.editor.ink-mode .page-text { cursor: crosshair; }
+.editor.ink-mode .page-text { cursor: crosshair; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; } /* con el lápiz, el dedo sólo desplaza */
 .editor.ink-mode .page-text[data-placeholder]:empty::before { content: none; }
 @media print {
   .print-strip { position: relative; overflow: hidden; width: 100%; break-inside: avoid; border: 1px solid #ddd; margin: 0 0 6pt; }

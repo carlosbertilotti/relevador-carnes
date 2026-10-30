@@ -283,7 +283,8 @@ try {
   // + Hoja en modo texto sigue escribiendo en la hoja nueva
   await page.locator('.segmented button', { hasText: 'Texto' }).click();
   await page.locator('.add-row button', { hasText: 'Hoja' }).click();
-  await page.waitForTimeout(500);
+  // El cursor pasa a la hoja nueva cuando termina de dibujarse (con fotos grandes, a veces tarda más de medio segundo).
+  await page.waitForFunction(() => document.activeElement?.classList.contains('page-text'), null, { timeout: 3000 }).catch(() => {});
   const focused = await db(() => ({ pt: document.activeElement?.classList.contains('page-text'), sheets: document.querySelectorAll('.sheet').length, active: document.querySelector('.segmented button.active')?.textContent.trim() }));
   if (!focused.pt || focused.sheets !== 2 || focused.active !== 'Texto') throw new Error(`Hoja nueva: ${JSON.stringify(focused)}`);
   await page.keyboard.type('segunda pagina');
