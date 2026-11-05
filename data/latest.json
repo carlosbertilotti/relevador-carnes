@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-11-04",
-  "anterior": "2026-11-03",
-  "generado": "2026-11-04T12:16:08.373671+00:00",
+  "ultima_corrida": "2026-11-05",
+  "anterior": "2026-11-04",
+  "generado": "2026-11-05T12:13:36.467681+00:00",
   "carnicerias": [
     "Carrefour",
     "ChangoMás",
@@ -10,6 +10,7 @@
     "Día",
     "EQ Minorista 🏠",
     "El Origen",
+    "En Carne Propia",
     "IPCVA (referencia)",
     "Jumbo",
     "Justino",
@@ -22,8 +23,8 @@
     "aguja": {
       "mejor_precio": 8486.9,
       "mejor_carniceria": "Vea",
-      "promedio": 13112.42,
-      "variacion_pct": -1.1,
+      "promedio": 13257.62,
+      "variacion_pct": 1.1,
       "precios": [
         {
           "carniceria": "Vea",
@@ -70,8 +71,8 @@
     "asado": {
       "mejor_precio": 8678.9,
       "mejor_carniceria": "Vea",
-      "promedio": 20237.75,
-      "variacion_pct": -1.2,
+      "promedio": 20376.22,
+      "variacion_pct": 0.7,
       "precios": [
         {
           "carniceria": "Vea",
@@ -118,8 +119,8 @@
     "bife_ancho": {
       "mejor_precio": 17900.0,
       "mejor_carniceria": "Día",
-      "promedio": 48372.23,
-      "variacion_pct": -0.4,
+      "promedio": 48591.22,
+      "variacion_pct": 0.5,
       "precios": [
         {
           "carniceria": "Día",
@@ -137,14 +138,14 @@
           "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
         },
         {
+          "carniceria": "RES",
+          "precio_kg": 19899.0,
+          "url": "https://www.res.com.ar/bife-ancho.html"
+        },
+        {
           "carniceria": "Vea",
           "precio_kg": 20075.1,
           "url": "https://www.vea.com.ar/ojo-de-bife-magro-x-kg/p"
-        },
-        {
-          "carniceria": "RES",
-          "precio_kg": 22110.0,
-          "url": "https://www.res.com.ar/bife-ancho.html"
         },
         {
           "carniceria": "Vea",
@@ -166,8 +167,8 @@
     "bife_angosto": {
       "mejor_precio": 14986.9,
       "mejor_carniceria": "Vea",
-      "promedio": 33337.29,
-      "variacion_pct": 2.8,
+      "promedio": 31621.77,
+      "variacion_pct": -5.1,
       "precios": [
         {
           "carniceria": "Vea",
@@ -205,17 +206,17 @@
           "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
         },
         {
-          "carniceria": "Cordiez",
-          "precio_kg": 23999.0,
-          "url": "https://www.cordiez.com.ar/bife-de-chorizo-especial-x-kg/p"
+          "carniceria": "ChangoMás",
+          "precio_kg": 22705.93,
+          "url": "https://www.masonline.com.ar/bife-angosto-de-novillito-x-650-gr-2/p"
         }
       ]
     },
     "bola_lomo": {
       "mejor_precio": 16590.0,
       "mejor_carniceria": "La Anónima",
-      "promedio": 21066.99,
-      "variacion_pct": -0.9,
+      "promedio": 20789.2,
+      "variacion_pct": -1.3,
       "precios": [
         {
           "carniceria": "La Anónima",
@@ -233,6 +234,11 @@
           "url": "https://www.masonline.com.ar/bola-de-lomo-feteada-de-novillito-x-600-gr/p"
         },
         {
+          "carniceria": "En Carne Propia",
+          "precio_kg": 18000.0,
+          "url": "https://encarnepropia.com.ar/tienda/bola-de-lomo/"
+        },
+        {
           "carniceria": "El Origen",
           "precio_kg": 18900.0,
           "url": "https://carniceriaelorigen.com/cortes-vacunos/bola-de-lomo-feteada"
@@ -243,18 +249,13 @@
           "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
         },
         {
+          "carniceria": "RES",
+          "precio_kg": 19899.0,
+          "url": "https://www.res.com.ar/bola-de-lomo.html"
+        },
+        {
           "carniceria": "ChangoMás",
           "precio_kg": 20199.0,
-          "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
-        },
-        {
-          "carniceria": "Justino",
-          "precio_kg": 20300.0,
-          "url": "https://justino.com.ar/producto/bola-de-lomo/"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 20499.0,
           "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
         }
       ]
@@ -262,8 +263,8 @@
     "colita_cuadril": {
       "mejor_precio": 10990.0,
       "mejor_carniceria": "Día",
-      "promedio": 32238.4,
-      "variacion_pct": 1.8,
+      "promedio": 32053.29,
+      "variacion_pct": -0.6,
       "precios": [
         {
           "carniceria": "Día",
@@ -310,8 +311,8 @@
     "cuadril": {
       "mejor_precio": 17849.29,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 26551.85,
-      "variacion_pct": 0.8,
+      "promedio": 26351.5,
+      "variacion_pct": -0.8,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -358,8 +359,8 @@
     "entrana": {
       "mejor_precio": 16525.58,
       "mejor_carniceria": "Vea",
-      "promedio": 35418.24,
-      "variacion_pct": 1.6,
+      "promedio": 34588.72,
+      "variacion_pct": -2.3,
       "precios": [
         {
           "carniceria": "Vea",
@@ -406,8 +407,8 @@
     "falda": {
       "mejor_precio": 9290.0,
       "mejor_carniceria": "La Anónima",
-      "promedio": 16366.44,
-      "variacion_pct": 10.4,
+      "promedio": 14744.8,
+      "variacion_pct": -9.9,
       "precios": [
         {
           "carniceria": "La Anónima",
@@ -430,42 +431,37 @@
           "url": "https://www.cordiez.com.ar/falda-especial-x-kg/p"
         },
         {
+          "carniceria": "En Carne Propia",
+          "precio_kg": 13300.0,
+          "url": "https://encarnepropia.com.ar/tienda/oferta-falda-x-2kg/"
+        },
+        {
+          "carniceria": "En Carne Propia",
+          "precio_kg": 14000.0,
+          "url": "https://encarnepropia.com.ar/tienda/producto-09/"
+        },
+        {
           "carniceria": "ChangoMás",
           "precio_kg": 14299.0,
           "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
         },
         {
-          "carniceria": "Vea",
-          "precio_kg": 15810.0,
-          "url": "https://www.vea.com.ar/falda-novillito/p"
-        },
-        {
           "carniceria": "Disco",
           "precio_kg": 16290.0,
           "url": "https://www.disco.com.ar/falda-novillito/p"
-        },
-        {
-          "carniceria": "Jumbo",
-          "precio_kg": 27630.0,
-          "url": "https://www.jumbo.com.ar/falda-novillito-especial/p"
         }
       ]
     },
     "lomo": {
       "mejor_precio": 11290.0,
       "mejor_carniceria": "Día",
-      "promedio": 34844.8,
-      "variacion_pct": 1.6,
+      "promedio": 34839.09,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Día",
           "precio_kg": 11290.0,
           "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
-        },
-        {
-          "carniceria": "Cordiez",
-          "precio_kg": 12799.6,
-          "url": "https://www.cordiez.com.ar/lomo-especial-novara-x-kg/p"
         },
         {
           "carniceria": "Cordiez",
@@ -496,14 +492,19 @@
           "carniceria": "Jumbo",
           "precio_kg": 19041.68,
           "url": "https://www.jumbo.com.ar/lomo-de-ternera-gondola-bandeja-1-kg/p"
+        },
+        {
+          "carniceria": "Toledo",
+          "precio_kg": 21274.47,
+          "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
         }
       ]
     },
     "matambre": {
       "mejor_precio": 11219.43,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 26574.41,
-      "variacion_pct": 3.4,
+      "promedio": 25556.71,
+      "variacion_pct": -3.8,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -550,7 +551,7 @@
     "nalga": {
       "mejor_precio": 18189.15,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 24066.19,
+      "promedio": 23966.37,
       "variacion_pct": -0.4,
       "precios": [
         {
@@ -598,8 +599,8 @@
     "osobuco": {
       "mejor_precio": 7840.94,
       "mejor_carniceria": "Vea",
-      "promedio": 14877.73,
-      "variacion_pct": 4.6,
+      "promedio": 14714.96,
+      "variacion_pct": -1.1,
       "precios": [
         {
           "carniceria": "Vea",
@@ -646,8 +647,8 @@
     "paleta": {
       "mejor_precio": 7490.0,
       "mejor_carniceria": "Día",
-      "promedio": 22142.19,
-      "variacion_pct": 5.4,
+      "promedio": 21046.34,
+      "variacion_pct": -4.9,
       "precios": [
         {
           "carniceria": "Día",
@@ -694,8 +695,8 @@
     "peceto": {
       "mejor_precio": 17636.79,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 32572.64,
-      "variacion_pct": -2.0,
+      "promedio": 32931.27,
+      "variacion_pct": 1.1,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -711,6 +712,11 @@
           "carniceria": "ChangoMás",
           "precio_kg": 20000.0,
           "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
+        },
+        {
+          "carniceria": "En Carne Propia",
+          "precio_kg": 21850.0,
+          "url": "https://encarnepropia.com.ar/tienda/peceto-venta-por-unidad-14-kg-aprox-2/"
         },
         {
           "carniceria": "Cordiez",
@@ -731,20 +737,30 @@
           "carniceria": "Cordiez",
           "precio_kg": 23999.0,
           "url": "https://www.cordiez.com.ar/peceto-especial-x-kg/p"
-        },
-        {
-          "carniceria": "ChangoMás",
-          "precio_kg": 24899.0,
-          "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
         }
       ]
     },
     "picada_comun": {
-      "mejor_precio": 10613.08,
-      "mejor_carniceria": "IPCVA (referencia)",
-      "promedio": 46331.93,
-      "variacion_pct": -0.3,
+      "mejor_precio": 6999.0,
+      "mejor_carniceria": "ChangoMás",
+      "promedio": 14404.72,
+      "variacion_pct": -68.9,
       "precios": [
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 6999.0,
+          "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
+        },
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 7499.0,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 9169.0,
+          "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
+        },
         {
           "carniceria": "IPCVA (referencia)",
           "precio_kg": 10613.08,
@@ -756,42 +772,27 @@
           "url": "https://justino.com.ar/producto/picada-especial/"
         },
         {
-          "carniceria": "Vea",
-          "precio_kg": 16598.0,
-          "url": "https://www.vea.com.ar/carne-picada-especial-novillo-sin-atributo-sin-atributo-sin-atributo-sin-atributo/p"
+          "carniceria": "En Carne Propia",
+          "precio_kg": 10900.0,
+          "url": "https://encarnepropia.com.ar/tienda/molida-comun-x-2kg/"
         },
         {
-          "carniceria": "Disco",
-          "precio_kg": 16598.0,
-          "url": "https://www.disco.com.ar/carne-picada-especial-novillo-sin-atributo-sin-atributo-sin-atributo-sin-atributo/p"
-        },
-        {
-          "carniceria": "Jumbo",
-          "precio_kg": 16598.0,
-          "url": "https://www.jumbo.com.ar/carne-picada-especial-novillo-sin-atributo-sin-atributo-sin-atributo-sin-atributo/p"
-        },
-        {
-          "carniceria": "Carrefour",
-          "precio_kg": 16900.0,
-          "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
+          "carniceria": "En Carne Propia",
+          "precio_kg": 11500.0,
+          "url": "https://encarnepropia.com.ar/tienda/molida-comun-x-kg/"
         },
         {
           "carniceria": "Vea",
-          "precio_kg": 17098.0,
-          "url": "https://www.vea.com.ar/carne-comun-molida-novillo-por-kg-2/p"
-        },
-        {
-          "carniceria": "Disco",
-          "precio_kg": 17098.0,
-          "url": "https://www.disco.com.ar/carne-comun-molida-novillo-por-kg-2/p"
+          "precio_kg": 11990.0,
+          "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
         }
       ]
     },
     "picada_especial": {
       "mejor_precio": 8252.7,
       "mejor_carniceria": "Vea",
-      "promedio": 17475.61,
-      "variacion_pct": -0.6,
+      "promedio": 17262.24,
+      "variacion_pct": -1.2,
       "precios": [
         {
           "carniceria": "Vea",
@@ -838,8 +839,8 @@
     "roast_beef": {
       "mejor_precio": 9027.3,
       "mejor_carniceria": "Vea",
-      "promedio": 24351.06,
-      "variacion_pct": 19.2,
+      "promedio": 24294.68,
+      "variacion_pct": -0.2,
       "precios": [
         {
           "carniceria": "Vea",
@@ -884,16 +885,11 @@
       ]
     },
     "tapa_asado": {
-      "mejor_precio": 6990.0,
-      "mejor_carniceria": "Día",
-      "promedio": 20143.03,
-      "variacion_pct": -4.9,
+      "mejor_precio": 10999.0,
+      "mejor_carniceria": "ChangoMás",
+      "promedio": 21333.61,
+      "variacion_pct": 5.9,
       "precios": [
-        {
-          "carniceria": "Día",
-          "precio_kg": 6990.0,
-          "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
-        },
         {
           "carniceria": "ChangoMás",
           "precio_kg": 10999.0,
@@ -928,14 +924,19 @@
           "carniceria": "Jumbo",
           "precio_kg": 15499.0,
           "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 16475.0,
+          "url": "https://datos.gob.ar/dataset/produccion-precios-claros---base-sepa"
         }
       ]
     },
     "tapa_cuadril": {
       "mejor_precio": 13835.64,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 25998.96,
-      "variacion_pct": -1.1,
+      "promedio": 25589.52,
+      "variacion_pct": -1.6,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -958,6 +959,11 @@
           "url": "https://www.cordiez.com.ar/tapa-de-cuadril-especial-x-kg/p"
         },
         {
+          "carniceria": "En Carne Propia",
+          "precio_kg": 26500.0,
+          "url": "https://encarnepropia.com.ar/tienda/tapa-de-cuadril-venta-x-unidad-aproximadamente-13kg/"
+        },
+        {
           "carniceria": "Cordiez",
           "precio_kg": 27999.0,
           "url": "https://www.cordiez.com.ar/tapa-de-cuadril-especial-novara-x-kg/p"
@@ -971,19 +977,14 @@
           "carniceria": "Justino",
           "precio_kg": 30100.0,
           "url": "https://justino.com.ar/producto/picana/"
-        },
-        {
-          "carniceria": "RES",
-          "precio_kg": 41860.0,
-          "url": "https://www.res.com.ar/pica-a.html"
         }
       ]
     },
     "tapa_nalga": {
       "mejor_precio": 10136.52,
       "mejor_carniceria": "Vea",
-      "promedio": 23926.87,
-      "variacion_pct": 0.2,
+      "promedio": 23766.58,
+      "variacion_pct": -0.7,
       "precios": [
         {
           "carniceria": "Vea",
@@ -1030,8 +1031,8 @@
     "tortuguita": {
       "mejor_precio": 10733.7,
       "mejor_carniceria": "Vea",
-      "promedio": 15422.76,
-      "variacion_pct": -2.5,
+      "promedio": 15584.33,
+      "variacion_pct": 1.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -1078,8 +1079,8 @@
     "vacio": {
       "mejor_precio": 12012.77,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 26305.48,
-      "variacion_pct": -7.7,
+      "promedio": 29196.03,
+      "variacion_pct": 11.0,
       "precios": [
         {
           "carniceria": "ChangoMás",
