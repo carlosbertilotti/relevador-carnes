@@ -36,6 +36,10 @@ export async function openEditor(root, noteId, { back, watch = false } = {}) {
   // En el iPad donde ya se usó el Apple Pencil, se abre para dibujar (si quedó en "Texto", lo primero
   // que se dibuje podría pasarse a texto). Para tipear se toca "Texto".
   else if (tools.penOnly && tools.tool === 'none') tools.tool = 'pen';
+  // A dónde vuelve el doble toque desde la goma o el lazo: a lo último con que se escribió
+  // (los ajustes guardados por versiones anteriores traen "prevTool" en vez de "lastWrite").
+  if (tools.tool === 'pen' || tools.tool === 'highlighter') tools.lastWrite = tools.tool;
+  else if (saved && !saved.lastWrite && (saved.prevTool === 'pen' || saved.prevTool === 'highlighter')) tools.lastWrite = saved.prevTool;
   const ed = new Editor(root, note, notebook, back);
   await ed.mount();
   if (watch || note.video?.open) ed.openVideo({ quiet: true });
@@ -197,8 +201,8 @@ class Editor {
         this.persistTools();
         this.renderToolbar();
         toast('Lápiz detectado: el dedo desplaza y el lápiz escribe. Dos toques con el dedo sobre la hoja: lapicera ↔ resaltador', { ms: 6000 });
-      } else if (tools.penOnly && !tools.swapHint) {
-        // Una sola vez, a quien ya venía usando el lápiz: qué hace el doble toque.
+      } else if (tools.penOnly && !tools.swapHint && e.target.closest?.('.sheet') && !(this.seekMode && this.playback)) {
+        // Una sola vez, a quien ya venía usando el lápiz y lo apoya en una hoja: qué hace el doble toque.
         tools.swapHint = true;
         this.persistTools();
         toast('Dos toques rápidos con el dedo sobre la hoja: lapicera ↔ resaltador', { ms: 6000 });

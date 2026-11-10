@@ -111,6 +111,10 @@ try {
   }, [x, y]);
   const hint = page.locator('.toast', { hasText: 'Dos toques rápidos con el dedo' });
   if (await hint.count()) throw new Error('El aviso del doble toque no debería salir antes de usar el lápiz');
+  // Apoyar el lápiz fuera de la hoja (el título) no gasta el aviso
+  await page.evaluate(() => document.querySelector('input.note-title').dispatchEvent(new PointerEvent('pointerdown', { pointerId: 9, pointerType: 'pen', isPrimary: true, bubbles: true, cancelable: true, composed: true })));
+  await page.waitForTimeout(150);
+  if ((await hint.count()) || (await page.evaluate(async () => (await import('/js/db.js')).getSetting('tools'))).swapHint) throw new Error('El aviso no debería gastarse al tocar el título con el lápiz');
   await penTap();
   await hint.waitFor();
   await penTap();
@@ -129,6 +133,31 @@ try {
   await doubleTap();
   if ((await active()) !== 'Lapicera') throw new Error('Si el dedo escribe, el doble toque no cambia de herramienta');
   step('En modo texto o cuando el dedo escribe, el doble toque no cambia la herramienta');
+
+  // Al abrir la nota, "lo último con que se escribió" es la herramienta con la que abre
+  const reopen = async (saved) => {
+    await page.evaluate(async (t) => (await import('/js/db.js')).setSetting('tools', { color: '#1c1c1e', size: 4, highlighterColor: '#ffd60a', highlighterSize: 22, eraserSize: 18, penOnly: true, swapHint: true, ...t }), saved);
+    await page.reload();
+    await page.locator('.sheet').first().waitFor();
+    await page.waitForTimeout(300);
+    await page.locator('.sheet').first().scrollIntoViewIfNeeded();
+    box = await page.locator('.sheet').first().boundingBox();
+    x = box.x + 200;
+    y = box.y + 150;
+  };
+  await reopen({ tool: 'none', lastWrite: 'highlighter' }); // se dejó en "Texto" después de resaltar: abre con la lapicera
+  if ((await active()) !== 'Lapicera') throw new Error(`Debería abrir con la lapicera: ${await active()}`);
+  await page.getByTitle('Goma (borra trazos enteros)', { exact: true }).click();
+  await doubleTap();
+  if ((await active()) !== 'Lapicera') throw new Error(`Abrió con la lapicera: desde la goma debería volver a ella, no al resaltador: ${await active()}`);
+  await reopen({ tool: 'highlighter', prevTool: 'pen' }); // ajustes guardados por la versión anterior
+  await page.getByTitle('Goma (borra trazos enteros)', { exact: true }).click();
+  await doubleTap();
+  if ((await active()) !== 'Resaltador') throw new Error(`Con ajustes viejos en resaltador, desde la goma debería volver al resaltador: ${await active()}`);
+  await reopen({ tool: 'eraser', prevTool: 'highlighter' });
+  await doubleTap();
+  if ((await active()) !== 'Resaltador') throw new Error(`Con ajustes viejos (goma, antes resaltador) debería volver al resaltador: ${await active()}`);
+  step('Al reabrir (también con ajustes de la versión anterior), desde la goma vuelve a lo último con que se escribió');
 
   if (errors.length) throw new Error(`Errores en la página: ${errors.join(' | ')}`);
   console.log('\nTodo OK');
