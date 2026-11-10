@@ -157,7 +157,20 @@ try {
   await reopen({ tool: 'eraser', prevTool: 'highlighter' });
   await doubleTap();
   if ((await active()) !== 'Resaltador') throw new Error(`Con ajustes viejos (goma, antes resaltador) debería volver al resaltador: ${await active()}`);
+  await reopen({ tool: 'eraser', lastWrite: 'highlighter', prevTool: 'pen' }); // ya migrados: el "prevTool" viejo sigue guardado, pero manda "lastWrite"
+  await doubleTap();
+  if ((await active()) !== 'Resaltador') throw new Error(`Con lastWrite guardado, el prevTool viejo no debería pisarlo: ${await active()}`);
   step('Al reabrir (también con ajustes de la versión anterior), desde la goma vuelve a lo último con que se escribió');
+
+  // Primer contacto con el lápiz en un iPad nuevo: activa "sólo lápiz" y cuenta el gesto en ese mismo aviso (sin repetirlo después)
+  await reopen({ tool: 'pen', penOnly: false, swapHint: false });
+  await penTap();
+  await page.locator('.toast', { hasText: 'Lápiz detectado' }).filter({ hasText: 'lapicera ↔ resaltador' }).waitFor();
+  await penTap();
+  await page.waitForTimeout(200);
+  const first = await page.evaluate(async () => (await import('/js/db.js')).getSetting('tools'));
+  if (!first.penOnly || !first.swapHint || (await hint.count())) throw new Error(`Primer contacto: ${JSON.stringify(first)} / avisos repetidos: ${await hint.count()}`);
+  step('En un iPad nuevo, el primer contacto del lápiz activa "sólo lápiz" y avisa el gesto una sola vez');
 
   if (errors.length) throw new Error(`Errores en la página: ${errors.join(' | ')}`);
   console.log('\nTodo OK');
