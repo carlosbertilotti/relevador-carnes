@@ -193,9 +193,15 @@ class Editor {
       if (!tools.penOnly && !this._penAuto) {
         this._penAuto = true;
         tools.penOnly = true;
+        tools.swapHint = true;
         this.persistTools();
         this.renderToolbar();
-        toast('Lápiz detectado: el dedo desplaza y el lápiz escribe. Dos toques con el dedo: herramienta anterior', { ms: 5000 });
+        toast('Lápiz detectado: el dedo desplaza y el lápiz escribe. Dos toques con el dedo sobre la hoja: lapicera ↔ resaltador', { ms: 6000 });
+      } else if (tools.penOnly && !tools.swapHint) {
+        // Una sola vez, a quien ya venía usando el lápiz: qué hace el doble toque.
+        tools.swapHint = true;
+        this.persistTools();
+        toast('Dos toques rápidos con el dedo sobre la hoja: lapicera ↔ resaltador', { ms: 6000 });
       }
       // Como en Notas de Apple: escribiendo con el teclado, apoyar el lápiz en una hoja
       // pasa solo a dibujar (este aviso llega antes que el de la hoja, así el trazo arranca).
@@ -380,7 +386,7 @@ class Editor {
         h('div.vsep'),
         h(`button.tbtn.pen-only${t.penOnly ? '.active' : ''}`, {
           type: 'button',
-          title: t.penOnly ? 'Sólo el lápiz escribe (el dedo desplaza; dos toques con el dedo vuelven a la herramienta anterior)' : 'El dedo también escribe',
+          title: t.penOnly ? 'Sólo el lápiz escribe (el dedo desplaza; dos toques con el dedo cambian entre lapicera y resaltador)' : 'El dedo también escribe',
           onclick: () => { t.penOnly = !t.penOnly; this.persistTools(); this.renderToolbar(); toast(t.penOnly ? 'Sólo lápiz: el dedo desplaza' : 'Ahora también podés escribir con el dedo'); },
         }, icon(t.penOnly ? 'pencilOnly' : 'hand')));
     }
@@ -394,7 +400,7 @@ class Editor {
   setTool(name) {
     if (name !== 'none') {
       this.lastInkTool = name;
-      if (tools.tool !== 'none' && tools.tool !== name) tools.prevTool = tools.tool;
+      if (name === 'pen' || name === 'highlighter') tools.lastWrite = name;
     }
     if (name !== 'lasso') for (const s of this.sheets.values()) s.clearSelection();
     tools.tool = name;
@@ -404,12 +410,12 @@ class Editor {
     this.renderToolbar();
   }
 
-  // Como el doble toque del Apple Pencil en Notas ("cambiar entre la herramienta
-  // actual y la última usada"). Sin herramienta anterior, alterna con la goma.
+  // Como el doble toque del Apple Pencil en Notas: alterna entre la lapicera y el
+  // resaltador. Desde la goma o el lazo vuelve a la última de las dos que se usó.
   swapTool() {
     const cur = tools.tool;
     if (cur === 'none') return;
-    const next = tools.prevTool && tools.prevTool !== cur && TOOL_NAMES[tools.prevTool] ? tools.prevTool : cur === 'eraser' ? 'pen' : 'eraser';
+    const next = cur === 'pen' ? 'highlighter' : cur === 'highlighter' ? 'pen' : tools.lastWrite === 'highlighter' ? 'highlighter' : 'pen';
     this.setTool(next);
     this._toolHud?.remove();
     this._toolHud = toast(TOOL_NAMES[next], { ms: 1100 });

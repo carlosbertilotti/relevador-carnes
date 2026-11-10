@@ -19,13 +19,14 @@ const HOLD_TO_SNAP_MS = 550;
 
 export const tools = {
   tool: 'pen', // pen | highlighter | eraser | lasso | none
-  prevTool: null, // la herramienta anterior, para el doble toque
+  lastWrite: 'pen', // la última de lapicera / resaltador: a ella vuelve el doble toque desde la goma o el lazo
   color: '#1c1c1e',
   size: 4,
   highlighterColor: '#ffd60a',
   highlighterSize: 22,
   eraserSize: 18,
   penOnly: false,
+  swapHint: false, // ya se avisó qué hace el doble toque con el dedo
 };
 
 // Trazos guardados desde el iPad antes del arreglo traen puntos repetidos (el

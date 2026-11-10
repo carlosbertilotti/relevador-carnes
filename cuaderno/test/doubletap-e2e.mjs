@@ -1,6 +1,6 @@
 // Doble toque para cambiar de herramienta (como el del Apple Pencil en Notas):
-// dos toques rápidos con el dedo sobre la hoja alternan entre la herramienta
-// actual y la anterior; sin anterior, con la goma.
+// dos toques rápidos con el dedo sobre la hoja alternan entre la lapicera y el
+// resaltador; desde la goma o el lazo vuelven a la última de las dos.
 //   node test/doubletap-e2e.mjs
 import { createServer } from '../server/server.js';
 
@@ -39,21 +39,37 @@ try {
 
   if ((await active()) !== 'Lapicera') throw new Error(`Arranca con ${await active()}`);
   await doubleTap();
-  if ((await active()) !== 'Goma (borra trazos enteros)') throw new Error(`Sin herramienta anterior debería ir a la goma: ${await active()}`);
-  await page.locator('.toast', { hasText: 'Goma' }).waitFor();
-  step('Sin herramienta anterior, el doble toque pasa a la goma (como en Notas) y lo avisa');
-
+  if ((await active()) !== 'Resaltador') throw new Error(`Lapicera → doble toque debería ir al resaltador: ${await active()}`);
+  await page.locator('.toast', { hasText: 'Resaltador' }).waitFor();
   await doubleTap();
   if ((await active()) !== 'Lapicera') throw new Error(`Debería volver a la lapicera: ${await active()}`);
-  await page.getByTitle('Resaltador').click();
+  step('El doble toque alterna entre la lapicera y el resaltador, y lo avisa');
+
+  // Pasar antes por la goma o el lazo no cambia a dónde lleva el doble toque
+  await page.getByTitle('Goma (borra trazos enteros)', { exact: true }).click();
+  await page.getByTitle('Resaltador', { exact: true }).click();
   await doubleTap();
-  if ((await active()) !== 'Lapicera') throw new Error(`Resaltador → doble toque debería ir a la lapicera: ${await active()}`);
+  if ((await active()) !== 'Lapicera') throw new Error(`Goma → Resaltador → doble toque debería ir a la lapicera (no a la goma): ${await active()}`);
+  await page.getByTitle('Lazo: seleccionar y mover', { exact: true }).click();
+  await page.getByTitle('Resaltador', { exact: true }).click();
   await doubleTap();
-  if ((await active()) !== 'Resaltador') throw new Error(`Y volver al resaltador: ${await active()}`);
-  step('Alterna entre la herramienta actual y la última usada (lapicera ↔ resaltador)');
+  if ((await active()) !== 'Lapicera') throw new Error(`Lazo → Resaltador → doble toque debería ir a la lapicera (no al lazo): ${await active()}`);
+  step('Aunque antes se haya usado la goma o el lazo, del resaltador se vuelve a la lapicera');
+
+  await page.getByTitle('Resaltador', { exact: true }).click();
+  await page.getByTitle('Goma (borra trazos enteros)', { exact: true }).click();
+  await doubleTap();
+  if ((await active()) !== 'Resaltador') throw new Error(`Desde la goma debería volver a lo último con que se escribió (resaltador): ${await active()}`);
+  await page.getByTitle('Lapicera', { exact: true }).click();
+  await page.getByTitle('Lazo: seleccionar y mover', { exact: true }).click();
+  await doubleTap();
+  if ((await active()) !== 'Lapicera') throw new Error(`Desde el lazo debería volver a la lapicera: ${await active()}`);
+  await doubleTap();
+  if ((await active()) !== 'Resaltador') throw new Error(`Y de ahí al resaltador: ${await active()}`);
+  step('Desde la goma o el lazo, el doble toque vuelve a la última de las dos (lapicera o resaltador)');
 
   const saved = await page.evaluate(async () => (await import('/js/db.js')).getSetting('tools'));
-  if (saved.tool !== 'highlighter' || saved.prevTool !== 'pen') throw new Error(`Guardado: ${JSON.stringify(saved)}`);
+  if (saved.tool !== 'highlighter' || saved.lastWrite !== 'highlighter') throw new Error(`Guardado: ${JSON.stringify(saved)}`);
   await page.reload();
   await page.locator('.sheet').first().waitFor();
   await page.waitForTimeout(300);
@@ -63,7 +79,7 @@ try {
   y = box.y + 150;
   await doubleTap();
   if ((await active()) !== 'Lapicera') throw new Error(`Después de recargar: ${await active()}`);
-  step('La herramienta anterior se recuerda al cerrar y volver a abrir la nota');
+  step('Al cerrar y volver a abrir la nota sigue en el resaltador, y el doble toque lo pasa a la lapicera');
 
   if (await strokes()) throw new Error('Los toques con el dedo no deberían escribir');
   await page.touchscreen.tap(x, y);
@@ -85,6 +101,23 @@ try {
   await page.waitForTimeout(150);
   if ((await active()) !== 'Lapicera') throw new Error('Un toque con dos dedos no cuenta como doble toque');
   step('Toques lentos, separados o con dos dedos no cambian la herramienta, y el dedo no escribe');
+
+  // A quien ya venía usando el lápiz (sin haber visto el aviso), se le cuenta una sola vez qué hace el doble toque
+  const penTap = () => page.evaluate(([px, py]) => {
+    const el = document.elementFromPoint(px, py);
+    const ev = (type) => el.dispatchEvent(new PointerEvent(type, { pointerId: 9, pointerType: 'pen', isPrimary: true, bubbles: true, cancelable: true, composed: true, clientX: px, clientY: py, pressure: 0.5, buttons: type === 'pointerup' ? 0 : 1 }));
+    ev('pointerdown');
+    ev('pointerup');
+  }, [x, y]);
+  const hint = page.locator('.toast', { hasText: 'Dos toques rápidos con el dedo' });
+  if (await hint.count()) throw new Error('El aviso del doble toque no debería salir antes de usar el lápiz');
+  await penTap();
+  await hint.waitFor();
+  await penTap();
+  await page.waitForTimeout(200);
+  const hinted = await page.evaluate(async () => (await import('/js/db.js')).getSetting('tools'));
+  if ((await hint.count()) !== 1 || hinted.swapHint !== true) throw new Error(`El aviso debería salir una sola vez y quedar guardado: ${await hint.count()} / ${JSON.stringify(hinted)}`);
+  step('La primera vez que se apoya el lápiz, avisa (una sola vez) que dos toques con el dedo cambian lapicera ↔ resaltador');
 
   await page.locator('.segmented button', { hasText: 'Texto' }).click();
   await page.waitForTimeout(100);
