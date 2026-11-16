@@ -21,6 +21,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 from anthropic import Anthropic
 
+from api_uso import medir_cliente
+
 import storage
 
 load_dotenv(override=True)
@@ -129,7 +131,7 @@ def analizar_precios(dias: int = 30) -> str:
     if "error" in resumen:
         return f"No hay datos suficientes: {resumen['error']}"
 
-    client = Anthropic(api_key=api_key)
+    client = medir_cliente("analisis_precios", Anthropic(api_key=api_key))  # anota el gasto en api_uso (api_uso.py)
 
     response = client.messages.create(
         model=MODEL,

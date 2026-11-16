@@ -20,6 +20,8 @@ from typing import Any
 from dotenv import load_dotenv
 from anthropic import Anthropic
 
+from api_uso import medir_cliente
+
 from normalizador import SECCION, corte_pretty
 
 load_dotenv(override=True)
@@ -364,7 +366,7 @@ def responder_pregunta(pregunta: str, historial: list[dict] | None = None) -> st
     if not api_key:
         raise RuntimeError("Falta ANTHROPIC_API_KEY en .env o st.secrets")
 
-    client = Anthropic(api_key=api_key)
+    client = medir_cliente("agente_preguntas", Anthropic(api_key=api_key))  # anota el gasto en api_uso (api_uso.py)
 
     # Convertir el historial del chat al formato API (filtrando el último user msg
     # que ya viene como `pregunta` y mensajes vacíos).
