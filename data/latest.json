@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-11-20",
-  "anterior": "2026-11-19",
-  "generado": "2026-11-20T12:01:56.178442+00:00",
+  "ultima_corrida": "2026-11-21",
+  "anterior": "2026-11-20",
+  "generado": "2026-11-21T12:02:13.380109+00:00",
   "carnicerias": [
     "Carrefour",
     "ChangoMás",
@@ -68,13 +68,18 @@
     "asado": {
       "mejor_precio": 12789.38,
       "mejor_carniceria": "Vea",
-      "promedio": 26774.75,
-      "variacion_pct": -0.1,
+      "promedio": 26913.25,
+      "variacion_pct": 2.1,
       "precios": [
         {
           "carniceria": "Vea",
           "precio_kg": 12789.38,
           "url": "https://www.vea.com.ar/asado-de-novillito-gondola-bandeja/p"
+        },
+        {
+          "carniceria": "Disco",
+          "precio_kg": 12789.38,
+          "url": "https://www.disco.com.ar/asado-de-novillito-gondola-bandeja/p"
         },
         {
           "carniceria": "Jumbo",
@@ -105,20 +110,20 @@
           "carniceria": "Jumbo",
           "precio_kg": 15430.66,
           "url": "https://www.jumbo.com.ar/asado-del-carnicero/p"
-        },
-        {
-          "carniceria": "Vea",
-          "precio_kg": 16398.0,
-          "url": "https://www.vea.com.ar/asado-ruso-de-novillo/p"
         }
       ]
     },
     "bife_ancho": {
-      "mejor_precio": 22110.0,
-      "mejor_carniceria": "RES",
-      "promedio": 55610.27,
-      "variacion_pct": 6.5,
+      "mejor_precio": 20075.1,
+      "mejor_carniceria": "Vea",
+      "promedio": 52531.72,
+      "variacion_pct": -5.5,
       "precios": [
+        {
+          "carniceria": "Vea",
+          "precio_kg": 20075.1,
+          "url": "https://www.vea.com.ar/ojo-de-bife-magro-x-kg/p"
+        },
         {
           "carniceria": "RES",
           "precio_kg": 22110.0,
@@ -128,6 +133,11 @@
           "carniceria": "Disco",
           "precio_kg": 24998.0,
           "url": "https://www.disco.com.ar/bife-ancho-deshuesado-novillo-prueba-pil-tipo-gondola-sin-atributo-sin-atributo/p"
+        },
+        {
+          "carniceria": "ChangoMás",
+          "precio_kg": 27855.71,
+          "url": "https://www.masonline.com.ar/bife-ancho-de-novillito-x-450-gr/p"
         },
         {
           "carniceria": "EQ Minorista 🏠",
@@ -148,24 +158,14 @@
           "carniceria": "El Origen",
           "precio_kg": 29900.0,
           "url": "https://carniceriaelorigen.com/cortes-vacunos/ojo-de-bife-entero"
-        },
-        {
-          "carniceria": "EQ Minorista 🏠",
-          "precio_kg": 30000.0,
-          "url": "supabase://carnes_precios.precio_local"
-        },
-        {
-          "carniceria": "EQ Minorista 🏠",
-          "precio_kg": 32500.0,
-          "url": "supabase://carnes_precios.precio_local"
         }
       ]
     },
     "bife_angosto": {
       "mejor_precio": 22900.0,
       "mejor_carniceria": "El Origen",
-      "promedio": 45907.04,
-      "variacion_pct": 2.0,
+      "promedio": 46405.85,
+      "variacion_pct": 1.1,
       "precios": [
         {
           "carniceria": "El Origen",
@@ -236,7 +236,7 @@
       "mejor_precio": 14989.0,
       "mejor_carniceria": "ChangoMás",
       "promedio": 20825.26,
-      "variacion_pct": -1.8,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -283,8 +283,8 @@
     "colita_cuadril": {
       "mejor_precio": 21082.5,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 46185.99,
-      "variacion_pct": 0.3,
+      "promedio": 45579.76,
+      "variacion_pct": -1.3,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -331,8 +331,8 @@
     "cuadril": {
       "mejor_precio": 10762.5,
       "mejor_carniceria": "Jumbo",
-      "promedio": 27308.4,
-      "variacion_pct": 3.9,
+      "promedio": 28392.02,
+      "variacion_pct": 7.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -360,11 +360,6 @@
           "url": "https://www.disco.com.ar/cuadril-trozo-novillito-especial/p"
         },
         {
-          "carniceria": "Jumbo",
-          "precio_kg": 18362.18,
-          "url": "https://www.jumbo.com.ar/cuadril-trozo-novillito-especial/p"
-        },
-        {
           "carniceria": "El Origen",
           "precio_kg": 19900.0,
           "url": "https://carniceriaelorigen.com/cortes-vacunos/cuadril-entero"
@@ -373,6 +368,11 @@
           "carniceria": "ChangoMás",
           "precio_kg": 20999.17,
           "url": "https://www.masonline.com.ar/cuadril-de-novillito-x-900-gr/p"
+        },
+        {
+          "carniceria": "EQ Minorista 🏠",
+          "precio_kg": 22000.0,
+          "url": "supabase://carnes_precios.precio_local"
         }
       ]
     },
@@ -380,7 +380,7 @@
       "mejor_precio": 16525.58,
       "mejor_carniceria": "Vea",
       "promedio": 36175.15,
-      "variacion_pct": 1.8,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -427,8 +427,8 @@
     "falda": {
       "mejor_precio": 12999.0,
       "mejor_carniceria": "Cordiez",
-      "promedio": 15514.83,
-      "variacion_pct": 0.5,
+      "promedio": 15487.25,
+      "variacion_pct": -0.2,
       "precios": [
         {
           "carniceria": "Cordiez",
@@ -444,6 +444,16 @@
           "carniceria": "En Carne Propia",
           "precio_kg": 14000.0,
           "url": "https://encarnepropia.com.ar/tienda/producto-09/"
+        },
+        {
+          "carniceria": "Cordiez",
+          "precio_kg": 14999.0,
+          "url": "https://www.cordiez.com.ar/falda-deshuesada-especial-novara-x-kg/p"
+        },
+        {
+          "carniceria": "Vea",
+          "precio_kg": 15810.0,
+          "url": "https://www.vea.com.ar/falda-novillito/p"
         },
         {
           "carniceria": "Disco",
@@ -463,11 +473,16 @@
       ]
     },
     "lomo": {
-      "mejor_precio": 16666.0,
+      "mejor_precio": 12799.6,
       "mejor_carniceria": "Cordiez",
-      "promedio": 35019.78,
-      "variacion_pct": -0.2,
+      "promedio": 34366.25,
+      "variacion_pct": -1.9,
       "precios": [
+        {
+          "carniceria": "Cordiez",
+          "precio_kg": 12799.6,
+          "url": "https://www.cordiez.com.ar/lomo-especial-novara-x-kg/p"
+        },
         {
           "carniceria": "Cordiez",
           "precio_kg": 16666.0,
@@ -502,11 +517,6 @@
           "carniceria": "Vea",
           "precio_kg": 21998.0,
           "url": "https://www.vea.com.ar/lomo-liso-de-novillo-sin-atributo-sin-atributo-sin-atributo-sin-atributo/p"
-        },
-        {
-          "carniceria": "Disco",
-          "precio_kg": 21998.0,
-          "url": "https://www.disco.com.ar/lomo-veteado-sin-atributo-sin-atributo-sin-atributo-sin-atributo-2/p"
         }
       ]
     },
@@ -514,7 +524,7 @@
       "mejor_precio": 11990.0,
       "mejor_carniceria": "Carrefour",
       "promedio": 26460.65,
-      "variacion_pct": 0.3,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Carrefour",
@@ -562,7 +572,7 @@
       "mejor_precio": 16989.0,
       "mejor_carniceria": "ChangoMás",
       "promedio": 23186.7,
-      "variacion_pct": 7.5,
+      "variacion_pct": 9.0,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -610,7 +620,7 @@
       "mejor_precio": 7840.94,
       "mejor_carniceria": "Vea",
       "promedio": 15186.17,
-      "variacion_pct": 8.3,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -657,8 +667,8 @@
     "paleta": {
       "mejor_precio": 9137.1,
       "mejor_carniceria": "Vea",
-      "promedio": 26570.17,
-      "variacion_pct": 2.2,
+      "promedio": 26140.24,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -686,6 +696,11 @@
           "url": "https://www.vea.com.ar/paleta-americano-novillito-especial/p"
         },
         {
+          "carniceria": "Disco",
+          "precio_kg": 14533.78,
+          "url": "https://www.disco.com.ar/paleta-americano-novillito-especial/p"
+        },
+        {
           "carniceria": "ChangoMás",
           "precio_kg": 14749.17,
           "url": "https://www.masonline.com.ar/paleta-de-novillito-x-800gr/p"
@@ -694,11 +709,6 @@
           "carniceria": "Vea",
           "precio_kg": 14963.18,
           "url": "https://www.vea.com.ar/paleta-trozo-novillito-especial/p"
-        },
-        {
-          "carniceria": "Vea",
-          "precio_kg": 14963.18,
-          "url": "https://www.vea.com.ar/paleta-churrasco-novillito-especial/p"
         }
       ]
     },
@@ -706,7 +716,7 @@
       "mejor_precio": 19999.0,
       "mejor_carniceria": "Cordiez",
       "promedio": 36270.16,
-      "variacion_pct": 1.6,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Cordiez",
@@ -754,7 +764,7 @@
       "mejor_precio": 10900.0,
       "mejor_carniceria": "En Carne Propia",
       "promedio": 15251.25,
-      "variacion_pct": 1.9,
+      "variacion_pct": 3.2,
       "precios": [
         {
           "carniceria": "En Carne Propia",
@@ -802,7 +812,7 @@
       "mejor_precio": 8252.7,
       "mejor_carniceria": "Vea",
       "promedio": 17987.63,
-      "variacion_pct": 1.1,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -850,7 +860,7 @@
       "mejor_precio": 9027.3,
       "mejor_carniceria": "Vea",
       "promedio": 25477.97,
-      "variacion_pct": 2.3,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -895,11 +905,16 @@
       ]
     },
     "tapa_asado": {
-      "mejor_precio": 13490.0,
-      "mejor_carniceria": "Carrefour",
-      "promedio": 23768.6,
-      "variacion_pct": 0.5,
+      "mejor_precio": 7749.5,
+      "mejor_carniceria": "Jumbo",
+      "promedio": 22478.68,
+      "variacion_pct": -5.4,
       "precios": [
+        {
+          "carniceria": "Jumbo",
+          "precio_kg": 7749.5,
+          "url": "https://www.jumbo.com.ar/carnes/carne-vacuna"
+        },
         {
           "carniceria": "Carrefour",
           "precio_kg": 13490.0,
@@ -934,11 +949,6 @@
           "carniceria": "RES",
           "precio_kg": 19900.0,
           "url": "https://www.res.com.ar/tapa-de-asado.html"
-        },
-        {
-          "carniceria": "Justino",
-          "precio_kg": 20300.0,
-          "url": "https://justino.com.ar/producto/tapa-de-asado/"
         }
       ]
     },
@@ -946,7 +956,7 @@
       "mejor_precio": 16277.22,
       "mejor_carniceria": "ChangoMás",
       "promedio": 26597.42,
-      "variacion_pct": 2.6,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -993,8 +1003,8 @@
     "tapa_nalga": {
       "mejor_precio": 10136.52,
       "mejor_carniceria": "Vea",
-      "promedio": 25756.66,
-      "variacion_pct": 1.8,
+      "promedio": 25361.08,
+      "variacion_pct": -1.5,
       "precios": [
         {
           "carniceria": "Vea",
@@ -1042,7 +1052,7 @@
       "mejor_precio": 10733.7,
       "mejor_carniceria": "Vea",
       "promedio": 15960.51,
-      "variacion_pct": 1.8,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -1089,8 +1099,8 @@
     "vacio": {
       "mejor_precio": 14132.67,
       "mejor_carniceria": "ChangoMás",
-      "promedio": 32153.86,
-      "variacion_pct": -4.3,
+      "promedio": 32022.6,
+      "variacion_pct": -0.4,
       "precios": [
         {
           "carniceria": "ChangoMás",
