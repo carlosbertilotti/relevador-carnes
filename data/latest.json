@@ -1,7 +1,7 @@
 {
-  "ultima_corrida": "2026-11-21",
-  "anterior": "2026-11-20",
-  "generado": "2026-11-21T12:02:13.380109+00:00",
+  "ultima_corrida": "2026-11-22",
+  "anterior": "2026-11-21",
+  "generado": "2026-11-22T12:01:58.442112+00:00",
   "carnicerias": [
     "Carrefour",
     "ChangoMás",
@@ -68,8 +68,8 @@
     "asado": {
       "mejor_precio": 12789.38,
       "mejor_carniceria": "Vea",
-      "promedio": 26913.25,
-      "variacion_pct": 2.1,
+      "promedio": 27303.21,
+      "variacion_pct": 3.1,
       "precios": [
         {
           "carniceria": "Vea",
@@ -116,8 +116,8 @@
     "bife_ancho": {
       "mejor_precio": 20075.1,
       "mejor_carniceria": "Vea",
-      "promedio": 52531.72,
-      "variacion_pct": -5.5,
+      "promedio": 51255.66,
+      "variacion_pct": -2.4,
       "precios": [
         {
           "carniceria": "Vea",
@@ -164,8 +164,8 @@
     "bife_angosto": {
       "mejor_precio": 22900.0,
       "mejor_carniceria": "El Origen",
-      "promedio": 46405.85,
-      "variacion_pct": 1.1,
+      "promedio": 45992.1,
+      "variacion_pct": -0.9,
       "precios": [
         {
           "carniceria": "El Origen",
@@ -193,6 +193,11 @@
           "url": "https://www.disco.com.ar/bife-de-chorizo-novillito-especial/p"
         },
         {
+          "carniceria": "Jumbo",
+          "precio_kg": 24264.58,
+          "url": "https://www.jumbo.com.ar/bife-de-chorizo-novillito-especial/p"
+        },
+        {
           "carniceria": "Carrefour",
           "precio_kg": 24500.0,
           "url": "https://www.carrefour.com.ar/carnes-y-pescados/carne-vacuna"
@@ -201,11 +206,6 @@
           "carniceria": "EQ Minorista 🏠",
           "precio_kg": 25000.0,
           "url": "supabase://carnes_precios.precio_local"
-        },
-        {
-          "carniceria": "En Carne Propia",
-          "precio_kg": 26500.0,
-          "url": "https://encarnepropia.com.ar/tienda/bife-de-chorizo-x-kg/"
         }
       ]
     },
@@ -284,7 +284,7 @@
       "mejor_precio": 21082.5,
       "mejor_carniceria": "ChangoMás",
       "promedio": 45579.76,
-      "variacion_pct": -1.3,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "ChangoMás",
@@ -332,7 +332,7 @@
       "mejor_precio": 10762.5,
       "mejor_carniceria": "Jumbo",
       "promedio": 28392.02,
-      "variacion_pct": 7.0,
+      "variacion_pct": 2.9,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -379,8 +379,8 @@
     "entrana": {
       "mejor_precio": 16525.58,
       "mejor_carniceria": "Vea",
-      "promedio": 36175.15,
-      "variacion_pct": -0.0,
+      "promedio": 36120.16,
+      "variacion_pct": -0.2,
       "precios": [
         {
           "carniceria": "Vea",
@@ -427,8 +427,8 @@
     "falda": {
       "mejor_precio": 12999.0,
       "mejor_carniceria": "Cordiez",
-      "promedio": 15487.25,
-      "variacion_pct": -0.2,
+      "promedio": 15576.44,
+      "variacion_pct": 0.6,
       "precios": [
         {
           "carniceria": "Cordiez",
@@ -461,13 +461,13 @@
           "url": "https://www.disco.com.ar/falda-novillito/p"
         },
         {
-          "carniceria": "EQ Minorista 🏠",
-          "precio_kg": 18000.0,
-          "url": "supabase://carnes_precios.precio_local"
+          "carniceria": "Jumbo",
+          "precio_kg": 16290.0,
+          "url": "https://www.jumbo.com.ar/falda-novillito/p"
         },
         {
           "carniceria": "EQ Minorista 🏠",
-          "precio_kg": 18500.0,
+          "precio_kg": 18000.0,
           "url": "supabase://carnes_precios.precio_local"
         }
       ]
@@ -475,8 +475,8 @@
     "lomo": {
       "mejor_precio": 12799.6,
       "mejor_carniceria": "Cordiez",
-      "promedio": 34366.25,
-      "variacion_pct": -1.9,
+      "promedio": 33865.97,
+      "variacion_pct": -1.5,
       "precios": [
         {
           "carniceria": "Cordiez",
@@ -668,7 +668,7 @@
       "mejor_precio": 9137.1,
       "mejor_carniceria": "Vea",
       "promedio": 26140.24,
-      "variacion_pct": -0.0,
+      "variacion_pct": 1.6,
       "precios": [
         {
           "carniceria": "Vea",
@@ -908,7 +908,7 @@
       "mejor_precio": 7749.5,
       "mejor_carniceria": "Jumbo",
       "promedio": 22478.68,
-      "variacion_pct": -5.4,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Jumbo",
@@ -1004,7 +1004,7 @@
       "mejor_precio": 10136.52,
       "mejor_carniceria": "Vea",
       "promedio": 25361.08,
-      "variacion_pct": -1.5,
+      "variacion_pct": -0.0,
       "precios": [
         {
           "carniceria": "Vea",
@@ -1100,7 +1100,7 @@
       "mejor_precio": 14132.67,
       "mejor_carniceria": "ChangoMás",
       "promedio": 32022.6,
-      "variacion_pct": -0.4,
+      "variacion_pct": 0.0,
       "precios": [
         {
           "carniceria": "ChangoMás",
